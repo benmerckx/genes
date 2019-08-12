@@ -40,7 +40,8 @@ typedef Context = {
   ?tabs: String,
   ?inValue: Bool,
   ?inLoop: Bool,
-  ?hasFeature: (feature: String) -> Bool
+  ?hasFeature: (feature: String) -> Bool,
+  ?addFeature: (feature: String) -> Void
 }
 
 private typedef C = SourceNode;
@@ -64,7 +65,8 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
       tabs: '',
       inValue: false,
       inLoop: false,
-      hasFeature: feature -> false
+      hasFeature: feature -> false,
+      addFeature: function (feature) {}
     }
 
   static function set<T: {}>(object: T, changes: {}): T {
