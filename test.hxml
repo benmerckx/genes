@@ -1,0 +1,7 @@
+-lib hxgenes
+-lib hxnodejs
+-cp tests
+-main tests.Run
+-D js_es=6
+-js bin/test.js
+-cmd node bin/test.js
