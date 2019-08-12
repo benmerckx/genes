@@ -1,6 +1,6 @@
 package genes;
 
-import haxe.macro.Type.TypedExpr;
+import haxe.macro.Type;
 import haxe.macro.Expr.Position;
 import haxe.display.Position.Location;
 import haxe.macro.PositionTools.toLocation;
@@ -37,11 +37,13 @@ private enum SourceNodeChunk {
 }
 
 typedef Context = {
-  ?tabs: String,
-  ?inValue: Bool,
-  ?inLoop: Bool,
-  ?hasFeature: (feature: String) -> Bool,
-  ?addFeature: (feature: String) -> Void
+  var ?idCounter: Int;
+  final ?tabs: String;
+  final ?inValue: Int;
+  final ?inLoop: Bool;
+  final ?hasFeature: (feature: String) -> Bool;
+  final ?addFeature: (feature: String) -> Void;
+  final ?typeAccessor: (type: ModuleType) -> String;
 }
 
 private typedef C = SourceNode;
@@ -60,13 +62,22 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
   @:from static function fromMultiple(chunks: Array<SourceNode>): SourceNode
     return Multiple(chunks);
 
-  static function createContext()
+  static function createContext(): Context
     return {
+      idCounter: 0,
       tabs: '',
-      inValue: false,
+      inValue: 0,
       inLoop: false,
       hasFeature: feature -> false,
-      addFeature: function (feature) {}
+      addFeature: function (feature) {},
+      typeAccessor: (type: ModuleType) -> 
+        switch type {
+          case TClassDecl(_.get() => {pack: pack, module: module, name: name}) |
+          TEnumDecl(_.get() => {pack: pack, module: module, name: name}) |
+          TTypeDecl(_.get() => {pack: pack, module: module, name: name}) |
+          TAbstract(_.get() => {pack: pack, module: module, name: name}):
+            module;
+        }
     }
 
   static function set<T: {}>(object: T, changes: {}): T {
