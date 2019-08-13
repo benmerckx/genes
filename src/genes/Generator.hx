@@ -8,24 +8,10 @@ import haxe.macro.Compiler;
 import haxe.macro.Type;
 
 using Lambda;
+using StringTools;
 
 class Generator {
-  var api: JSGenApi;
-  var buf: StringBuf;
-  var inits: List<TypedExpr>;
-  var statics: List<{c: ClassType, f: ClassField}>;
-  var packages: haxe.ds.StringMap<Bool>;
-
-  public function new(api) {
-    this.api = api;
-    buf = new StringBuf();
-    inits = new List();
-    statics = new List();
-    packages = new haxe.ds.StringMap();
-    api.setTypeAccessor(getType);
-  }
-
-  function getType(t: Type) {
+  /*function getType(t: Type) {
     return switch (t) {
       case TInst(c, _): getPath(c.get());
       case TEnum(e, _): getPath(e.get());
@@ -208,15 +194,26 @@ class Generator {
           genEnum(e);
       default:
     }
-  }
+  }*/
 
-  public function generate() {
-    print("var $_, $hxClasses = $hxClasses || {}, $estr = function() { return js.Boot.__string_rec(this,''); }");
-    newline();
-    print("function $bind(o,m) { var f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; return f; };");
-    newline();
-    for (t in api.types)
-      genType(t);
+  static function generate(api: JSGenApi) {
+    final modules = new Map<String, Array<Type>>();
+    for (type in api.types) {
+      switch type {
+        // Todo: init extern inst
+        case TInst(_.get() => {module: module, isExtern: false}, _)
+          | TEnum(_.get() => {module: module, isExtern: false}, _):
+          if (modules.exists(module))
+            modules.get(module).push(type);
+          else
+            modules.set(module, [type]);
+        default:
+      }
+    }
+    for (module => types in modules)
+      generateModule(api, module.replace('.', '/'), types);
+    // Todo: don't forget api.main
+      /*genType(t);
     for (e in inits) {
       print(api.generateStatement(e));
       newline();
@@ -229,12 +226,17 @@ class Generator {
       genExpr(api.main);
       newline();
     }
-    sys.io.File.saveContent(api.outputFile, buf.toString());
+    sys.io.File.saveContent(api.outputFile, buf.toString());*/
+  }
+
+  static function generateModule(api: JSGenApi, path: String, types: Array<Type>) {
+    final module = new Module(path, types);
+    genes.generator.es.ModuleGenerator.module(api, module);
   }
 
   #if macro
   public static function use() {
-    Compiler.setCustomJSGenerator(function(api) new Generator(api).generate());
+    Compiler.setCustomJSGenerator(Generator.generate);
   }
   #end
 }

@@ -106,6 +106,9 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
     }
   }
 
+  public function toStringWithSourceMap(?ctx: Context) 
+    return {code: toString(ctx), map: null}
+
   public static final join = (chunks: Array<SourceNode>, by: SourceNode) -> {
     final res = [];
     for (i in 0...chunks.length) {
@@ -115,6 +118,8 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
     }
     return (res : SourceNode);
   }
+
+  public static final newline = read(ctx -> '\n${ctx.tabs}');
 
   public static final node = (position: SourcePosition, ?a: C, ?b: C, ?c: C, ?d
     : C, ?e: C, ?f: C, ?g: C, ?h: C, ?i: C, ?j: C, ?k: C, ?l: C,

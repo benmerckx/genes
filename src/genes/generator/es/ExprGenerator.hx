@@ -442,8 +442,6 @@ class ExprGenerator {
       case OpIn: ' in ';
     }
 
-  static final newline = read(ctx -> '\n${ctx.tabs}');
-
   static function addObjectdeclParens(e: TypedExpr): TypedExpr {
     function loop(e:TypedExpr): TypedExpr
       return switch (e.expr) {
