@@ -76,11 +76,11 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
       value: (e: TypedExpr) -> '',
       typeAccessor: (type: ModuleType) -> 
         switch type {
-          case TClassDecl(_.get() => {pack: pack, module: module, name: name}) |
-          TEnumDecl(_.get() => {pack: pack, module: module, name: name}) |
-          TTypeDecl(_.get() => {pack: pack, module: module, name: name}) |
-          TAbstract(_.get() => {pack: pack, module: module, name: name}):
-            module;
+          case TClassDecl(_.get() => {name: name}) |
+          TEnumDecl(_.get() => {name: name}) |
+          TTypeDecl(_.get() => {name: name}) |
+          TAbstract(_.get() => {name: name}):
+            name;
         }
     }
 
@@ -120,6 +120,9 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
   }
 
   public static final newline = read(ctx -> '\n${ctx.tabs}');
+  
+  public static function indent(node: SourceNode): SourceNode
+    return write(ctx -> {tabs: ctx.tabs + '\t'}, node);
 
   public static final node = (position: SourcePosition, ?a: C, ?b: C, ?c: C, ?d
     : C, ?e: C, ?f: C, ?g: C, ?h: C, ?i: C, ?j: C, ?k: C, ?l: C,

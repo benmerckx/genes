@@ -1,8 +1,22 @@
 package tests;
 
+interface A {
+  function a(): String;
+}
+
+class B implements A {
+  public function new() {}
+  public function a() return 'a'; 
+
+  static function __init__() {
+    trace('ok');
+  }
+}
+
 class Run {
   function new() {
     var p = new haxe.io.Path('');
+    var b = new B().a();
   }
 
   static function main() {

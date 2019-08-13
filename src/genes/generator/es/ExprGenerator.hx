@@ -117,7 +117,7 @@ class ExprGenerator {
 				expr(e);
       case TReturn(e):
         switch e {
-          case null: node(e, 'return');
+          case null: 'return';
           case eo: node(e, 'return ', node(eo, value(eo)));
         }
 			case TBreak:
@@ -259,7 +259,7 @@ class ExprGenerator {
         [];
     }));
 
-  static function ident(name: String): SourceNode
+  public static function ident(name: String): SourceNode
     return if (keywords.indexOf(name) > -1) "$" + name else name;
 
   static function staticField(c: ClassType, s: String): String
@@ -359,7 +359,7 @@ class ExprGenerator {
     leaf: (n: SourceNode) -> SourceNode
   ): SourceNode
     return [
-      'switch ', value(cond), '{', 
+      'switch ', value(cond), ' {', 
       indent([
         newline,
         cases.map(c -> node(c.expr, 
@@ -387,8 +387,8 @@ class ExprGenerator {
               newline
             );
         }
-      ]),
-      '}'
+      ]), 
+      newline, '}'
     ];
 
   public static function constant(c: TConstant): SourceNode
@@ -523,9 +523,6 @@ class ExprGenerator {
       default:
         throw 'Unknown js.Syntax method "$method"';
     }
-
-  static function indent(node: SourceNode): SourceNode
-    return write(ctx -> {tabs: ctx.tabs + '\t'}, node);
 
   public static function blockElement(e: TypedExpr, after = false)
     return node(e, switch e.expr {

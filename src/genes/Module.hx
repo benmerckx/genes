@@ -5,22 +5,24 @@ import haxe.macro.Type;
 using StringTools;
 using haxe.macro.TypedExprTools;
 
-enum FieldType {
+enum FieldKind {
 	Constructor;
-  Property;
   Method;
-  StaticProperty;
-  StaticMethod;
+  Property;
 }
 
 typedef Field = {
-  final type: FieldType;
+  final kind: FieldKind;
+  final name: String;
+  final type: Type;
   final expr: TypedExpr;
+  final isStatic: Bool;
 }
 
 enum Member {
   MClass(type: ClassType, fields: Array<Field>);
   MEnum(type: EnumType);
+  MMain(expr: TypedExpr);
 }
 
 class Module {
@@ -28,9 +30,9 @@ class Module {
   public final members: Array<Member>;
   public var dependencies(get, null): Map<String, Array<String>>;
 
-  public function new(path, types: Array<Type>) {
+  public function new(path, types: Array<Type>, ?main: TypedExpr) {
     this.path = path;
-    this.members = [
+    members = [
       for (type in types)
         switch type {
           case TEnum(_.get() => et, _): MEnum(et);
@@ -38,6 +40,7 @@ class Module {
           default: throw 'assert';
         }
     ];
+    if (main != null) members.push(MMain(main));
   }
 
   function toPath(module: String) {
@@ -58,12 +61,13 @@ class Module {
       switch type {
         case TClassDecl((_.get(): BaseType) => base) 
           | TEnumDecl((_.get(): BaseType) => base):
-          final path = toPath(base.module);
-          if (dependencies.exists(path)) {
-            final names = dependencies.get(path);
+          if (base.module.replace('.', '/') == path) return;
+          final modulePath = toPath(base.module);
+          if (dependencies.exists(modulePath)) {
+            final names = dependencies.get(modulePath);
             if (names.indexOf(base.name) == -1) names.push(base.name);
           } else {
-            dependencies.set(path, [base.name]);
+            dependencies.set(modulePath, [base.name]);
           }
         default:
       }
@@ -88,6 +92,8 @@ class Module {
           for (field in fields)
             addFromExpr(field.expr);
           addFromExpr(cl.init);
+        case MMain(expr):
+          addFromExpr(expr);
         default: 
       }
     }
@@ -99,26 +105,37 @@ class Module {
     switch cl.constructor {
       case null:
       case ctor:
+        final e = ctor.get().expr();
         fields.push({
-          type: Constructor,
-          expr: ctor.get().expr()
+          kind: Constructor,
+          type: e.t,
+          expr: e,
+          name: 'constructor',
+          isStatic: false
         });
     }
-    for (field in cl.fields.get())
+    for (field in cl.fields.get()) {
       fields.push({
-        type: switch field.kind {
+        kind: switch field.kind {
           case FVar(_, _): Property;
           case FMethod(_): Method;
         },
-        expr: field.expr()
+        name: field.name,
+        type: field.type,
+        expr: field.expr(),
+        isStatic: false
       });
+    }
     for (field in cl.statics.get())
       fields.push({
-        type: switch field.kind {
-          case FVar(_, _): StaticProperty;
-          case FMethod(_): StaticMethod;
+        kind: switch field.kind {
+          case FVar(_, _): Property;
+          case FMethod(_): Method;
         },
-        expr: field.expr()
+        name: field.name,
+        type: field.type,
+        expr: field.expr(),
+        isStatic: true
       });
     return fields;
   }

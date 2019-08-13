@@ -6,98 +6,64 @@ import haxe.macro.JSGenApi;
 import haxe.macro.Context;
 import haxe.macro.Compiler;
 import haxe.macro.Type;
+import sys.FileSystem;
+import sys.io.File;
+import haxe.io.Path;
+import genes.generator.es.ModuleGenerator;
 
 using Lambda;
 using StringTools;
 
 class Generator {
-  /*function getType(t: Type) {
-    return switch (t) {
-      case TInst(c, _): getPath(c.get());
-      case TEnum(e, _): getPath(e.get());
-      case TAbstract(a, _): getPath(a.get());
-      default: throw "assert";
-    };
-  }
-
-  inline function print(str) {
-    buf.add(str);
-  }
-
-  inline function newline() {
-    buf.add(";\n");
-  }
-
-  inline function genExpr(e: TypedExpr) {
-    final source = genes.generator.es.ExprGenerator.expr(e);
-    trace(api.generateValue(e));
-    trace(source.toString({
-      expr: api.generateStatement,
-      value: api.generateValue,
-      hasFeature: api.hasFeature,
-      addFeature: api.addFeature
-    }));
-    print(api.generateValue(e));
-  }
-
-  function field(p) {
-    return api.isKeyword(p) ? '["' + p + '"]' : "." + p;
-  }
-
-  function genPackage(p: Array<String>) {
-    var full = null;
-    for (x in p) {
-      var prev = full;
-      if (full == null)
-        full = x
-      else
-        full += "." + x;
-      if (packages.exists(full))
-        continue;
-      packages.set(full, true);
-      if (prev == null)
-        print('if(typeof $x==\'undefined\') $x = {}');
-      else {
-        var p = prev + field(x);
-        print('if(!$p) $p = {}');
-      }
-      newline();
-    }
-  }
-
-  function getPath(t: BaseType) {
-    return (t.pack.length == 0) ? t.name : t.pack.join(".") + "." + t.name;
-  }
-
-  function genClassField(c: ClassType, p: String, f: ClassField) {
-    var field = field(f.name);
-    print('$p.prototype$field = ');
-    var e = f.expr();
-    if (e == null)
-      print("null");
-    else {
-      genExpr(e);
-    }
-    newline();
-  }
-
-  function genStaticField(c: ClassType, p: String, f: ClassField) {
-    var field = field(f.name);
-    var e = f.expr();
-    if (e == null) {
-      print('$p$field = null');
-      newline();
-    } else
-      switch (f.kind) {
-        case FMethod(_):
-          print('$p$field = ');
-          genExpr(e);
-          newline();
+  static function generate(api: JSGenApi) {
+    final modules = new Map<String, Array<Type>>();
+    final output = Path.withoutExtension(Path.withoutDirectory(api.outputFile));
+    for (type in api.types) {
+      switch type {
+        // Todo: init extern inst
+        case TInst(_.get() => {module: module, isExtern: false}, _)
+          | TEnum(_.get() => {module: module, isExtern: false}, _):
+          if (modules.exists(module))
+            modules.get(module).push(type);
+          else
+            modules.set(module, [type]);
         default:
-          statics.add({c: c, f: f});
       }
+    }
+    for (module => types in modules)
+      generateModule(api, module.replace('.', '/'), types);
+    switch api.main {
+      case null:
+      // Todo: check for nameclash with above
+      case v: generateModule(api, output, [], v);
+    }
   }
 
+  static function generateModule(
+    api: JSGenApi, 
+    path: String, 
+    types: Array<Type>, 
+    ?main: TypedExpr
+  ) {
+    final module = new Module(path, types, main);
+    final outputDir = Path.directory(api.outputFile);
+    function save(file: String, content: String) {
+      final path = Path.join([outputDir, file]);
+      final dir = Path.directory(path);
+      if (!FileSystem.exists(dir)) FileSystem.createDirectory(dir);
+      File.saveContent(path, content);
+    }
+    ModuleGenerator.module(api, save, module);
+  }
+
+  #if macro
+  public static function use() {
+    Compiler.setCustomJSGenerator(Generator.generate);
+  }
+  #end
+}
+
+/*
   function genClass(c: ClassType) {
     genPackage(c.pack);
     api.setCurrentClass(c);
@@ -170,73 +136,4 @@ class Generator {
       genExpr(meta);
       newline();
     }
-  }
-
-  function genStaticValue(c: ClassType, cf: ClassField) {
-    var p = getPath(c);
-    var f = field(cf.name);
-    print('$p$f = ');
-    genExpr(cf.expr());
-    newline();
-  }
-
-  function genType(t: Type) {
-    switch (t) {
-      case TInst(c, _):
-        var c = c.get();
-        if (c.init != null)
-          inits.add(c.init);
-        if (!c.isExtern)
-          genClass(c);
-      case TEnum(r, _):
-        var e = r.get();
-        if (!e.isExtern)
-          genEnum(e);
-      default:
-    }
   }*/
-
-  static function generate(api: JSGenApi) {
-    final modules = new Map<String, Array<Type>>();
-    for (type in api.types) {
-      switch type {
-        // Todo: init extern inst
-        case TInst(_.get() => {module: module, isExtern: false}, _)
-          | TEnum(_.get() => {module: module, isExtern: false}, _):
-          if (modules.exists(module))
-            modules.get(module).push(type);
-          else
-            modules.set(module, [type]);
-        default:
-      }
-    }
-    for (module => types in modules)
-      generateModule(api, module.replace('.', '/'), types);
-    // Todo: don't forget api.main
-      /*genType(t);
-    for (e in inits) {
-      print(api.generateStatement(e));
-      newline();
-    }
-    for (s in statics) {
-      genStaticValue(s.c, s.f);
-      newline();
-    }
-    if (api.main != null) {
-      genExpr(api.main);
-      newline();
-    }
-    sys.io.File.saveContent(api.outputFile, buf.toString());*/
-  }
-
-  static function generateModule(api: JSGenApi, path: String, types: Array<Type>) {
-    final module = new Module(path, types);
-    genes.generator.es.ModuleGenerator.module(api, module);
-  }
-
-  #if macro
-  public static function use() {
-    Compiler.setCustomJSGenerator(Generator.generate);
-  }
-  #end
-}
