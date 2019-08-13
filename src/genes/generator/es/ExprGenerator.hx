@@ -3,7 +3,6 @@ package genes.generator.es;
 import haxe.macro.Type;
 import haxe.macro.Expr;
 import haxe.macro.Context;
-import haxe.macro.PositionTools.toLocation;
 import genes.SourceNode;
 import genes.SourceNode.*;
 
@@ -34,7 +33,8 @@ class ExprGenerator {
         [value(addObjectdeclParens(e1)), '[', value(e2), ']'];
       case TBinop(op, {expr: TField(x, f)}, e2) if (fieldName(f) == 'iterator'): 
         [value(x), field('iterator'), ' ', binop(op), ' ', value(e2)];
-      case TBinop(op, e1, e2): [value(e1), ' ', binop(op), ' ', value(e2)];
+      case TBinop(op, e1, e2): 
+        [value(e1), ' ', binop(op), ' ', value(e2)];
       case TField(x, f) 
         if (fieldName(f) == "iterator" && isDynamicIterator(ctx, e)):
 				ctx.addFeature("use.$iterator");
@@ -104,7 +104,7 @@ class ExprGenerator {
 			case TTypeExpr(t):
 				ctx.typeAccessor(t);
       case TParenthesis(e1): 
-        ['(', expr(e1), ')'];
+        ['(', value(e1), ')'];
 			case TMeta({name: ':loopLabel', params: [{expr:EConst(CInt(n))}]}, e):
 				switch (e.expr) {
 					case TWhile(_,_,_), TFor(_,_,_):
@@ -137,11 +137,14 @@ class ExprGenerator {
         ];
       case TFunction(f): 
         write(ctx -> {inValue: 0, inLoop: false}, [
-          'function (', f.args.map(a -> ident(a.v.name)), ') ',
+          'function (', join(f.args.map(a -> ident(a.v.name)), ', '), ') ',
           expr(f.expr)
         ]);
-      case TCall(e, el): 
-        call(e, el, false);
+      case TCall({expr: TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))}, _)
+        | TCall({expr: TIdent('__js__')}, _):
+        return read(ctx -> ctx.expr(e));
+      case TCall(e, params): 
+        call(e, params, false);
 			case TArrayDecl(el):
 				['[', join(el.map(value), ', '), ']'];
 			case TThrow(e):
@@ -298,8 +301,11 @@ class ExprGenerator {
         expr(e);
       case TMeta(_, e1):
         value(e1);
-      case TCall(e, el):
-        call(e, el, true);
+      case TCall({expr: TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))}, _)
+        | TCall({expr: TIdent('__js__')}, _):
+        return read(ctx -> ctx.value(e));
+      case TCall(e, params):
+        call(e, params, true);
       case TReturn(_), TBreak, TContinue:
         throw 'Unsupported';
       case TCast(e1, null):
@@ -354,8 +360,8 @@ class ExprGenerator {
   ): SourceNode
     return [
       'switch ', value(cond), '{', 
-      newline,
       indent([
+        newline,
         cases.map(c -> node(c.expr, 
           c.values.map(e -> node(e, 
             switch e.expr {
@@ -456,8 +462,7 @@ class ExprGenerator {
       case _: null;
     }
 
-  public static function call(e: TypedExpr, params: Array<TypedExpr>,
-      inValue: Bool): SourceNode
+  static function call(e: TypedExpr, params: Array<TypedExpr>, inValue: Bool): SourceNode
     return node(e, switch [e.expr, params] {
       case [TIdent('`trace'), [e, info]]:
         [
@@ -470,9 +475,56 @@ class ExprGenerator {
             value(e),
           ')'
         ];
+      case [TCall(x,_), el] if (switch (x.expr) {case TIdent('__js__'): false; case _: true;}):
+        ['(', value(e), ')(', join(el.map(value), ', '), ')'];
+      case [TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: name})), args]:
+				syntax(name, args);
+      case [TIdent("__new__"), args]:
+				syntax("new_", args);
+			case [TIdent("__instanceof__"), args]:
+				syntax("instanceof", args);
+			case [TIdent("__typeof__"), args]:
+				syntax("typeof", args);
+			case [TIdent("__strict_eq__"), args]:
+				syntax("strictEq", args);
+			case [TIdent("__strict_neq__"), args]:
+				syntax("strictNeq", args);
+      case [TIdent('__define_feature__'), [_, e]]:
+				expr(e);
+      case [TIdent('__feature__'), [{expr: TConst(TString(f))}, eif]]:
+        read(ctx -> 
+          if (ctx.hasFeature(f)) value(eif)
+          else []
+        );
+      case [TIdent('__feature__'), [{expr: TConst(TString(f))}, eif, eelse]]:
+        read(ctx -> 
+          if (ctx.hasFeature(f)) value(eif)
+          else value(eelse)
+        );
+      // todo: bunch of custom stuff
       default:
         [value(e), '(', join(params.map(value), ', '), ')'];
     });
+
+  static function syntax(method: String, args: Array<TypedExpr>): SourceNode
+    return switch method {
+      case 'construct': 
+        ['new ', value(args[0]), '(', join(args.slice(1).map(value), ', '),')'];
+      case 'instanceof':
+        ['((', value(args[0]), ') instanceof ', value(args[1]), ')'];
+      case 'typeof':
+        ['typeof(', value(args[0]), ')'];
+      case 'strictEq':
+        ['((', value(args[0]), ') === (', value(args[1]), '))'];
+      case 'strictNeq':
+        ['((', value(args[0]), ') !== (', value(args[1]), '))'];
+      case 'delete':
+        ['delete(', value(args[0]), '[', value(args[1]), '])'];
+      case 'field':
+        [value(args[0]), '[', value(args[1]), '])'];
+      default:
+        throw 'Unknown js.Syntax method "$method"';
+    }
 
   static function indent(node: SourceNode): SourceNode
     return write(ctx -> {tabs: ctx.tabs + '\t'}, node);

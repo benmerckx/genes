@@ -46,6 +46,8 @@ class Generator {
     final source = genes.generator.es.ExprGenerator.expr(e);
     trace(api.generateValue(e));
     trace(source.toString({
+      expr: api.generateStatement,
+      value: api.generateValue,
       hasFeature: api.hasFeature,
       addFeature: api.addFeature
     }));

@@ -41,6 +41,8 @@ typedef Context = {
   final ?tabs: String;
   final ?inValue: Int;
   final ?inLoop: Bool;
+  final ?expr: (expr: TypedExpr) -> String;
+  final ?value: (expr: TypedExpr) -> String;
   final ?hasFeature: (feature: String) -> Bool;
   final ?addFeature: (feature: String) -> Void;
   final ?typeAccessor: (type: ModuleType) -> String;
@@ -70,6 +72,8 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
       inLoop: false,
       hasFeature: feature -> false,
       addFeature: function (feature) {},
+      expr: (e: TypedExpr) -> '',
+      value: (e: TypedExpr) -> '',
       typeAccessor: (type: ModuleType) -> 
         switch type {
           case TClassDecl(_.get() => {pack: pack, module: module, name: name}) |
