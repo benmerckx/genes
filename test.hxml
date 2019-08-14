@@ -1,6 +1,8 @@
--lib hxgenes
+-lib genes
 -lib hxnodejs
+-lib tink_unittest
+-dce full
 -cp tests
 -main tests.Run
--js bin/test.js
-#-cmd node bin/test.js
+-js bin/test.mjs
+-cmd node --no-warnings --experimental-modules bin/test.mjs

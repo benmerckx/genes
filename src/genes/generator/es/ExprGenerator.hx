@@ -55,23 +55,17 @@ class ExprGenerator {
 				print(ctx, "$bind(");
 				gen_value(ctx, x);
 				print(ctx, ",$arrayPush");
-			case TField(x, FClosure(_, f)):
-				add_feature(ctx, "use.$bind");
-				switch (x.eexpr) {
-					case TConst(_), TLocal(_):
-						print(ctx, "$bind(");
-						gen_value(ctx, x);
-						print(ctx, ",");
-						gen_value(ctx, x);
-						print(ctx, '${(core.Meta.has(SelfCall, f.cf_meta)) ? "" : field(f.cf_name)})');
-					case _:
-						print(ctx, "($_=");
-						gen_value(ctx, x);
-						print(ctx, ',$$bind($$_,$$_${(core.Meta.has(SelfCall, f.cf_meta)) ? "" : field(f.cf_name)}))');
-				}
 */
+			case TField(x, FClosure(_, _.get() => {name: name})):
+        switch (x.expr) {
+					case TConst(_) | TLocal(_):
+            [value(x), field(name), '.bind(', value(x),')'];
+					case _:
+            // Todo: figure out this mess, also take care of selfCall
+            [value(x), field(name), '.bind(', value(x),')'];
+				}
 			case TEnumIndex(x):
-				[value(x), ".$type"];
+				[value(x), "._hx_index"];
 			case TEnumParameter(x, f, i):
         var fname = switch f.type {
           case TFun(args, _): args[i].name;
@@ -306,8 +300,10 @@ class ExprGenerator {
         return read(ctx -> ctx.value(e));
       case TCall(e, params):
         call(e, params, true);
-      case TReturn(_), TBreak, TContinue:
-        throw 'Unsupported';
+      case TReturn(e):
+        value(e); // Todo: this shouldn't be supported
+      case TBreak, TContinue:
+        throw 'Unsupported $e';
       case TCast(e1, null):
         value(e1);
 			/*case TCast(e1, t):

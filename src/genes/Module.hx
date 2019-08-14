@@ -55,10 +55,10 @@ class Module {
   function get_dependencies() {
     if (dependencies != null) return dependencies;
     dependencies = new Map();
-    final prefix =
-      [for(i in 0 ... path.split('/').length - 1) '..'].concat(['']).join('/');
     function add(type: ModuleType)
       switch type {
+        case TClassDecl(_.get() => {isExtern: true}):
+        case TClassDecl(_.get() => {isInterface: true}):
         case TClassDecl((_.get(): BaseType) => base) 
           | TEnumDecl((_.get(): BaseType) => base):
           if (base.module.replace('.', '/') == path) return;
@@ -75,7 +75,9 @@ class Module {
       switch e {
         case null:
         case {expr: TTypeExpr(t)}: add(t);
-        case {expr: TNew(c, _, el)}: add(TClassDecl(c));
+        case {expr: TNew(c, _, el)}: 
+          add(TClassDecl(c));
+          for (e in el) e.iter(addFromExpr);
         case e: e.iter(addFromExpr);
       }
     for (member in members) {

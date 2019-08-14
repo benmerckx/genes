@@ -1,5 +1,6 @@
 package genes;
 
+import haxe.macro.Compiler;
 import haxe.macro.Type;
 import haxe.macro.Expr.Position;
 import haxe.display.Position.Location;
@@ -96,22 +97,40 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
       case null: createContext();
       case c: set(createContext(), c);
     }
+    inline function canFail(stringify: Void -> String): String
+      return 
+        try stringify() 
+        catch (e: Dynamic) {
+          trace(haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
+          haxe.macro.Context.error(
+            'Could not stringify because "$e". ${this}', 
+            haxe.macro.Context.currentPos()
+          );
+        }
     return switch this {
-      case ReadContext(create): create(context).toString(context);
+      case ReadContext(create): canFail(() -> create(context).toString(context));
       case WriteContext(writer, n):
-        n.toString(set(context, writer(context)));
+        canFail(() -> n.toString(set(context, writer(context))));
       case Code(value): value;
       case Node(_, chunks) | Multiple(chunks):
-        chunks.map(c -> c.toString(context)).join('');
+        chunks.map(c -> canFail(() -> c.toString(context))).join('');
     }
   }
 
   public function toStringWithSourceMap(?ctx: Context) 
     return {code: toString(ctx), map: null}
 
+  public function isEmpty()
+    return switch this {
+      case Multiple([]): true;
+      case Code(''): true;
+      default: false;
+    }
+
   public static final join = (chunks: Array<SourceNode>, by: SourceNode) -> {
     final res = [];
     for (i in 0...chunks.length) {
+      if (chunks[i].isEmpty()) continue;
       res.push(chunks[i]);
       if (i != chunks.length - 1)
         res.push(by);
