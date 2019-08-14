@@ -1,0 +1,11 @@
+{
+	"name": "genes",
+	"license": "MIT",
+	"tags": ["js"],
+	"classPath": "src",
+	"description": "",
+	"contributors": ["benmerckx"],
+	"releasenote": "Initial haxelib release.",
+	"version": "0.0.0",
+	"url": "https://github.com/benmerckx/genes",
+}
