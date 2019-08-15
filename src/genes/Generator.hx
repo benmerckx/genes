@@ -30,22 +30,29 @@ class Generator {
         default:
       }
     }
-    for (module => types in modules)
-      generateModule(api, module.replace('.', '/'), types);
+    for (module => types in modules) {
+      final path = module.replace('.', '/');
+      final file = 
+        try Context.resolvePath(path + '.hx') 
+        catch (e: Dynamic) null;
+      generateModule(api, path, file, types);
+    }
     switch api.main {
       case null:
       // Todo: check for nameclash with above
-      case v: generateModule(api, output, [], v);
+      // Todo: get Main module out of cli args to find source file
+      case v: generateModule(api, output, null, [], v);
     }
   }
 
   static function generateModule(
     api: JSGenApi, 
     path: String, 
+    file: String,
     types: Array<Type>, 
     ?main: TypedExpr
   ) {
-    final module = new Module(path, types, main);
+    final module = new Module(path, file, types, main);
     final outputDir = Path.directory(api.outputFile);
     function save(file: String, content: String) {
       final path = Path.join([outputDir, file]);

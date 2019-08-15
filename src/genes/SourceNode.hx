@@ -5,12 +5,13 @@ import haxe.macro.Type;
 import haxe.macro.Expr.Position;
 import haxe.display.Position.Location;
 import haxe.macro.PositionTools.toLocation;
+import genes.SourceMap;
 
 @:structInit
-private class SourcePositionData {
+class SourcePositionData {
   public final line: Int;
   public final column: Int;
-  public final file: String;
+  public final file: Null<String>;
 }
 
 @:forward
@@ -24,9 +25,12 @@ abstract SourcePosition(SourcePositionData) from SourcePositionData {
   @:from static function fromLocation(location: Location): SourcePosition
     return ({
       line: location.range.start.line,
-      column: location.range.start.character,
+      column: location.range.start.character - 1,
       file: location.file
-    } : SourcePositionData);
+    }: SourcePositionData);
+
+  public static final EMPTY: SourcePosition =
+    ({line: 1, column: 0, file: null}: SourcePositionData);
 }
 
 private enum SourceNodeChunk {
@@ -77,6 +81,7 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
       value: (e: TypedExpr) -> '',
       typeAccessor: (type: ModuleType) -> 
         switch type {
+          // Todo: look up native names
           case TClassDecl(_.get() => {name: name}) |
           TEnumDecl(_.get() => {name: name}) |
           TTypeDecl(_.get() => {name: name}) |
@@ -92,33 +97,95 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
     return res;
   }
 
-  public function toString(?ctx: Context) {
+  public function toString(?ctx: Context): String {
+    var code = '';
+    walk((chunk, position) -> code += chunk, ctx);
+    return code;
+  }
+
+  public function walk(
+    walker: (chunk: String, position: Null<SourcePosition>) -> Void,
+    ?ctx: Context,
+    ?position: SourcePosition
+  ) {
     final context = switch ctx {
       case null: createContext();
       case c: set(createContext(), c);
     }
-    inline function canFail(stringify: Void -> String): String
-      return 
-        try stringify() 
-        catch (e: Dynamic) {
-          trace(haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
-          haxe.macro.Context.error(
-            'Could not stringify because "$e". ${this}', 
-            haxe.macro.Context.currentPos()
-          );
-        }
-    return switch this {
-      case ReadContext(create): canFail(() -> create(context).toString(context));
+    inline function fail(e) {
+      trace(haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
+      haxe.macro.Context.error(
+        'Could not stringify because "$e". ${this}', 
+        haxe.macro.Context.currentPos()
+      );
+    }
+    switch this {
+      case ReadContext(create):
+        try create(context).walk(walker, context, position)
+        catch (e: Dynamic) fail(e);
       case WriteContext(writer, n):
-        canFail(() -> n.toString(set(context, writer(context))));
-      case Code(value): value;
-      case Node(_, chunks) | Multiple(chunks):
-        chunks.map(c -> canFail(() -> c.toString(context))).join('');
+        try n.walk(walker, set(context, writer(context)), position) 
+        catch (e: Dynamic) fail(e);
+      case Code(value): walker(value, position);
+      case Node(position, chunks):
+        try for (chunk in chunks)
+          chunk.walk(walker, context, position)
+        catch (e: Dynamic) fail(e);
+      case Multiple(chunks):
+        try for (chunk in chunks)
+          chunk.walk(walker, context, position)
+        catch (e: Dynamic) fail(e);
     }
   }
 
-  public function toStringWithSourceMap(?ctx: Context) 
-    return {code: toString(ctx), map: null}
+  public function toStringWithSourceMap(output: String, source: String, ?ctx: Context) {
+    final map = new SourceMapGenerator(source);
+    var sourceMappingActive = true;
+    var code = '';
+    var line = 1;
+    var column = 0;
+    var lastOriginalColumn = null;
+    var lastOriginalLine = null;
+    walk((chunk, original) -> {
+      code += chunk;
+      switch original {
+        case null:
+          sourceMappingActive = false;
+        case v:
+          if (
+            lastOriginalColumn != original.column ||
+            lastOriginalLine != original.line
+          ) {
+            map.addMapping(original, {
+              line: line,
+              column: column,
+              file: null
+            });
+          }
+          lastOriginalColumn = original.column;
+          lastOriginalLine = original.line;
+          sourceMappingActive = true;
+      }
+      final length = chunk.length;
+      for (idx in 0 ... length)
+        if (chunk.charCodeAt(idx) == '\n'.code) {
+          line++;
+          column = 0;
+          // Mappings end at eol
+          if (idx + 1 == length)
+            sourceMappingActive = false;
+          else if (sourceMappingActive)
+            map.addMapping(original, {
+              line: line,
+              column: column,
+              file: null
+            });
+        } else {
+          column++;
+        }
+    }, ctx);
+    return {code: code, map: map.toJSON(output)}
+  }
 
   public function isEmpty()
     return switch this {
@@ -143,8 +210,13 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
   public static function indent(node: SourceNode): SourceNode
     return write(ctx -> {tabs: ctx.tabs + '\t'}, node);
 
-  public static final node = (position: SourcePosition, ?a: C, ?b: C, ?c: C, ?d
-    : C, ?e: C, ?f: C, ?g: C, ?h: C, ?i: C, ?j: C, ?k: C, ?l: C,
-    ?m: C) ->
-    Node(position, [a, b, c, d, e, f, g, h, i, j, k, l, m].filter(c -> c != null));
+  public static final node = (
+    position: SourcePosition, 
+    ?a: C, ?b: C, ?c: C, ?d: C, ?e: C, ?f: C, ?g: C, 
+    ?h: C, ?i: C, ?j: C, ?k: C, ?l: C, ?m: C, ?n: C
+  ) ->
+    Node(
+      position, 
+      [a, b, c, d, e, f, g, h, i, j, k, l, m, n].filter(c -> c != null)
+    );
 }

@@ -27,17 +27,25 @@ class ModuleGenerator {
       newline,
       members
     ];
-    final generated = source.toStringWithSourceMap({
-      expr: api.generateStatement,
-      value: api.generateValue,
-      hasFeature: api.hasFeature,
-      addFeature: api.addFeature
-    });
-    save(module.path + '.mjs', generated.code);
+    final output = module.path + '.mjs';
+    final generated = source.toStringWithSourceMap(
+      output,
+      module.file,
+      {
+        expr: api.generateStatement,
+        value: api.generateValue,
+        hasFeature: api.hasFeature,
+        addFeature: api.addFeature
+      }
+    );
+    save(output, 
+      generated.code + '\n\n//# sourceMappingURL=$output.map'
+    );
+    save('$output.map', haxe.Json.stringify(generated.map));
   }
 
   static function importOf(module: String, names: Array<String>): SourceNode
-    return 'import {${names.join(', ')}} from "$module"';
+    return 'import {${names.join(', ')}} from "$module.mjs"';
 
   /*static function rewriteConstructor(e: TypedExpr): TypedExpr {
     var hasSuper = false;

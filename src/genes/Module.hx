@@ -1,5 +1,6 @@
 package genes;
 
+import haxe.macro.Context;
 import haxe.macro.Type;
 
 using StringTools;
@@ -27,11 +28,13 @@ enum Member {
 
 class Module {
   public final path: String;
+  public final file: Null<String>;
   public final members: Array<Member>;
   public var dependencies(get, null): Map<String, Array<String>>;
 
-  public function new(path, types: Array<Type>, ?main: TypedExpr) {
+  public function new(path, file, types: Array<Type>, ?main: TypedExpr) {
     this.path = path;
+    this.file = file;
     members = [
       for (type in types)
         switch type {
