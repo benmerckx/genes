@@ -2,6 +2,7 @@ package genes;
 
 import haxe.macro.Context;
 import haxe.macro.Type;
+import haxe.macro.Expr.Position;
 
 using StringTools;
 using haxe.macro.TypedExprTools;
@@ -17,6 +18,7 @@ typedef Field = {
   final name: String;
   final type: Type;
   final expr: TypedExpr;
+  final pos: Position;
   final isStatic: Bool;
 }
 
@@ -115,6 +117,7 @@ class Module {
           kind: Constructor,
           type: e.t,
           expr: e,
+          pos: e.pos,
           name: 'constructor',
           isStatic: false
         });
@@ -128,6 +131,7 @@ class Module {
         name: field.name,
         type: field.type,
         expr: field.expr(),
+        pos: field.pos,
         isStatic: false
       });
     }
@@ -140,6 +144,7 @@ class Module {
         name: field.name,
         type: field.type,
         expr: field.expr(),
+        pos: field.pos,
         isStatic: true
       });
     return fields;

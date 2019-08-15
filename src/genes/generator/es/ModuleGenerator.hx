@@ -68,7 +68,7 @@ class ModuleGenerator {
       case null: '';
       case {t: t}: ' extends ${t.get().name}';
     }
-    return [
+    return node(cl.pos, [
       'export class ${cl.name}${extend} {',
         indent([
           newline,
@@ -77,11 +77,11 @@ class ModuleGenerator {
               case Constructor | Method:
                 switch field.expr.expr {
                   case TFunction(f):
-                    [
+                    node(field.pos, [
                       field.isStatic ? 'static ' : '',
                       '${field.name}(', join(f.args.map(a -> ident(a.v.name)), ', '), ') ',
                         expr(f.expr)
-                    ];
+                    ]);
                   default: throw 'assert';
                 }
               case Property: '';
@@ -91,24 +91,25 @@ class ModuleGenerator {
       newline, '}', newline,
       join(fields.map(function (field): SourceNode
         return switch field.kind {
-          case Property if (field.isStatic && field.expr != null): [
-            '${cl.name}.${field.name}', 
-            switch field.expr {
-              case e: [' = ', value(e)];
-            }
-          ];
+          case Property if (field.isStatic && field.expr != null): 
+            node(field.pos, [
+              '${cl.name}.${field.name}', 
+              switch field.expr {
+                case e: [' = ', value(e)];
+              }
+            ]);
           default: '';
         }
       ), newline),
       newline,
       cl.init == null ? '' : [expr(cl.init), newline]
-    ];
+    ]);
   }
 
   static function createEnum(et: EnumType): SourceNode {
     final visibility = et.isPrivate ? '' : 'export ';
     final id = et.pack.concat([et.name]).join('.');
-    return [
+    return node(et.pos, [
       newline,
       'export const ${et.name} = {',
       indent([
@@ -142,13 +143,6 @@ class ModuleGenerator {
       newline,
       '}',
       newline
-    ];
+    ]);
   }
 }
-
-/*{ __ename__ : "helder.query.Target", __constructs__ : 
-  ["Channel"]
-  ,
-  Channel: ($_=function(name) { return {_hx_index:0,name:name,__enum__:"helder.query.Target",toString:$estr}; },
-  $_.__params__ = ["name"],$_)
-}*/
