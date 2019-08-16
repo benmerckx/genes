@@ -239,10 +239,17 @@ class ExprGenerator {
         spr(ctx, ctx.type_accessor(t));
         spr(ctx, ")");
        */
+      case TIdent("$hxEnums"): hxEnums;
       case TIdent(s): s;
       default:
         [];
     }));
+
+  public static final hxEnums = {
+    final key = "$hxEnums";
+    final global = '(typeof window!=="undefined"?window:global)';
+    '((g,k)=>g[k]||(g[k]={}))($global,"$key")';
+  }
 
   public static function ident(name: String): SourceNode
     return if (keywords.indexOf(name) > -1) "$" + name else name;
@@ -283,9 +290,7 @@ class ExprGenerator {
         return read(ctx -> ctx.value(e));
       case TCall(e, params):
         call(e, params, true);
-      case TReturn(e):
-        value(e); // Todo: this shouldn't be supported
-      case TBreak, TContinue:
+      case TReturn(_) | TBreak | TContinue:
         throw 'Unsupported $e';
       case TCast(e1, null):
         value(e1);
@@ -498,7 +503,9 @@ class ExprGenerator {
     return node(e, switch e.expr {
       case TBlock(el):
         el.map(blockElement.bind(_, after));
-      case TCall({expr: TIdent('__feature__')}, [{expr: TConst(TString(f))}, eif, eelse]): // Todo: match more eelse
+      case TCall({expr: TIdent('__feature__')}, [{expr: TConst(TString(f))}, eif]):
+        read(ctx -> if (ctx.hasFeature(f)) blockElement(eif) else []);
+      case TCall({expr: TIdent('__feature__')}, [{expr: TConst(TString(f))}, eif, eelse]):
         read(ctx -> if (ctx.hasFeature(f)) blockElement(eif, after) else
           blockElement(eelse, after));
       case TFunction(_):

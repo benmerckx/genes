@@ -12,8 +12,8 @@ class ModuleGenerator {
       save: (path: String, content: String) -> Void, module: Module) {
     final dependencies = module.dependencies;
     final imports: SourceNode = join([
-      for (module => names in dependencies)
-        importOf(module, names)
+      for (module => imports in dependencies)
+        importOf(module, imports)
     ], newline);
     final members = module.members.map(member -> switch member {
       case MClass(cl, fields): createClass(cl, fields);
@@ -32,8 +32,24 @@ class ModuleGenerator {
     save('$output.map', haxe.Json.stringify(generated.map));
   }
 
-  static function importOf(module: String, names: Array<String>): SourceNode
-    return 'import {${names.join(', ')}} from "$module.mjs"';
+  static function importOf(module: String,
+      imports: Array<Dependency>): SourceNode {
+    inline function require(what: String): SourceNode
+      return 'import $what from "$module"';
+    final named = imports.filter(d -> d.match(DName(_)));
+    return imports.filter(d -> d.match(DDefault(_))).map(d -> switch d {
+      case DDefault(alias): require(alias);
+      default: SourceNode.EMPTY;
+    }).concat([
+      if (named.length > 0)
+        require('{' + named.map(d -> switch d {
+          case DName(name): name;
+          default: '';
+        }).join(', ') + '}')
+      else
+        SourceNode.EMPTY
+    ]);
+  }
 
   static function createClass(cl: ClassType,
       fields: Array<Field>): SourceNode {
@@ -89,10 +105,10 @@ class ModuleGenerator {
     final id = et.pack.concat([et.name]).join('.');
     return node(et.pos, [
       newline,
-      'export const ${et.name} = {',
+      'export const ${et.name} = \n${hxEnums}["${et.name}"] = \n{',
       indent([
         newline,
-        '__ename__: "${id}",',
+        read(ctx -> if (ctx.hasFeature('js.Boot.isEnum')) '__ename__: "${id}",' else ''),
         newline,
         '__constructs__: [',
         join([

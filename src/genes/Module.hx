@@ -28,11 +28,16 @@ enum Member {
   MMain(expr: TypedExpr);
 }
 
+enum Dependency {
+  DName(name: String);
+  DDefault(as: String);
+}
+
 class Module {
   public final path: String;
   public final file: Null<String>;
   public final members: Array<Member>;
-  public var dependencies(get, null): Map<String, Array<String>>;
+  public var dependencies(get, null): Map<String, Array<Dependency>>;
 
   public function new(path, file, types: Array<Type>, ?main: TypedExpr) {
     this.path = path;
@@ -66,23 +71,48 @@ class Module {
     if (dependencies != null)
       return dependencies;
     dependencies = new Map();
-    function add(type: ModuleType)
+    function push(module, dependency) {
+      if (dependencies.exists(module)) {
+        final imports = dependencies.get(module);
+        for (i in imports)
+          switch [i, dependency] {
+            case [DName(x), DName(y)] | [DDefault(x), DDefault(y)] if (x == y):
+              return;
+            default:
+          }
+        imports.push(dependency);
+      } else {
+        dependencies.set(module, [dependency]);
+      }
+    }
+    function add(type: ModuleType) {
       switch type {
-        case TClassDecl(_.get() => {isExtern: true}):
         case TClassDecl(_.get() => {isInterface: true}):
         case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base):
           if (base.module.replace('.', '/') == path)
             return;
-          final modulePath = toPath(base.module);
-          if (dependencies.exists(modulePath)) {
-            final names = dependencies.get(modulePath);
-            if (names.indexOf(base.name) == -1)
-              names.push(base.name);
-          } else {
-            dependencies.set(modulePath, [base.name]);
+          // check meta
+          var module = toPath(base.module) +
+            '.mjs'; // Todo: don't hardcode extension here
+          var dependency = DName(base.name);
+          if (base.isExtern) {
+            final name = switch base.meta.extract(':native') {
+              case [{params: [{expr: EConst(CString(name))}]}]:
+                name;
+              default: base.name;
+            }
+            switch base.meta.extract(':jsRequire') {
+              case [{params: [{expr: EConst(CString(m))}]}]:
+                module = m;
+                dependency = DDefault(name);
+              default:
+                return;
+            }
           }
+          push(module, dependency);
         default:
       }
+    }
     function addFromExpr(e: TypedExpr)
       switch e {
         case null:
@@ -91,7 +121,7 @@ class Module {
         case {expr: TNew(c, _, el)}:
           add(TClassDecl(c));
           for (e in el)
-            e.iter(addFromExpr);
+            addFromExpr(e);
         case e:
           e.iter(addFromExpr);
       }

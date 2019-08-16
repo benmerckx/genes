@@ -29,8 +29,11 @@ abstract SourcePosition(SourcePositionData) from SourcePositionData {
       file: location.file
     } : SourcePositionData);
 
-  public static final EMPTY: SourcePosition = ({line: 1, column: 0,
-    file: null} : SourcePositionData);
+  public static final EMPTY: SourcePosition = ({
+    line: 1,
+    column: 0,
+    file: null
+  } : SourcePositionData);
 }
 
 private enum SourceNodeChunk {
@@ -57,6 +60,8 @@ private typedef C = SourceNode;
 
 @:forward
 abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
+  public static final EMPTY: SourceNode = Code('');
+
   @:from public static function read(create: (ctx: Context) ->
     SourceNode): SourceNode
     return ReadContext(create);
@@ -81,12 +86,19 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
       addFeature: function(feature) {},
       expr: (e: TypedExpr) -> '',
       value: (e: TypedExpr) -> '',
-      typeAccessor: (type: ModuleType) -> switch type {
-        // Todo: look up native names
-        case TClassDecl(_.get() => {name: name}) | TEnumDecl(_.get() =>
-          {name: name}) | TTypeDecl(_.get() =>
-            {name: name}) | TAbstract(_.get() => {name: name}):
-          name;
+      typeAccessor: (type: ModuleType) -> {
+        return switch type {
+          case TAbstract(_.get() => cl = {meta: meta, name: name}):
+            switch meta.has(':coreType') {
+              case true: '"$$$$hxCoreType__$name"';
+              case false: throw 'assert';
+            }
+          // Todo: look up native names
+          case TClassDecl(_.get() => {name: name}) | TEnumDecl(_.get() =>
+            {name: name}) | TTypeDecl(_.get() =>
+              {name: name}) | TAbstract(_.get() => {name: name}):
+            name;
+        }
       }
     }
 
