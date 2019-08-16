@@ -27,10 +27,10 @@ abstract SourcePosition(SourcePositionData) from SourcePositionData {
       line: location.range.start.line,
       column: location.range.start.character - 1,
       file: location.file
-    }: SourcePositionData);
+    } : SourcePositionData);
 
-  public static final EMPTY: SourcePosition =
-    ({line: 1, column: 0, file: null}: SourcePositionData);
+  public static final EMPTY: SourcePosition = ({line: 1, column: 0,
+    file: null} : SourcePositionData);
 }
 
 private enum SourceNodeChunk {
@@ -57,10 +57,12 @@ private typedef C = SourceNode;
 
 @:forward
 abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
-  @:from public static function read(create: (ctx: Context) -> SourceNode): SourceNode
+  @:from public static function read(create: (ctx: Context) ->
+    SourceNode): SourceNode
     return ReadContext(create);
 
-  public static function write(writer: (ctx: Context) -> Context, node: SourceNode): SourceNode
+  public static function write(writer: (ctx: Context) -> Context,
+      node: SourceNode): SourceNode
     return WriteContext(writer, node);
 
   @:from static function fromString(value: String): SourceNode
@@ -76,23 +78,21 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
       inValue: 0,
       inLoop: false,
       hasFeature: feature -> false,
-      addFeature: function (feature) {},
+      addFeature: function(feature) {},
       expr: (e: TypedExpr) -> '',
       value: (e: TypedExpr) -> '',
-      typeAccessor: (type: ModuleType) -> 
-        switch type {
-          // Todo: look up native names
-          case TClassDecl(_.get() => {name: name}) |
-          TEnumDecl(_.get() => {name: name}) |
-          TTypeDecl(_.get() => {name: name}) |
-          TAbstract(_.get() => {name: name}):
-            name;
-        }
+      typeAccessor: (type: ModuleType) -> switch type {
+        // Todo: look up native names
+        case TClassDecl(_.get() => {name: name}) | TEnumDecl(_.get() =>
+          {name: name}) | TTypeDecl(_.get() =>
+            {name: name}) | TAbstract(_.get() => {name: name}):
+          name;
+      }
     }
 
   static function set<T: {}>(object: T, changes: {}): T {
     final res = Reflect.copy(object);
-    for (key => value in (cast changes: haxe.DynamicAccess<Dynamic>))
+    for (key => value in (cast changes : haxe.DynamicAccess<Dynamic>))
       Reflect.setField(res, key, value);
     return res;
   }
@@ -103,42 +103,47 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
     return code;
   }
 
-  public function walk(
-    walker: (chunk: String, position: Null<SourcePosition>) -> Void,
-    ?ctx: Context,
-    ?position: SourcePosition
-  ) {
+  public function walk(walker: (chunk: String,
+    position: Null<SourcePosition>) -> Void,
+      ?ctx: Context, ?position: SourcePosition) {
     final context = switch ctx {
       case null: createContext();
       case c: set(createContext(), c);
     }
     inline function fail(e) {
       trace(haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
-      haxe.macro.Context.error(
-        'Could not stringify because "$e". ${this}', 
-        haxe.macro.Context.currentPos()
-      );
+      haxe.macro.Context.error('Could not stringify because "$e". ${this}', haxe.macro.Context.currentPos());
     }
     switch this {
       case ReadContext(create):
-        try create(context).walk(walker, context, position)
-        catch (e: Dynamic) fail(e);
+        try
+          create(context).walk(walker, context, position)
+        catch (e:Dynamic)
+          fail(e);
       case WriteContext(writer, n):
-        try n.walk(walker, set(context, writer(context)), position) 
-        catch (e: Dynamic) fail(e);
-      case Code(value): walker(value, position);
+        try
+          n.walk(walker, set(context, writer(context)), position)
+        catch (e:Dynamic)
+          fail(e);
+      case Code(value):
+        walker(value, position);
       case Node(position, chunks):
-        try for (chunk in chunks)
-          chunk.walk(walker, context, position)
-        catch (e: Dynamic) fail(e);
+        try
+          for (chunk in chunks)
+            chunk.walk(walker, context, position)
+        catch (e:Dynamic)
+          fail(e);
       case Multiple(chunks):
-        try for (chunk in chunks)
-          chunk.walk(walker, context, position)
-        catch (e: Dynamic) fail(e);
+        try
+          for (chunk in chunks)
+            chunk.walk(walker, context, position)
+        catch (e:Dynamic)
+          fail(e);
     }
   }
 
-  public function toStringWithSourceMap(output: String, source: String, ?ctx: Context) {
+  public function toStringWithSourceMap(output: String, source: String,
+      ?ctx: Context) {
     final map = new SourceMapGenerator(source);
     var sourceMappingActive = true;
     var code = '';
@@ -152,10 +157,7 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
         case null:
           sourceMappingActive = false;
         case v:
-          if (
-            lastOriginalColumn != original.column ||
-            lastOriginalLine != original.line
-          ) {
+          if (lastOriginalColumn != original.column || lastOriginalLine != original.line) {
             map.addMapping(original, {
               line: line,
               column: column,
@@ -167,7 +169,7 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
           sourceMappingActive = true;
       }
       final length = chunk.length;
-      for (idx in 0 ... length)
+      for (idx in 0...length)
         if (chunk.charCodeAt(idx) == '\n'.code) {
           line++;
           column = 0;
@@ -197,7 +199,8 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
   public static final join = (chunks: Array<SourceNode>, by: SourceNode) -> {
     final res = [];
     for (i in 0...chunks.length) {
-      if (chunks[i].isEmpty()) continue;
+      if (chunks[i].isEmpty())
+        continue;
       res.push(chunks[i]);
       if (i != chunks.length - 1)
         res.push(by);
@@ -206,17 +209,12 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
   }
 
   public static final newline = read(ctx -> '\n${ctx.tabs}');
-  
+
   public static function indent(node: SourceNode): SourceNode
     return write(ctx -> {tabs: ctx.tabs + '\t'}, node);
 
-  public static final node = (
-    position: SourcePosition, 
-    ?a: C, ?b: C, ?c: C, ?d: C, ?e: C, ?f: C, ?g: C, 
-    ?h: C, ?i: C, ?j: C, ?k: C, ?l: C, ?m: C, ?n: C
-  ) ->
-    Node(
-      position, 
-      [a, b, c, d, e, f, g, h, i, j, k, l, m, n].filter(c -> c != null)
-    );
+  public static final node = (position: SourcePosition, ?a: C, ?b: C, ?c: C, ?d
+    : C, ?e: C, ?f: C, ?g: C, ?h: C, ?i: C, ?j: C, ?k: C, ?l: C, ?m: C, ?n
+    : C) ->
+    Node(position, [a, b, c, d, e, f, g, h, i, j, k, l, m, n].filter(c -> c != null));
 }

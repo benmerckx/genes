@@ -8,7 +8,7 @@ using StringTools;
 using haxe.macro.TypedExprTools;
 
 enum FieldKind {
-	Constructor;
+  Constructor;
   Method;
   Property;
 }
@@ -40,12 +40,16 @@ class Module {
     members = [
       for (type in types)
         switch type {
-          case TEnum(_.get() => et, _): MEnum(et);
-          case TInst(_.get() => cl, _): MClass(cl, fieldsOf(cl));
-          default: throw 'assert';
+          case TEnum(_.get() => et, _):
+            MEnum(et);
+          case TInst(_.get() => cl, _):
+            MClass(cl, fieldsOf(cl));
+          default:
+            throw 'assert';
         }
     ];
-    if (main != null) members.push(MMain(main));
+    if (main != null)
+      members.push(MMain(main));
   }
 
   function toPath(module: String) {
@@ -53,44 +57,51 @@ class Module {
     final dirs = path.split('/');
     return switch dirs.length {
       case 1: './' + parts.join('/');
-      case v: [for(i in 0 ... v - 1) '..'].concat(parts).join('/');
+      case v:
+        [for (i in 0...v - 1) '..'].concat(parts).join('/');
     }
   }
 
   function get_dependencies() {
-    if (dependencies != null) return dependencies;
+    if (dependencies != null)
+      return dependencies;
     dependencies = new Map();
     function add(type: ModuleType)
       switch type {
         case TClassDecl(_.get() => {isExtern: true}):
         case TClassDecl(_.get() => {isInterface: true}):
-        case TClassDecl((_.get(): BaseType) => base) 
-          | TEnumDecl((_.get(): BaseType) => base):
-          if (base.module.replace('.', '/') == path) return;
+        case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base):
+          if (base.module.replace('.', '/') == path)
+            return;
           final modulePath = toPath(base.module);
           if (dependencies.exists(modulePath)) {
             final names = dependencies.get(modulePath);
-            if (names.indexOf(base.name) == -1) names.push(base.name);
+            if (names.indexOf(base.name) == -1)
+              names.push(base.name);
           } else {
             dependencies.set(modulePath, [base.name]);
           }
         default:
       }
-    function addFromExpr(e: TypedExpr) 
+    function addFromExpr(e: TypedExpr)
       switch e {
         case null:
-        case {expr: TTypeExpr(t)}: add(t);
-        case {expr: TNew(c, _, el)}: 
+        case {expr: TTypeExpr(t)}:
+          add(t);
+        case {expr: TNew(c, _, el)}:
           add(TClassDecl(c));
-          for (e in el) e.iter(addFromExpr);
-        case e: e.iter(addFromExpr);
+          for (e in el)
+            e.iter(addFromExpr);
+        case e:
+          e.iter(addFromExpr);
       }
     for (member in members) {
       switch member {
         case MClass(cl, fields):
           switch cl.interfaces {
             case null | []:
-            case v: for (i in v) add(TClassDecl(i.t));
+            case v: for (i in v)
+                add(TClassDecl(i.t));
           }
           switch cl.superClass {
             case null:
@@ -101,7 +112,7 @@ class Module {
           addFromExpr(cl.init);
         case MMain(expr):
           addFromExpr(expr);
-        default: 
+        default:
       }
     }
     return dependencies;

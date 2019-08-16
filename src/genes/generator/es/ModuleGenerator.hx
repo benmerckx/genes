@@ -8,61 +8,37 @@ import genes.SourceNode.*;
 import genes.generator.es.ExprGenerator.*;
 
 class ModuleGenerator {
-  public static function module(api: JSGenApi, save: (path: String, content: String) -> Void, module: Module) {
+  public static function module(api: JSGenApi,
+      save: (path: String, content: String) -> Void, module: Module) {
     final dependencies = module.dependencies;
     final imports: SourceNode = join([
       for (module => names in dependencies)
         importOf(module, names)
     ], newline);
-    final members = module.members.map(member ->
-      switch member {
-        case MClass(cl, fields): createClass(cl, fields);
-        case MEnum(et): createEnum(et);
-        case MMain(e): expr(e);
-      }
-    );
-    final source: SourceNode = [
-      imports,
-      newline,
-      newline,
-      members
-    ];
+    final members = module.members.map(member -> switch member {
+      case MClass(cl, fields): createClass(cl, fields);
+      case MEnum(et): createEnum(et);
+      case MMain(e): expr(e);
+    });
+    final source: SourceNode = [imports, newline, newline, members];
     final output = module.path + '.mjs';
-    final generated = source.toStringWithSourceMap(
-      output,
-      module.file,
-      {
-        expr: api.generateStatement,
-        value: api.generateValue,
-        hasFeature: api.hasFeature,
-        addFeature: api.addFeature
-      }
-    );
-    save(output, 
-      generated.code + '\n\n//# sourceMappingURL=$output.map'
-    );
+    final generated = source.toStringWithSourceMap(output, module.file, {
+      expr: api.generateStatement,
+      value: api.generateValue,
+      hasFeature: api.hasFeature,
+      addFeature: api.addFeature
+    });
+    save(output, generated.code + '\n\n//# sourceMappingURL=$output.map');
     save('$output.map', haxe.Json.stringify(generated.map));
   }
 
   static function importOf(module: String, names: Array<String>): SourceNode
     return 'import {${names.join(', ')}} from "$module.mjs"';
 
-  /*static function rewriteConstructor(e: TypedExpr): TypedExpr {
-    var hasSuper = false;
-    function findSuper(e)
-      switch e {
-        case TConst(TSuper): hasSuper = true;
-        default: e.iter(findSuper);
-      }
-    e.iter(findSuper);
-    if (!hasSuper) return e;
-    return a.map(e -> switch e {
-      
-    })
-  }*/
-
-  static function createClass(cl: ClassType, fields: Array<Field>): SourceNode {
-    if (cl.isInterface) return '';
+  static function createClass(cl: ClassType,
+      fields: Array<Field>): SourceNode {
+    if (cl.isInterface)
+      return '';
     final visibility = cl.isPrivate ? '' : 'export ';
     final extend = switch cl.superClass {
       case null: '';
@@ -70,37 +46,39 @@ class ModuleGenerator {
     }
     return node(cl.pos, [
       'export class ${cl.name}${extend} {',
-        indent([
-          newline,
-          join(fields.map(function (field): SourceNode
-            return switch field.kind {
-              case Constructor | Method:
-                switch field.expr.expr {
-                  case TFunction(f):
-                    node(field.pos, [
-                      field.isStatic ? 'static ' : '',
-                      '${field.name}(', join(f.args.map(a -> ident(a.v.name)), ', '), ') ',
-                        expr(f.expr)
-                    ]);
-                  default: throw 'assert';
-                }
-              case Property: '';
+      indent([
+        newline,
+        join(fields.map(function(field): SourceNode return switch field.kind {
+          case Constructor | Method:
+            switch field.expr.expr {
+              case TFunction(f):
+                node(field.pos, [
+                  field.isStatic ? 'static ' : '',
+                  '${field.name}(',
+                  join(f.args.map(a -> ident(a.v.name)), ', '),
+                  ') ',
+                  expr(f.expr)
+                ]);
+              default: throw 'assert';
             }
-          ), newline)
-        ]),
-      newline, '}', newline,
-      join(fields.map(function (field): SourceNode
-        return switch field.kind {
-          case Property if (field.isStatic && field.expr != null): 
-            node(field.pos, [
-              '${cl.name}.${field.name}', 
-              switch field.expr {
-                case e: [' = ', value(e)];
-              }
-            ]);
-          default: '';
-        }
-      ), newline),
+          case Property: '';
+        }),
+          newline)
+      ]),
+      newline,
+      '}',
+      newline,
+      join(fields.map(function(field): SourceNode return switch field.kind {
+        case Property if (field.isStatic && field.expr != null):
+          node(field.pos, [
+            '${cl.name}.${field.name}',
+            switch field.expr {
+              case e:
+                [' = ', value(e)];
+            }
+          ]);
+        default: '';
+      }), newline),
       newline,
       cl.init == null ? '' : [expr(cl.init), newline]
     ]);
@@ -114,30 +92,26 @@ class ModuleGenerator {
       'export const ${et.name} = {',
       indent([
         newline,
-        '__ename__: "${id}",', 
+        '__ename__: "${id}",',
         newline,
-        '__constructs__: [', 
+        '__constructs__: [',
         join([
           for (c in et.constructs.keys())
-          '"$c"'
-        ], ', '), 
+            '"$c"'
+        ], ', '),
         '],',
         newline,
         [
           for (name => c in et.constructs)
-            node(c.pos, 
-              name, ': ',
-              switch c.type {
-                case TFun(args, ret):
-                  final params = args.map(param -> param.name).join(', ');
-                  final paramsQuoted = args.map(param -> '"${param.name}"').join(', ');
-                  'Object.assign(($params) => ({_hx_index: ${c.index}, __enum__: "${id}", $params}), {__params__: [$paramsQuoted]})';
-                default: 
-                  '{_hx_index: ${c.index}, __enum__: "${id}"}';
-              },
-              ',',
-              newline
-            )
+            node(c.pos, name, ': ', switch c.type {
+              case TFun(args, ret):
+                final params = args.map(param -> param.name).join(', ');
+                final paramsQuoted = args.map(param -> '"${param.name}"')
+                  .join(', ');
+                'Object.assign(($params) => ({_hx_index: ${c.index}, __enum__: "${id}", $params}), {__params__: [$paramsQuoted]})';
+              default:
+                '{_hx_index: ${c.index}, __enum__: "${id}"}';
+            }, ',', newline)
         ]
       ]),
       newline,

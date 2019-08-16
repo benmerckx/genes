@@ -29,184 +29,179 @@ class ExprGenerator {
     return node(e, read(ctx -> switch (e.expr) {
       case TConst(c): constant(c);
       case TLocal(v): ident(v.name);
-      case TArray(e1, e2): 
+      case TArray(e1, e2):
         [value(addObjectdeclParens(e1)), '[', value(e2), ']'];
-      case TBinop(op, {expr: TField(x, f)}, e2) if (fieldName(f) == 'iterator'): 
+      case TBinop(op, {expr: TField(x, f)}, e2) if (fieldName(f) == 'iterator'):
         [value(x), field('iterator'), ' ', binop(op), ' ', value(e2)];
-      case TBinop(op, e1, e2): 
+      case TBinop(op, e1, e2):
         [value(e1), ' ', binop(op), ' ', value(e2)];
-      case TField(x, f) 
-        if (fieldName(f) == "iterator" && isDynamicIterator(ctx, e)):
-				ctx.addFeature("use.$iterator");
+      case TField(x, f) if (fieldName(f) == "iterator" && isDynamicIterator(ctx, e)):
+        ctx.addFeature("use.$iterator");
         ["$iterator(", value(x), ")"];
-      case TUnop(op, postFix, fe={expr: TField(x, f)}) 
-        if (fieldName(f) == 'iterator' && isDynamicIterator(ctx, fe)):
-				switch postFix {
-					case false:
-						[unop(op), value(x), '.iterator'];
-					case true:
-						[value(x), '.iterator', unop(op)];
-				}
-/*
-			case TField(x, FClosure(Some({c:{cl_path:{a:[], b:"Array"}}}), {cf_name:"push"})):
-				// see https://github.com/HaxeFoundation/haxe/issues/1997
-				add_feature(ctx, "use.$arrayPush");
-				add_feature(ctx, "use.$bind");
-				print(ctx, "$bind(");
-				gen_value(ctx, x);
-				print(ctx, ",$arrayPush");
-*/
-			case TField(x, FClosure(_, _.get() => {name: name})):
+      case TUnop(op, postFix, fe = {expr: TField(x, f)}) if (fieldName(f) == 'iterator' && isDynamicIterator(ctx, fe)):
+        switch postFix {
+          case false:
+            [unop(op), value(x), '.iterator'];
+          case true:
+            [value(x), '.iterator', unop(op)];
+        }
+      /*
+        case TField(x, FClosure(Some({c:{cl_path:{a:[], b:"Array"}}}), {cf_name:"push"})):
+          // see https://github.com/HaxeFoundation/haxe/issues/1997
+          add_feature(ctx, "use.$arrayPush");
+          add_feature(ctx, "use.$bind");
+          print(ctx, "$bind(");
+          gen_value(ctx, x);
+          print(ctx, ",$arrayPush");
+       */
+      case TField(x, FClosure(_, _.get() => {name: name})):
         switch (x.expr) {
-					case TConst(_) | TLocal(_):
-            [value(x), field(name), '.bind(', value(x),')'];
-					case _:
+          case TConst(_) | TLocal(_):
+            [value(x), field(name), '.bind(', value(x), ')'];
+          case _:
             // Todo: figure out this mess, also take care of selfCall
-            [value(x), field(name), '.bind(', value(x),')'];
-				}
-			case TEnumIndex(x):
-				[value(x), "._hx_index"];
-			case TEnumParameter(x, f, i):
+            [value(x), field(name), '.bind(', value(x), ')'];
+        }
+      case TEnumIndex(x):
+        [value(x), "._hx_index"];
+      case TEnumParameter(x, f, i):
         var fname = switch f.type {
           case TFun(args, _): args[i].name;
           case _: throw 'assert';
         }
-				[value(x), field(fname)];
-			case TField(_, FStatic(_.get() => {pack: [], name: ''}, _.get().name => fname)):
-				fname;
-			case TField(x, 
-        FInstance(_,_,_.get() => f) 
-        | FStatic(_, _.get() => f) 
-        | FAnon(_.get() => f)) if (f.meta.has(':selfCall')):
-				value(x);
-			case TField(x, f):
-				function skip (e: TypedExpr): TypedExpr
-					return switch e.expr {
-						case TCast(e1, null) | TMeta(_, e1): skip(e1);
-						case TConst(TInt(_) | TFloat(_)) | TObjectDecl(_): parenthesis(e);
-						case _: e;
-					}
-				[
-          value(skip(x)),
-          switch f { 
-            case FStatic(_.get() => c,_): 
-              staticField(c, fieldName(f)); 
-            case FEnum(_), FInstance(_), FAnon(_), FDynamic(_), FClosure(_): 
-              field(fieldName(f)); 
-          } 
-        ];
-			case TTypeExpr(t):
-				ctx.typeAccessor(t);
-      case TParenthesis(e1): 
+          [value(x), field(fname)];
+      case TField(_, FStatic(_.get() => {
+        pack: [],
+        name: ''
+      }, _.get().name => fname)):
+        fname;
+      case TField(x, FInstance(_, _, _.get() => f) | FStatic(_, _.get() => f) | FAnon(_.get() => f)) if (f.meta.has(':selfCall')):
+        value(x);
+      case TField(x, f):
+        function skip(e: TypedExpr): TypedExpr
+          return switch e.expr {
+            case TCast(e1, null) | TMeta(_, e1): skip(e1);
+            case TConst(TInt(_) | TFloat(_)) | TObjectDecl(_): parenthesis(e);
+            case _: e;
+          }
+            [
+              value(skip(x)),
+              switch f {
+                case FStatic(_.get() => c, _):
+                  staticField(c, fieldName(f));
+                case FEnum(_), FInstance(_), FAnon(_), FDynamic(_), FClosure(_):
+                  field(fieldName(f));
+              }
+            ];
+      case TTypeExpr(t):
+        ctx.typeAccessor(t);
+      case TParenthesis(e1):
         ['(', value(e1), ')'];
-			case TMeta({name: ':loopLabel', params: [{expr:EConst(CInt(n))}]}, e):
-				switch (e.expr) {
-					case TWhile(_,_,_), TFor(_,_,_):
+      case TMeta({name: ':loopLabel', params: [{expr: EConst(CInt(n))}]}, e):
+        switch (e.expr) {
+          case TWhile(_, _, _), TFor(_, _, _):
             ['_hx_loop${n}: ', expr(e)];
-					case TBreak:
-						'break _hx_loop${n}';
-					case _: throw 'assert';
-				}
-			case TMeta(_, e):
-				expr(e);
+          case TBreak:
+            'break _hx_loop${n}';
+          case _: throw 'assert';
+        }
+      case TMeta(_, e):
+        expr(e);
       case TReturn(e):
         switch e {
           case null: 'return';
           case eo: node(e, 'return ', node(eo, value(eo)));
         }
-			case TBreak:
-				if (!ctx.inLoop) throw 'Unsupported';
-				'break';
-			case TContinue:
-				if (!ctx.inLoop) throw 'Unsupported';
-				'continue';
-      case TBlock(el): 
+      case TBreak:
+        if (!ctx.inLoop) throw 'Unsupported';
+        'break';
+      case TContinue:
+        if (!ctx.inLoop) throw 'Unsupported';
+        'continue';
+      case TBlock(el):
         [
           '{',
-          write(ctx -> {tabs: ctx.tabs + '\t'},
-            el.map(e -> blockElement(e))
-          ),
+          write(ctx -> {tabs: ctx.tabs + '\t'}, el.map(e -> blockElement(e))),
           newline,
           '}'
         ];
-      case TFunction(f): 
-        write(ctx -> {inValue: 0, inLoop: false}, [
-          'function (', join(f.args.map(a -> ident(a.v.name)), ', '), ') ',
-          expr(f.expr)
-        ]);
-      case TCall({expr: TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))}, _)
-        | TCall({expr: TIdent('__js__')}, _):
+      case TFunction(f):
+        write(ctx -> {inValue: 0, inLoop: false},
+          ['function (', join(f.args.map(a -> ident(a.v.name)), ', '), ') ', expr(f.expr)]);
+      case TCall({expr: TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))},
+        _) | TCall({expr: TIdent('__js__')}, _):
         return read(ctx -> ctx.expr(e));
-      case TCall(e, params): 
+      case TCall(e, params):
         call(e, params, false);
-			case TArrayDecl(el):
-				['[', join(el.map(value), ', '), ']'];
-			case TThrow(e):
+      case TArrayDecl(el):
+        ['[', join(el.map(value), ', '), ']'];
+      case TThrow(e):
         ['throw ', value(e)];
-      case TVar(v, eo): 
+      case TVar(v, eo):
         [
-          'var ', ident(v.name),
+          'var ',
+          ident(v.name),
           switch (eo) {
-            case null: '';
-            case e: [' = ', value(e)];
+            case null:
+              '';
+            case e:
+              [' = ', value(e)];
           }
         ];
-/*
-      case TNew({cl_path:{a:[], b:"Array"}}, _, []):
-				print(ctx, "[]");
-*/
-			case TNew(c, _, el):
-				[
+      /*
+        case TNew({cl_path:{a:[], b:"Array"}}, _, []):
+          print(ctx, "[]");
+       */
+      case TNew(c, _, el):
+        [
           switch (c.get().constructor) {
-            case null: 'new ';
-            case _.get() => cf if (cf.meta.has(':selfCall')): '';
-            default: 'new ';
+            case null:
+              'new ';
+            case _.get() => cf if (cf.meta.has(':selfCall')):
+              '';
+            default:
+              'new ';
           },
           ctx.typeAccessor(TClassDecl(c)),
           '(',
           join(el.map(value), ', '),
           ')'
         ];
-			case TIf(cond, e, eelse):
+      case TIf(cond, e, eelse):
         [
-          'if ', value(cond), ' ', expr(block(e)),
+          'if ',
+          value(cond),
+          ' ',
+          expr(block(e)),
           switch eelse {
-            case null: '';
+            case null:
+              '';
             case e2:
               [
                 ' else ',
-                expr(switch e2.expr { 
-                  case TIf(_, _, _): e2; 
+                expr(switch e2.expr {
+                  case TIf(_, _, _): e2;
                   case _: block(e2);
                 })
               ];
           }
         ];
-
-			case TUnop(op, false, e):
+      case TUnop(op, false, e):
         [unop(op), value(e)];
-			case TUnop(op, true, e):
+      case TUnop(op, true, e):
         [value(e), unop(op)];
-			case TWhile(cond, e, true):
-        write(ctx -> {inLoop: true}, [
-          'while ', value(cond), ' ', expr(e)
-        ]);
-			case TWhile(cond, e, false):
-        write(ctx -> {inLoop: true}, [
-          'do ', expr(e), '; while ', value(cond)
-        ]);
-			case TObjectDecl(fields):
+      case TWhile(cond, e, true):
+        write(ctx -> {inLoop: true}, ['while ', value(cond), ' ', expr(e)]);
+      case TWhile(cond, e, false):
+        write(ctx -> {inLoop: true}, ['do ', expr(e), '; while ', value(cond)]);
+      case TObjectDecl(fields):
         [
-          '{', 
-          join(
-            fields.map(field -> 
-              node(field.expr, ['"${field.name}": ', value(field.expr)])
-            ), 
-            ', '
-          ), 
+          '{',
+          join(fields.map(field -> node(field.expr, ['"${field.name}": ', value(field.expr)])),
+            ', '),
           '}'
         ];
-			case TFor(v, it, e):
+      case TFor(v, it, e):
         write(ctx -> {inLoop: true}, {
           var init: SourceNode = [];
           final it = ident(switch it.expr {
@@ -221,33 +216,29 @@ class ExprGenerator {
           [
             init,
             'while (${it}.hasNext()) {',
-            indent([
-              newline,
-              'var ${ident(v.name)} = ${it}.next()',
-              blockElement(e)
-            ]),
+            indent([newline, 'var ${ident(v.name)} = ${it}.next()', blockElement(e)]),
             newline,
             '}'
           ];
         });
-			case TTry(etry, [{v: v, expr: ecatch}]):
+      case TTry(etry, [{v: v, expr: ecatch}]):
         [
-          'try ', expr(etry), 
+                         'try ', expr(etry),
           ' catch (${v.name}) ', expr(ecatch)
         ];
-			case TTry(_):
-				throw 'Unhandled try/catch, please report';
-			case TSwitch(cond, cases, def):
+      case TTry(_):
+        throw 'Unhandled try/catch, please report';
+      case TSwitch(cond, cases, def):
         genSwitch(cond, cases, def, v -> v);
-  		case TCast(e, null):
-				expr(e);
-/*			case TCast(e1, t):
-				print(ctx, '${ctx.type_accessor(TClassDecl(core.Type.null_class.with({cl_path:{a:["js"], b:"Boot"}})))}.__cast(');
-				gen_expr(ctx, e1);
-				spr(ctx, " , ");
-				spr(ctx, ctx.type_accessor(t));
-				spr(ctx, ")");
-*/
+      case TCast(e, null):
+        expr(e);
+      /*      case TCast(e1, t):
+        print(ctx, '${ctx.type_accessor(TClassDecl(core.Type.null_class.with({cl_path:{a:["js"], b:"Boot"}})))}.__cast(');
+        gen_expr(ctx, e1);
+        spr(ctx, " , ");
+        spr(ctx, ctx.type_accessor(t));
+        spr(ctx, ")");
+       */
       case TIdent(s): s;
       default:
         [];
@@ -257,46 +248,38 @@ class ExprGenerator {
     return if (keywords.indexOf(name) > -1) "$" + name else name;
 
   static function staticField(c: ClassType, s: String): String
-		return switch s {
-			case 'length' | 'name' if (!c.isExtern || c.meta.has(':hxGen')): ".$" + s;
-			case s: field(s);
-		}
+    return switch s {
+      case 'length' | 'name' if (!c.isExtern || c.meta.has(':hxGen')): ".$" + s;
+      case s: field(s);
+    }
 
   static function field(name: String): String // Todo: check valid js ident
-		return if (keywords.indexOf(name) > -1) '["${name}"]' else '.${name}';
+    return if (keywords.indexOf(name) > -1) '["${name}"]' else '.${name}';
 
-  static function asValue(assigner: (assign: SourceNode -> SourceNode) -> SourceNode): SourceNode
+  static function asValue(assigner: (assign: SourceNode->SourceNode)->
+    SourceNode): SourceNode
     return read(ctx -> {
       final id = ctx.inValue + 1;
-      function assign (e: SourceNode): SourceNode
+      function assign(e: SourceNode): SourceNode
         return ['$$r$id = ', e];
       return [
         write(ctx -> {inValue: id, inLoop: false}, [
           "(function($this) {",
-          indent([
-            'var $$r$id',
-            newline,
-            assigner(assign),
-            newline,
-            'return $$r$id'
-          ]),
+          indent(['var $$r$id', newline, assigner(assign), newline, 'return $$r$id']),
           '})'
         ]),
-        '(', this_, ')'
+        '(',
+        this_,
+        ')'
       ];
     });
 
   public static function value(e: TypedExpr): SourceNode
     return node(e, switch (e.expr) {
-      case TConst(_), TLocal(_), TArray(_, _), TBinop(_, _, _), TField(_,_), 
-        TEnumParameter(_, _), TEnumIndex(_), TTypeExpr(_), TParenthesis(_), 
-        TObjectDecl(_), TArrayDecl(_), TNew(_, _, _), TUnop(_, _, _), 
-        TFunction(_), TIdent(_):
-        expr(e);
       case TMeta(_, e1):
         value(e1);
-      case TCall({expr: TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))}, _)
-        | TCall({expr: TIdent('__js__')}, _):
+      case TCall({expr: TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))},
+        _) | TCall({expr: TIdent('__js__')}, _):
         return read(ctx -> ctx.value(e));
       case TCall(e, params):
         call(e, params, true);
@@ -306,12 +289,12 @@ class ExprGenerator {
         throw 'Unsupported $e';
       case TCast(e1, null):
         value(e1);
-			/*case TCast(e1, t):
-				print(ctx, '${ctx.type_accessor(TClassDecl(core.Type.null_class.with({cl_path:{a:["js"], b:"Boot"}})))}.__cast(');
-				gen_value(ctx, e1);
-				spr(ctx, " , ");
-				spr(ctx, (ctx.type_accessor(t)));
-				spr(ctx, ")");*/
+      /*case TCast(e1, t):
+        print(ctx, '${ctx.type_accessor(TClassDecl(core.Type.null_class.with({cl_path:{a:["js"], b:"Boot"}})))}.__cast(');
+        gen_value(ctx, e1);
+        spr(ctx, " , ");
+        spr(ctx, (ctx.type_accessor(t)));
+        spr(ctx, ")"); */
       case TVar(_), TFor(_, _, _), TWhile(_, _, _), TThrow(_):
         asValue(assign -> assign(expr(e))); // todo: value
       case TBlock([]):
@@ -325,66 +308,53 @@ class ExprGenerator {
           assign(value(el[el.length - 1]))
         ]);
       case TIf(cond, e, eo): [
-        value(cond), ' ? ', value(e), ' : ',
-        switch eo {
-          case null:
-            'null';
-          case e:
-            value(e);
-        }
-      ];
-			case TSwitch(cond, cases, def):
-				asValue(assign -> 
-          genSwitch(cond, cases, def, assign)
-        );
-			case TTry(etry, [{v: v, expr: ecatch}]):
-        asValue(assign -> [
-          'try {', 
-          assign(value(etry)), 
-          '} catch (${v.name}) ', 
-          assign(value(ecatch))
-        ]);
-			case _:
-				throw 'Todo';
+          value(cond),
+          ' ? ',
+          value(e),
+          ' : ',
+          switch eo {
+            case null:
+              'null';
+            case e:
+              value(e);
+          }
+        ];
+      case TSwitch(cond, cases, def):
+        asValue(assign -> genSwitch(cond, cases, def, assign));
+      case TTry(etry, [{v: v, expr: ecatch}]):
+        asValue(assign ->
+          ['try {', assign(value(etry)), '} catch (${v.name}) ', assign(value(ecatch))]);
+      default: expr(e);
     });
 
-  static function genSwitch(
-    cond: TypedExpr,
-    cases: Array<{values: Array<TypedExpr>, expr: TypedExpr}>,
-    def: Null<TypedExpr>, 
-    leaf: (n: SourceNode) -> SourceNode
-  ): SourceNode
+  static function genSwitch(cond: TypedExpr,
+      cases: Array<{values: Array<TypedExpr>, expr: TypedExpr}>,
+      def: Null<TypedExpr>, leaf: (n: SourceNode) -> SourceNode): SourceNode
     return [
-      'switch ', value(cond), ' {', 
+      'switch ',
+      value(cond),
+      ' {',
       indent([
         newline,
-        cases.map(c -> node(c.expr, 
-          c.values.map(e -> node(e, 
-            switch e.expr {
-              case TConst(TNull):
-                'case null: case undefined:';
-              default:
-                ['case ', value(e), ': '];
-            }
-          )),
-          indent([
+        cases.map(c -> node(c.expr, c.values.map(e -> node(e, switch e.expr {
+          case TConst(TNull):
+            'case null: case undefined:';
+          default:
+            ['case ', value(e), ': '];
+        })), indent([
             leaf(blockElement(c.expr)),
-            newline, 
+            newline,
             'break' // Todo: implement needs_switch_break
-          ]),
-          newline
-        )),
+          ]), newline)),
         switch def {
-          case null: [];
+          case null:
+            [];
           case e:
-            node(e, 
-              'default:', 
-              indent(leaf(blockElement(e))),
-              newline
-            );
+            node(e, 'default:', indent(leaf(blockElement(e))), newline);
         }
-      ]), 
-      newline, '}'
+      ]),
+      newline,
+      '}'
     ];
 
   public static function constant(c: TConstant): SourceNode
@@ -402,13 +372,13 @@ class ExprGenerator {
     return if (context.inValue == 0) 'this' else "$this";
 
   public static function unop(op: Unop): String
-		return switch (op) {
-			case OpIncrement: "++";
-			case OpDecrement: "--";
-			case OpNot: "!";
-			case OpNeg: "-";
-			case OpNegBits: "~";
-		}
+    return switch (op) {
+      case OpIncrement: "++";
+      case OpDecrement: "--";
+      case OpNot: "!";
+      case OpNeg: "-";
+      case OpNegBits: "~";
+    }
 
   public static function binop(op: Binop): SourceNode
     return switch (op) {
@@ -439,7 +409,7 @@ class ExprGenerator {
     }
 
   static function addObjectdeclParens(e: TypedExpr): TypedExpr {
-    function loop(e:TypedExpr): TypedExpr
+    function loop(e: TypedExpr): TypedExpr
       return switch (e.expr) {
         case TCast(e1, null), TMeta(_, e1): loop(e1);
         case TObjectDecl(_): parenthesis(e);
@@ -448,53 +418,57 @@ class ExprGenerator {
     return loop(e);
   }
 
-  static function posInfo(fields: Array<{name:String, expr:TypedExpr}>)
+  static function posInfo(fields: Array<{name: String, expr: TypedExpr}>)
     return switch [fields[0], fields[1]] {
-      case [{name: 'fileName', expr: {expr: TConst(TString(file))}},
-            {name: 'lineNumber', expr: {expr: TConst(TInt(line))}}]:
+      case [
+        {name: 'fileName', expr: {expr: TConst(TString(file))}},
+        {name: 'lineNumber', expr: {expr: TConst(TInt(line))}}
+      ]:
         {file: file, line: line}
       case _: null;
     }
 
-  static function call(e: TypedExpr, params: Array<TypedExpr>, inValue: Bool): SourceNode
+  static function call(e: TypedExpr, params: Array<TypedExpr>,
+      inValue: Bool): SourceNode
     return node(e, switch [e.expr, params] {
       case [TIdent('`trace'), [e, info]]:
         [
           'console.log(',
-            switch info.expr {
-              case TObjectDecl(posInfo(_) => info) if (info != null): 
-                '"${info.file}:${info.line}:",';
-              case _: '';
-            },
-            value(e),
+          switch info.expr {
+            case TObjectDecl(posInfo(_) => info) if (info != null):
+              '"${info.file}:${info.line}:",';
+            case _:
+              '';
+          },
+          value(e),
           ')'
         ];
-      case [TCall(x,_), el] if (switch (x.expr) {case TIdent('__js__'): false; case _: true;}):
+      case [TCall(x, _), el] if (switch (x.expr) {
+          case TIdent('__js__'): false;
+          case _: true;
+        }):
         ['(', value(e), ')(', join(el.map(value), ', '), ')'];
-      case [TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: name})), args]:
-				syntax(name, args);
+      case [
+        TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: name})),
+        args
+      ]:
+        syntax(name, args);
       case [TIdent("__new__"), args]:
-				syntax("new_", args);
-			case [TIdent("__instanceof__"), args]:
-				syntax("instanceof", args);
-			case [TIdent("__typeof__"), args]:
-				syntax("typeof", args);
-			case [TIdent("__strict_eq__"), args]:
-				syntax("strictEq", args);
-			case [TIdent("__strict_neq__"), args]:
-				syntax("strictNeq", args);
+        syntax("new_", args);
+      case [TIdent("__instanceof__"), args]:
+        syntax("instanceof", args);
+      case [TIdent("__typeof__"), args]:
+        syntax("typeof", args);
+      case [TIdent("__strict_eq__"), args]:
+        syntax("strictEq", args);
+      case [TIdent("__strict_neq__"), args]:
+        syntax("strictNeq", args);
       case [TIdent('__define_feature__'), [_, e]]:
-				expr(e);
+        expr(e);
       case [TIdent('__feature__'), [{expr: TConst(TString(f))}, eif]]:
-        read(ctx -> 
-          if (ctx.hasFeature(f)) value(eif)
-          else []
-        );
+        read(ctx -> if (ctx.hasFeature(f)) value(eif) else []);
       case [TIdent('__feature__'), [{expr: TConst(TString(f))}, eif, eelse]]:
-        read(ctx -> 
-          if (ctx.hasFeature(f)) value(eif)
-          else value(eelse)
-        );
+        read(ctx -> if (ctx.hasFeature(f)) value(eif) else value(eelse));
       // todo: bunch of custom stuff
       default:
         [value(e), '(', join(params.map(value), ', '), ')'];
@@ -502,8 +476,8 @@ class ExprGenerator {
 
   static function syntax(method: String, args: Array<TypedExpr>): SourceNode
     return switch method {
-      case 'construct': 
-        ['new ', value(args[0]), '(', join(args.slice(1).map(value), ', '),')'];
+      case 'construct':
+        ['new ', value(args[0]), '(', join(args.slice(1).map(value), ', '), ')'];
       case 'instanceof':
         ['((', value(args[0]), ') instanceof ', value(args[1]), ')'];
       case 'typeof':
@@ -524,37 +498,29 @@ class ExprGenerator {
     return node(e, switch e.expr {
       case TBlock(el):
         el.map(blockElement.bind(_, after));
-      case TCall({expr:TIdent('__feature__')}, [{expr:TConst(TString(f))}, eif, eelse]): // Todo: match more eelse
-        read(ctx ->
-          if (ctx.hasFeature(f))
-            blockElement(eif, after)
-          else
-            blockElement(eelse, after)
-        );
+      case TCall({expr: TIdent('__feature__')}, [{expr: TConst(TString(f))}, eif, eelse]): // Todo: match more eelse
+        read(ctx -> if (ctx.hasFeature(f)) blockElement(eif, after) else
+          blockElement(eelse, after));
       case TFunction(_):
         blockElement(parenthesis(e), after);
       case TObjectDecl(fl):
         fl.map(field -> blockElement(field.expr, after));
-      case _ :
-        if (!after) [newline, expr(e)]
-        else [expr(e), newline];
+      case _:
+        if (!after) [newline, expr(e)] else [expr(e), newline];
     });
 
   static function isDynamicIterator(ctx: Context, e: TypedExpr): Bool
-		return switch (e.expr) {
-			case TField(x, f) if (fieldName(f) == "iterator"):
-				ctx.hasFeature('HxOverrides.iter') && 
-          switch haxe.macro.Context.followWithAbstracts(e.t) {
-            case //TInst({cl_path: {a:Tl, b: "Array"}}, _), // Todo: check array inst
-              TInst(_.get() => {kind: KTypeParameter(_)}, _) |
-              TAnonymous(_), TDynamic(_), TMono(_):
-              true;
-            case _:
-              false;
-          }
-			case _:
-				false;
-		}
+    return switch (e.expr) {
+      case TField(x, f) if (fieldName(f) == "iterator"): ctx.hasFeature('HxOverrides.iter') && switch haxe.macro.Context.followWithAbstracts(e.t) {
+          case // TInst({cl_path: {a:Tl, b: "Array"}}, _), // Todo: check array inst
+            TInst(_.get() => {kind: KTypeParameter(_)}, _) | TAnonymous(_),
+            TDynamic(_), TMono(_):
+            true;
+          case _:
+            false;
+        } case _:
+        false;
+    }
 
   static function parenthesis(e: TypedExpr): TypedExpr
     return {expr: TParenthesis(e), t: e.t, pos: e.pos}
@@ -567,9 +533,9 @@ class ExprGenerator {
 
   static function fieldName(f: FieldAccess): String
     return switch f {
-      case FAnon(f), FInstance(_,_, f), FStatic(_, f), FClosure(_, f):
+      case FAnon(f), FInstance(_, _, f), FStatic(_, f), FClosure(_, f):
         f.get().name;
-      case FEnum(_, f) : f.name;
+      case FEnum(_, f): f.name;
       case FDynamic(n): n;
     }
 

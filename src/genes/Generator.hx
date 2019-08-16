@@ -21,8 +21,9 @@ class Generator {
     for (type in api.types) {
       switch type {
         // Todo: init extern inst
-        case TInst(_.get() => {module: module, isExtern: false}, _)
-          | TEnum(_.get() => {module: module, isExtern: false}, _):
+        case TInst(_.get() => {module: module,
+          isExtern: false}, _) | TEnum(_.get() => {module: module,
+            isExtern: false}, _):
           if (modules.exists(module))
             modules.get(module).push(type);
           else
@@ -32,32 +33,27 @@ class Generator {
     }
     for (module => types in modules) {
       final path = module.replace('.', '/');
-      final file = 
-        try Context.resolvePath(path + '.hx') 
-        catch (e: Dynamic) null;
+      final file = try Context.resolvePath(path + '.hx') catch (e:Dynamic) null;
       generateModule(api, path, file, types);
     }
     switch api.main {
       case null:
       // Todo: check for nameclash with above
       // Todo: get Main module out of cli args to find source file
-      case v: generateModule(api, output, null, [], v);
+      case v:
+        generateModule(api, output, null, [], v);
     }
   }
 
-  static function generateModule(
-    api: JSGenApi, 
-    path: String, 
-    file: String,
-    types: Array<Type>, 
-    ?main: TypedExpr
-  ) {
+  static function generateModule(api: JSGenApi, path: String, file: String,
+      types: Array<Type>, ?main: TypedExpr) {
     final module = new Module(path, file, types, main);
     final outputDir = Path.directory(api.outputFile);
     function save(file: String, content: String) {
       final path = Path.join([outputDir, file]);
       final dir = Path.directory(path);
-      if (!FileSystem.exists(dir)) FileSystem.createDirectory(dir);
+      if (!FileSystem.exists(dir))
+        FileSystem.createDirectory(dir);
       File.saveContent(path, content);
     }
     ModuleGenerator.module(api, save, module);
@@ -69,7 +65,6 @@ class Generator {
   }
   #end
 }
-
 /*
   function genClass(c: ClassType) {
     genPackage(c.pack);
@@ -143,4 +138,4 @@ class Generator {
       genExpr(meta);
       newline();
     }
-  }*/
+}*/
