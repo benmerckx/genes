@@ -28,16 +28,24 @@ enum Member {
   MMain(expr: TypedExpr);
 }
 
-enum Dependency {
-  DName(name: String);
-  DDefault(as: String);
+enum DependencyType {
+  DName;
+  DDefault;
 }
+
+typedef Dependency = {
+  type: DependencyType,
+  name: String,
+  ?alias: String
+}
+
+private typedef ModuleName = String;
 
 class Module {
   public final path: String;
   public final file: Null<String>;
   public final members: Array<Member>;
-  public var dependencies(get, null): Map<String, Array<Dependency>>;
+  public final dependencies: Map<ModuleName, Array<Dependency>>;
 
   public function new(path, file, types: Array<Type>, ?main: TypedExpr) {
     this.path = path;
@@ -55,6 +63,7 @@ class Module {
     ];
     if (main != null)
       members.push(MMain(main));
+    dependencies = createDependencies();
   }
 
   function toPath(module: String) {
@@ -67,19 +76,29 @@ class Module {
     }
   }
 
-  function get_dependencies() {
-    if (dependencies != null)
-      return dependencies;
-    dependencies = new Map();
-    function push(module, dependency) {
+  function createDependencies() {
+    final dependencies = new Map<ModuleName, Array<Dependency>>();
+    final aliasCount = new Map<String, Int>();
+    function push(module: String, dependency: Dependency) {
+      // Check for name clashes
+      for (member in members)
+        switch member {
+          case MClass({name: name}, _) | MEnum({name: name}):
+            if (name == dependency.name) {
+              dependency.alias = name + '__' + 
+                (aliasCount[name] = switch aliasCount[name] {
+                  case null: 1;
+                  case v: v + 1;
+                });
+              break;
+            }
+          default:
+        }
       if (dependencies.exists(module)) {
         final imports = dependencies.get(module);
         for (i in imports)
-          switch [i, dependency] {
-            case [DName(x), DName(y)] | [DDefault(x), DDefault(y)] if (x == y):
-              return;
-            default:
-          }
+          if (i.name == dependency.name && i.alias == dependency.alias)
+            return;
         imports.push(dependency);
       } else {
         dependencies.set(module, [dependency]);
@@ -94,7 +113,7 @@ class Module {
           // check meta
           var module = toPath(base.module) +
             '.mjs'; // Todo: don't hardcode extension here
-          var dependency = DName(base.name);
+          var dependency: Dependency = {type: DName, name: base.name}
           if (base.isExtern) {
             final name = switch base.meta.extract(':native') {
               case [{params: [{expr: EConst(CString(name))}]}]:
@@ -104,7 +123,7 @@ class Module {
             switch base.meta.extract(':jsRequire') {
               case [{params: [{expr: EConst(CString(m))}]}]:
                 module = m;
-                dependency = DDefault(name);
+                dependency = {type: DDefault, name: name}
               default:
                 return;
             }
@@ -147,6 +166,29 @@ class Module {
     }
     return dependencies;
   }
+
+  public function typeAccessor(type: ModuleType)
+    switch type {
+      case TAbstract(_.get() => cl = {meta: meta, name: name}):
+        return switch meta.has(':coreType') {
+          case true: '"$$hxCoreType__$name"';
+          case false: throw 'assert';
+        }
+      case TClassDecl(_.get() => {
+        module: module,
+        name: name
+      }) | TEnumDecl(_.get() => {module: module, name: name}):
+        // check alias in this module
+        final path = toPath(module)+'.mjs';
+        final imports = dependencies.get(path);
+        if (imports != null)
+          for (i in imports)
+            if (i.name == name) 
+              return if (i.alias != null) i.alias else i.name;
+        return name;
+      case TTypeDecl(_.get() => {name: name}):
+        return name; // Todo: does this even happen?
+    }
 
   static function fieldsOf(cl: ClassType) {
     final fields = [];

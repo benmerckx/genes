@@ -85,21 +85,7 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
       hasFeature: feature -> false,
       addFeature: function(feature) {},
       expr: (e: TypedExpr) -> '',
-      value: (e: TypedExpr) -> '',
-      typeAccessor: (type: ModuleType) -> {
-        return switch type {
-          case TAbstract(_.get() => cl = {meta: meta, name: name}):
-            switch meta.has(':coreType') {
-              case true: '"$$$$hxCoreType__$name"';
-              case false: throw 'assert';
-            }
-          // Todo: look up native names
-          case TClassDecl(_.get() => {name: name}) | TEnumDecl(_.get() =>
-            {name: name}) | TTypeDecl(_.get() =>
-              {name: name}) | TAbstract(_.get() => {name: name}):
-            name;
-        }
-      }
+      value: (e: TypedExpr) -> ''
     }
 
   static function set<T: {}>(object: T, changes: {}): T {

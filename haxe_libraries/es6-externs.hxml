@@ -1,0 +1,3 @@
+-D es6-externs=0.2.0
+# @install: lix --silent download "haxelib:/es6-externs#0.2.0" into es6-externs/0.2.0/haxelib
+-cp ${HAXE_LIBCACHE}/es6-externs/0.2.0/haxelib/src/

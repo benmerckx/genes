@@ -6,6 +6,7 @@ import tink.testrunner.*;
 
 class Run {
   static function main() {
-    Runner.run(TestBatch.make([new TestRequire()])).handle(Runner.exit);
+    Runner.run(TestBatch.make([new TestRequire(), new TestImportAlias()]))
+      .handle(Runner.exit);
   }
 }

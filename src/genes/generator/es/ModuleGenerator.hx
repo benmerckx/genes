@@ -26,7 +26,8 @@ class ModuleGenerator {
       expr: api.generateStatement,
       value: api.generateValue,
       hasFeature: api.hasFeature,
-      addFeature: api.addFeature
+      addFeature: api.addFeature,
+      typeAccessor: module.typeAccessor
     });
     save(output, generated.code + '\n\n//# sourceMappingURL=$output.map');
     save('$output.map', haxe.Json.stringify(generated.map));
@@ -36,19 +37,16 @@ class ModuleGenerator {
       imports: Array<Dependency>): SourceNode {
     inline function require(what: String): SourceNode
       return 'import $what from "$module"';
-    final named = imports.filter(d -> d.match(DName(_)));
-    return imports.filter(d -> d.match(DDefault(_))).map(d -> switch d {
-      case DDefault(alias): require(alias);
-      default: SourceNode.EMPTY;
-    }).concat([
+    final named = imports.filter(d -> d.type.equals(DName));
+    return join(imports.filter(d -> d.type.equals(DDefault))
+      .map(d -> require(if (d.alias != null) d.alias else d.name)).concat([
       if (named.length > 0)
-        require('{' + named.map(d -> switch d {
-          case DName(name): name;
-          default: '';
-        }).join(', ') + '}')
+        require('{' +
+            named.map(d -> d.name + if (d.alias != null) ' as ${d.alias}' else '')
+              .join(', ') + '}')
       else
         SourceNode.EMPTY
-    ]);
+    ]), newline);
   }
 
   static function createClass(cl: ClassType,

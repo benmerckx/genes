@@ -1,0 +1,6 @@
+-D es6-coretypes=0.1.2
+# @install: lix --silent download "gh://github.com/explorigin/es6-coretypes#91b605776a57286edc6df49977e3d4fe75537d61" into es6-coretypes/0.1.2/github/91b605776a57286edc6df49977e3d4fe75537d61
+-lib es6-externs
+-cp ${HAXE_LIBCACHE}/es6-coretypes/0.1.2/github/91b605776a57286edc6df49977e3d4fe75537d61/macro-src/
+--macro JSApplicator.apply()
+-D js-es5
