@@ -26,12 +26,6 @@ class EsMap<K, V> {
   public inline function iterator(): Iterator<V>
     return adaptIterator(inst.values());
 
-  @:runtime public inline function keyValueIterator(): KeyValueIterator<K, V>
-    return (untyped Array.from)(inst.entries()).map(entry -> {
-      value: entry[0],
-      key: entry[1]
-    }).iterator();
-
   public inline function toString(): String {
     return "{" + [for (key in keys()) '$key => ${get(key)}'].join(', ') + "}";
   }

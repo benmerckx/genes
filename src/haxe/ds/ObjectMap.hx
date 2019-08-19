@@ -22,5 +22,8 @@ class ObjectMap<K:{},
     copied.inst = new js.lib.Map(inst);
     return cast copied;
   }
+
+  @:runtime public inline function keyValueIterator(): KeyValueIterator<K, V>
+    return new haxe.iterators.MapKeyValueIterator(this);
 }
 #end

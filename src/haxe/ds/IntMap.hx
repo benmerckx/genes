@@ -21,5 +21,8 @@ class IntMap<T> extends genes.util.EsMap<Int, T> implements haxe.Constraints.IMa
     copied.inst = new js.lib.Map(inst);
     return cast copied;
   }
+
+  @:runtime public inline function keyValueIterator(): KeyValueIterator<Int, T>
+    return new haxe.iterators.MapKeyValueIterator(this);
 }
 #end

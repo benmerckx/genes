@@ -22,5 +22,9 @@ class StringMap<T> extends genes.util.EsMap<String, T> implements haxe.Constrain
     copied.inst = new js.lib.Map(inst);
     return cast copied;
   }
+
+  @:runtime public inline function keyValueIterator(): KeyValueIterator<String,
+    T>
+    return new haxe.iterators.MapKeyValueIterator(this);
 }
 #end
