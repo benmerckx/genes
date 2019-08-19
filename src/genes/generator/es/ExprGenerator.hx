@@ -60,7 +60,7 @@ class ExprGenerator {
             [value(x), field(name), '.bind(', value(x), ')'];
           case _:
             // Todo: figure out this mess, also take care of selfCall
-            [value(x), field(name), '.bind(', value(x), ')'];
+            ['(o=>o', field(name), '.bind(o))(', value(x), ')'];
         }
       case TEnumIndex(x):
         [value(x), "._hx_index"];
