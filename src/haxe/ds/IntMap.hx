@@ -15,31 +15,11 @@ extern class IntMap<T> implements haxe.Constraints.IMap<Int, T> {
   public function toString(): String;
 }
 #else
-@:native('Map')
-extern class IntMap<T> implements haxe.Constraints.IMap<Int, T> {
-  public function new();
-  var inst(get, never): js.lib.Map<Int, T>;
-  inline function get_inst(): js.lib.Map<Int, T>
-    return cast this;
-  @:arrayAccess public function set(key: Int, value: T): Void;
-  @:arrayAccess public function get(key: Int): Null<T>;
-  public inline function remove(key: Int): Bool
-    return inst.delete(key);
-  public inline function exists(key: Int): Bool
-    return inst.has(key);
-  public inline function keys(): Iterator<Int>
-    return genes.util.IteratorAdapter.create(inst.keys());
-  public inline function iterator(): Iterator<T>
-    return genes.util.IteratorAdapter.create(inst.values());
-  public inline function keyValueIterator(): KeyValueIterator<Int, T>
-    return (untyped Array.from)(inst.entries()).map(entry -> {
-      value: entry[0],
-      key: entry[1]
-    }).iterator();
-  public inline function copy(): IntMap<T>
-    return js.Syntax.code('new Map({0})', this);
-  public inline function toString(): String {
-    return "{" + [for (key in keys()) '$key => ${get(key)}'].join(', ') + "}";
+class IntMap<T> extends genes.util.EsMap<Int, T> implements haxe.Constraints.IMap<Int, T> {
+  public inline function copy(): IntMap<T> {
+    var copied = new genes.util.EsMap();
+    copied.inst = new js.lib.Map(inst);
+    return cast copied;
   }
 }
 #end

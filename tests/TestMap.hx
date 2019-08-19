@@ -42,4 +42,11 @@ class TestMap {
     asserts.assert(map[key]);
     return asserts.done();
   }
+
+  public function mangleIterators() {
+    final map = new Map();
+    map.set('test', true);
+    final test = Lambda.array(map);
+    return assert(test[0]);
+  }
 }
