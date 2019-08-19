@@ -21,9 +21,13 @@ class Generator {
     for (type in api.types) {
       switch type {
         // Todo: init extern inst
-        case TInst(_.get() => {module: module,
-          isExtern: false}, _) | TEnum(_.get() => {module: module,
-            isExtern: false}, _):
+        case TInst(_.get() => {
+          module: module,
+          isExtern: false
+        }, _) | TEnum(_.get() => {
+            module: module,
+            isExtern: false
+          }, _):
           if (modules.exists(module))
             modules.get(module).push(type);
           else

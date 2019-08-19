@@ -435,7 +435,7 @@ class ExprGenerator {
 
   static function call(e: TypedExpr, params: Array<TypedExpr>,
       inValue: Bool): SourceNode
-    return node(e, switch [e.expr, params] {
+    return node(e, read(ctx -> switch [e.expr, params] {
       case [TIdent('`trace'), [e, info]]:
         [
           'console.log(',
@@ -474,10 +474,12 @@ class ExprGenerator {
         read(ctx -> if (ctx.hasFeature(f)) value(eif) else []);
       case [TIdent('__feature__'), [{expr: TConst(TString(f))}, eif, eelse]]:
         read(ctx -> if (ctx.hasFeature(f)) value(eif) else value(eelse));
-      // todo: bunch of custom stuff
+      case [TField(x, f), []] if (fieldName(f) == "iterator" && isDynamicIterator(ctx, e)):
+        ctx.addFeature("use.$getIterator");
+        ['(o=>Array.isArray(o)?HxOverrides.iter(o):o.iterator())(', value(x), ')'];
       default:
         [value(e), '(', join(params.map(value), ', '), ')'];
-    });
+    }));
 
   static function syntax(method: String, args: Array<TypedExpr>): SourceNode
     return switch method {
@@ -513,19 +515,19 @@ class ExprGenerator {
       case TObjectDecl(fl):
         fl.map(field -> blockElement(field.expr, after));
       case _:
-        if (!after) [newline, expr(e)] else [expr(e), newline];
+        if (!after) [newline, expr(e), ';'] else [expr(e), newline];
     });
 
-  static function isDynamicIterator(ctx: Context, e: TypedExpr): Bool
-    return switch (e.expr) {
-      case TField(x, f) if (fieldName(f) == "iterator"): ctx.hasFeature('HxOverrides.iter') && switch haxe.macro.Context.followWithAbstracts(e.t) {
-          case // TInst({cl_path: {a:Tl, b: "Array"}}, _), // Todo: check array inst
-            TInst(_.get() => {kind: KTypeParameter(_)}, _) | TAnonymous(_),
-            TDynamic(_), TMono(_):
+  public static function isDynamicIterator(ctx: Context, e: TypedExpr): Bool
+    return switch e.expr {
+      case TField(x, f) if (fieldName(f) == "iterator" && ctx.hasFeature('HxOverrides.iter')):
+        switch haxe.macro.Context.followWithAbstracts(x.t) {
+          case TInst(_.get() => {name: 'Array'}, _) | TInst(_.get() => {kind: KTypeParameter(_)}, _) | TAnonymous(_) | TDynamic(_) | TMono(_):
             true;
           case _:
             false;
-        } case _:
+        }
+      case _:
         false;
     }
 
@@ -538,7 +540,7 @@ class ExprGenerator {
       case _: {expr: TBlock([e]), t: e.t, pos: e.pos}
     }
 
-  static function fieldName(f: FieldAccess): String
+  public static function fieldName(f: FieldAccess): String
     return switch f {
       case FAnon(f), FInstance(_, _, f), FStatic(_, f), FClosure(_, f):
         f.get().name;
@@ -546,7 +548,7 @@ class ExprGenerator {
       case FDynamic(n): n;
     }
 
-  static function stringEscape(?hex = true, s: String): String {
+  public static function stringEscape(?hex = true, s: String): String {
     var b = new StringBuf();
     for (i in 0...s.length) {
       var c = s.charAt(i);
