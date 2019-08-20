@@ -140,9 +140,8 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
     }
   }
 
-  public function toStringWithSourceMap(output: String, source: String,
-      ?ctx: Context) {
-    final map = new SourceMapGenerator(source);
+  public function toStringWithSourceMap(output: String, ?ctx: Context) {
+    final map = new SourceMapGenerator();
     var sourceMappingActive = true;
     var code = '';
     var line = 1;
@@ -190,6 +189,9 @@ abstract SourceNode(SourceNodeChunk) from SourceNodeChunk {
   public function isEmpty()
     return switch this {
       case Multiple([]): true;
+      case Multiple(chunks):
+        Lambda.fold(chunks, (chunk : SourceNode,
+          outcome : Bool) -> outcome && chunk.isEmpty(), true);
       case Code(''): true;
       default: false;
     }

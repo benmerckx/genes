@@ -242,7 +242,7 @@ class ExprGenerator {
       case TIdent("$hxEnums"): hxEnums;
       case TIdent(s): s;
       default:
-        [];
+        SourceNode.EMPTY;
     }));
 
   public static final hxEnums = {
@@ -353,7 +353,7 @@ class ExprGenerator {
           ]), newline)),
         switch def {
           case null:
-            [];
+            SourceNode.EMPTY;
           case e:
             node(e, 'default:', indent(leaf(blockElement(e))), newline);
         }
@@ -471,7 +471,7 @@ class ExprGenerator {
       case [TIdent('__define_feature__'), [_, e]]:
         expr(e);
       case [TIdent('__feature__'), [{expr: TConst(TString(f))}, eif]]:
-        read(ctx -> if (ctx.hasFeature(f)) value(eif) else []);
+        read(ctx -> if (ctx.hasFeature(f)) value(eif) else SourceNode.EMPTY);
       case [TIdent('__feature__'), [{expr: TConst(TString(f))}, eif, eelse]]:
         read(ctx -> if (ctx.hasFeature(f)) value(eif) else value(eelse));
       case [TField(x, f), []] if (fieldName(f) == "iterator" && isDynamicIterator(ctx, e)):
@@ -506,7 +506,7 @@ class ExprGenerator {
       case TBlock(el):
         el.map(blockElement.bind(_, after));
       case TCall({expr: TIdent('__feature__')}, [{expr: TConst(TString(f))}, eif]):
-        read(ctx -> if (ctx.hasFeature(f)) blockElement(eif) else []);
+        read(ctx -> if (ctx.hasFeature(f)) blockElement(eif) else SourceNode.EMPTY);
       case TCall({expr: TIdent('__feature__')}, [{expr: TConst(TString(f))}, eif, eelse]):
         read(ctx -> if (ctx.hasFeature(f)) blockElement(eif, after) else
           blockElement(eelse, after));

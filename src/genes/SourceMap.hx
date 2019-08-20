@@ -11,7 +11,6 @@ class SourceMapGenerator {
     '8', '9', '+', '/'
   ];
 
-  final file: String;
   final sources: Array<String> = [];
   var mappings = '';
   var previousGeneratedColumn = 0;
@@ -20,8 +19,7 @@ class SourceMapGenerator {
   var previousOriginalLine = 0;
   var previousSource = 0;
 
-  public function new(file)
-    this.file = file;
+  public function new() {}
 
   static function toVlq(number: Int)
     return (number < 0) ? ((-1 * number) << 1) + 1 : (number << 1);

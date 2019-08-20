@@ -1,5 +1,6 @@
 package genes.generator.es;
 
+import haxe.io.Path;
 import genes.Module;
 import haxe.macro.Type;
 import haxe.macro.JSGenApi;
@@ -15,14 +16,19 @@ class ModuleGenerator {
       for (module => imports in dependencies)
         importOf(module, imports)
     ], newline);
-    final members = module.members.map(member -> switch member {
-      case MClass(cl, fields): createClass(cl, fields);
-      case MEnum(et): createEnum(et);
+    final members: SourceNode = module.members.map(member -> switch member {
+      case MClass(cl, _, fields): createClass(cl, fields);
+      case MEnum(et, _): createEnum(et);
       case MMain(e): expr(e);
+      default: SourceNode.EMPTY;
     });
+    if (members.isEmpty())
+      return;
     final source: SourceNode = [imports, newline, newline, members];
-    final output = module.path + '.mjs';
-    final generated = source.toStringWithSourceMap(output, module.file, {
+    final extension = Path.extension(api.outputFile);
+    final output = if (extension == '') module.path else
+      [module.path, extension].join('.');
+    final generated = source.toStringWithSourceMap(output, {
       expr: api.generateStatement,
       value: api.generateValue,
       hasFeature: api.hasFeature,
@@ -52,7 +58,7 @@ class ModuleGenerator {
   static function createClass(cl: ClassType,
       fields: Array<Field>): SourceNode {
     if (cl.isInterface)
-      return '';
+      return SourceNode.EMPTY;
     final visibility = cl.isPrivate ? '' : 'export ';
     final extend = switch cl.superClass {
       case null: '';

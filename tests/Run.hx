@@ -11,7 +11,9 @@ class Run {
       new TestRequire(),
       new TestImportAlias(),
       new TestMap(),
-      new TestIterators()
+      new TestIterators(),
+      // TS
+      new TestTypedef()
     ])).handle(Runner.exit);
   }
 }

@@ -24,8 +24,9 @@ typedef Field = {
 }
 
 enum Member {
-  MClass(type: ClassType, fields: Array<Field>);
-  MEnum(type: EnumType);
+  MClass(type: ClassType, params: Array<Type>, fields: Array<Field>);
+  MEnum(type: EnumType, params: Array<Type>);
+  MType(type: DefType, params: Array<Type>);
   MMain(expr: TypedExpr);
 }
 
@@ -43,21 +44,23 @@ typedef Dependency = {
 private typedef ModuleName = String;
 
 class Module {
+  public final module: String;
   public final path: String;
-  public final file: Null<String>;
   public final members: Array<Member>;
   public final dependencies: Map<ModuleName, Array<Dependency>>;
 
-  public function new(path, file, types: Array<Type>, ?main: TypedExpr) {
-    this.path = path;
-    this.file = file;
+  public function new(module, types: Array<Type>, ?main: TypedExpr) {
+    this.module = module;
+    path = module.split('.').join('/');
     members = [
       for (type in types)
         switch type {
-          case TEnum(_.get() => et, _):
-            MEnum(et);
-          case TInst(_.get() => cl, _):
-            MClass(cl, fieldsOf(cl));
+          case TEnum(_.get() => et, params):
+            MEnum(et, params);
+          case TInst(_.get() => cl, params):
+            MClass(cl, params, fieldsOf(cl));
+          case TType(_.get() => tt, params):
+            MType(tt, params);
           default:
             throw 'assert';
         }
@@ -67,9 +70,9 @@ class Module {
     dependencies = createDependencies();
   }
 
-  function toPath(module: String) {
-    final parts = module.split('.');
-    final dirs = path.split('/');
+  function toPath(from: String) {
+    final parts = from.split('.');
+    final dirs = module.split('.');
     return switch dirs.length {
       case 1: './' + parts.join('/');
       case v:
@@ -88,22 +91,30 @@ class Module {
 
   function createDependencies() {
     final dependencies = new Map<ModuleName, Array<Dependency>>();
+    final aliases = new Map<String, String>();
     final aliasCount = new Map<String, Int>();
     function push(module: String, dependency: Dependency) {
       // Check for name clashes
-      for (member in members)
-        switch member {
-          case MClass({name: name}, _) | MEnum({name: name}):
-            if (name == dependency.name) {
-              dependency.alias = name + '__' +
-                (aliasCount[name] = switch aliasCount[name] {
-                case null: 1;
-                case v: v + 1;
-              });
-              break;
+      final key = module + '.' + dependency.name;
+      switch aliases[key] {
+        case null:
+          for (member in members)
+            switch member {
+              case MClass({name: name}, _, _) | MEnum({name: name}, _):
+                if (name == dependency.name) {
+                  aliases[key] = name + '__' +
+                    (aliasCount[name] = switch aliasCount[name] {
+                    case null: 1;
+                    case v: v + 1;
+                  });
+                  dependency.alias = aliases[key];
+                  break;
+                }
+              default:
             }
-          default:
-        }
+        case v:
+          dependency.alias = v;
+      }
       if (dependencies.exists(module)) {
         final imports = dependencies.get(module);
         for (i in imports)
@@ -119,8 +130,7 @@ class Module {
         case TClassDecl(_.get() => {isInterface: true}):
         case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base):
           // check meta
-          var module = toPath(base.module) +
-            '.mjs'; // Todo: don't hardcode extension here
+          var path = toPath(base.module); // Todo: don't hardcode extension here
           var dependency: Dependency = {type: DName, name: base.name}
           if (base.isExtern) {
             final name = switch base.meta.extract(':native') {
@@ -130,15 +140,15 @@ class Module {
             }
             switch base.meta.extract(':jsRequire') {
               case [{params: [{expr: EConst(CString(m))}]}]:
-                module = m;
+                path = m;
                 dependency = {type: DDefault, name: name}
               default:
                 return;
             }
-          } else if (base.module.replace('.', '/') == path) {
+          } else if (base.module == module) {
             return;
           }
-          push(module, dependency);
+          push(path, dependency);
         default:
       }
     }
@@ -160,7 +170,7 @@ class Module {
       }
     for (member in members) {
       switch member {
-        case MClass(cl, fields):
+        case MClass(cl, _, fields):
           switch cl.interfaces {
             case null | []:
             case v:
@@ -190,11 +200,11 @@ class Module {
           case false: throw 'assert';
         }
       case TClassDecl(_.get() => {
-        module: module,
+        module: m,
         name: name
-      }) | TEnumDecl(_.get() => {module: module, name: name}):
+      }) | TEnumDecl(_.get() => {module: m, name: name}):
         // check alias in this module
-        final path = toPath(module) + '.mjs';
+        final path = toPath(m);
         final imports = dependencies.get(path);
         if (imports != null)
           for (i in imports)

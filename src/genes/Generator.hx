@@ -10,21 +10,47 @@ import sys.FileSystem;
 import sys.io.File;
 import haxe.io.Path;
 import genes.generator.es.ModuleGenerator;
+import genes.generator.dts.DefinitionGenerator;
 
 using Lambda;
 using StringTools;
 
 class Generator {
   static function generate(api: JSGenApi) {
-    final modules = new Map<String, Array<Type>>();
+    final toGenerate = typesPerModule(api.types);
     final output = Path.withoutExtension(Path.withoutDirectory(api.outputFile));
-    for (type in api.types) {
+    final modules = new Map();
+    function addModule(module: String, types: Array<Type>,
+        ?main: Null<TypedExpr>)
+      modules.set(module, new Module(module, types, main));
+    switch api.main {
+      case null:
+      case v:
+        addModule(output, switch toGenerate.get(output) {
+          case null: [];
+          case v: v;
+        }, v);
+    }
+    for (module => types in toGenerate)
+      if (module != output)
+        addModule(module, types);
+    for (module in modules)
+      generateModule(api, module);
+    return modules;
+  }
+
+  static function typesPerModule(types: Array<Type>) {
+    final modules = new Map<String, Array<Type>>();
+    for (type in types) {
       switch type {
         // Todo: init extern inst
         case TInst(_.get() => {
           module: module,
           isExtern: false
         }, _) | TEnum(_.get() => {
+            module: module,
+            isExtern: false
+          }, _) | TType(_.get() => {
             module: module,
             isExtern: false
           }, _):
@@ -35,23 +61,10 @@ class Generator {
         default:
       }
     }
-    for (module => types in modules) {
-      final path = module.replace('.', '/');
-      final file = try Context.resolvePath(path + '.hx') catch (e:Dynamic) null;
-      generateModule(api, path, file, types);
-    }
-    switch api.main {
-      case null:
-      // Todo: check for nameclash with above
-      // Todo: get Main module out of cli args to find source file
-      case v:
-        generateModule(api, output, null, [], v);
-    }
+    return modules;
   }
 
-  static function generateModule(api: JSGenApi, path: String, file: String,
-      types: Array<Type>, ?main: TypedExpr) {
-    final module = new Module(path, file, types, main);
+  static function generateModule(api: JSGenApi, module: Module) {
     final outputDir = Path.directory(api.outputFile);
     function save(file: String, content: String) {
       final path = Path.join([outputDir, file]);

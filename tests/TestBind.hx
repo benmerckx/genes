@@ -7,7 +7,7 @@ class TestBind {
   function test(a, b)
     return a + b;
 
-  @:include public function testBind() {
+  public function testBind() {
     function test(a, b)
       return a + b;
     final t = new TestBind();

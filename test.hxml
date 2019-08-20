@@ -2,7 +2,6 @@
 -lib hxnodejs
 -lib tink_unittest
 -dce full
--cp tests
 -main tests.Run
--js bin/test.mjs
--cmd node --no-warnings --experimental-modules bin/test.mjs
+-js bin/test.js
+-cmd node --no-warnings --experimental-modules --es-module-specifier-resolution=node bin/test.js
