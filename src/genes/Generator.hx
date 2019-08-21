@@ -66,9 +66,16 @@ class Generator {
     final outputDir = Path.directory(api.outputFile);
     final extension = Path.extension(api.outputFile);
     final path = [Path.join([outputDir, module.path]), extension].join('.');
+    final definition = [Path.join([outputDir, module.path]), 'd.ts'].join('.');
     final ctx = module.createContext(api);
-    final moduleEmitter = new ModuleEmitter(ctx, Writer.fileWriter(path), new SourceMapGenerator(path + '.map'));
+    final moduleEmitter = new ModuleEmitter(ctx, Writer.fileWriter(path));
     moduleEmitter.emitModule(module);
+    moduleEmitter.emitSourceMap(path + '.map', true);
+    moduleEmitter.finish();
+    final definitionEmitter = new DefinitionEmitter(ctx, Writer.fileWriter(definition));
+    definitionEmitter.emitDefinition(module);
+    definitionEmitter.emitSourceMap(definition + '.map');
+    definitionEmitter.finish();
   }
 
   #if macro

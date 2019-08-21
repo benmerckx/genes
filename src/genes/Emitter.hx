@@ -1,6 +1,7 @@
 package genes;
 
 import genes.SourceMapGenerator;
+import haxe.io.Path;
 
 class Emitter {
   final ctx: genes.Context;
@@ -10,10 +11,11 @@ class Emitter {
   var lastPos = SourcePosition.EMPTY;
 
   public function new(ctx: Context, writer: Writer,
-      sourceMap: SourceMapGenerator) {
+      ?sourceMap: SourceMapGenerator) {
     this.ctx = ctx;
     this.writer = writer;
-    this.sourceMap = sourceMap;
+    this.sourceMap = if (sourceMap == null) new SourceMapGenerator() else
+      sourceMap;
   }
 
   function emitPos(pos: SourcePosition) {
@@ -32,5 +34,17 @@ class Emitter {
 
   inline function write(data: String) {
     writer.write(data);
+  }
+
+  public function emitSourceMap(path: String, withSources = false) {
+    if (writer.isEmpty())
+      return;
+    final output = Path.withoutDirectory(path);
+    write('\n//# sourceMappingURL=$output');
+    sourceMap.write(path, withSources);
+  }
+
+  public function finish() {
+    writer.close();
   }
 }

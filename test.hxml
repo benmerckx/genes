@@ -4,4 +4,5 @@
 -dce full
 -main tests.Run
 -js bin/test.js
--cmd node --no-warnings --experimental-modules --es-module-specifier-resolution=node bin/test.js
+--times 
+-D macro-times

@@ -30,6 +30,10 @@ class Writer {
       }
   }
 
+  public function isEmpty() {
+    return line == 1 && column == 0;
+  }
+
   public static function fileWriter(file: String) {
     var input;
     return new Writer((data : String) -> {

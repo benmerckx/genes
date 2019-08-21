@@ -5,6 +5,9 @@ import haxe.macro.Type;
 import haxe.macro.Expr.Position;
 import haxe.display.Position.Location;
 import haxe.macro.PositionTools.toLocation;
+import haxe.io.Path;
+import sys.io.File;
+import haxe.Json;
 
 @:structInit
 class SourcePositionData {
@@ -44,7 +47,6 @@ class SourceMapGenerator {
     '8', '9', '+', '/'
   ];
 
-  final path: String;
   final sources: Array<String> = [];
   var mappings = '';
   var previousGeneratedColumn = 0;
@@ -53,8 +55,7 @@ class SourceMapGenerator {
   var previousOriginalLine = 0;
   var previousSource = 0;
 
-  public function new(path: String)
-    this.path = path;
+  public function new() {}
 
   static function toVlq(number: Int)
     return (number < 0) ? ((-1 * number) << 1) + 1 : (number << 1);
@@ -106,21 +107,23 @@ class SourceMapGenerator {
     previousSource = source;
   }
 
-  public function toJSON() {
-    return {
+  public function toJSON(path: String, withSources: Bool) {
+    final map: Dynamic = {
       version: 3,
       names: [],
-      file: path,
+      file: Path.withoutDirectory(path),
       sources: sources,
-      sourcesContent: sources.map(source -> switch source {
-        case null | '?': null;
-        case file: sys.io.File.getContent(file);
-      }),
       mappings: mappings
     }
+    if (withSources)
+      map.sourcesContent = sources.map(source -> switch source {
+        case null | '?': null;
+        case file: File.getContent(file);
+      });
+    return map;
   }
 
-  public function write() {
-    sys.io.File.saveContent(path, haxe.Json.stringify(toJSON()));
+  public function write(path: String, withSources: Bool) {
+    File.saveContent(path, Json.stringify(toJSON(path, withSources)));
   }
 }

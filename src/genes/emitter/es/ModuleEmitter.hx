@@ -21,8 +21,6 @@ class ModuleEmitter extends ExprEmitter {
           emitExpr(e);
         default:
       }
-    writer.close();
-    sourceMap.write();
   }
 
   function emitImports(module: String, imports: Array<Dependency>) {
@@ -65,12 +63,12 @@ class ModuleEmitter extends ExprEmitter {
     });
     write(' {');
     increaseIndent();
-    writeNewline();
     for (field in fields)
       switch field.kind {
         case Constructor | Method:
           switch field.expr.expr {
             case TFunction(f):
+              writeNewline();
               emitPos(field.pos);
               if (field.isStatic)
                 write('static ');
@@ -80,7 +78,6 @@ class ModuleEmitter extends ExprEmitter {
                 emitIdent(arg.v.name);
               write(') ');
               emitExpr(f.expr);
-              writeNewline();
             default: throw 'assert';
           }
         default:
