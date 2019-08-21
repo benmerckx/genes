@@ -6,8 +6,6 @@ import haxe.macro.JSGenApi;
 import haxe.macro.Context;
 import haxe.macro.Compiler;
 import haxe.macro.Type;
-import sys.FileSystem;
-import sys.io.File;
 import haxe.io.Path;
 import genes.emitter.es.ModuleEmitter;
 import genes.emitter.dts.DefinitionEmitter;
@@ -68,9 +66,6 @@ class Generator {
     final outputDir = Path.directory(api.outputFile);
     final extension = Path.extension(api.outputFile);
     final path = [Path.join([outputDir, module.path]), extension].join('.');
-    final dir = Path.directory(path);
-    if (!FileSystem.exists(dir))
-      FileSystem.createDirectory(dir);
     final ctx = module.createContext(api);
     final moduleEmitter = new ModuleEmitter(ctx, Writer.fileWriter(path), new SourceMapGenerator(path + '.map'));
     moduleEmitter.emitModule(module);

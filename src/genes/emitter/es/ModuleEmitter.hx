@@ -6,6 +6,9 @@ import haxe.macro.Type;
 
 class ModuleEmitter extends ExprEmitter {
   public function emitModule(module: Module) {
+    final typed = module.members.filter(m -> m.match(MType(_, _)));
+    if (typed.length == module.members.length)
+      return;
     for (module => imports in module.dependencies)
       emitImports(module, imports);
     for (member in module.members)

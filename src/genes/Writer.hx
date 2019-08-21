@@ -2,6 +2,8 @@ package genes;
 
 import haxe.io.Encoding;
 import sys.io.File;
+import sys.FileSystem;
+import haxe.io.Path;
 
 using StringTools;
 
@@ -29,8 +31,15 @@ class Writer {
   }
 
   public static function fileWriter(file: String) {
-    final input = File.write(file);
-    return
-      new Writer((data : String) -> input.writeString(data, Encoding.UTF8), input.close);
+    var input;
+    return new Writer((data : String) -> {
+      if (input == null) {
+        final dir = Path.directory(file);
+        if (!FileSystem.exists(dir))
+          FileSystem.createDirectory(dir);
+        input = File.write(file);
+      }
+      input.writeString(data, Encoding.UTF8);
+    }, () -> if (input != null) input.close());
   }
 }
