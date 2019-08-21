@@ -72,7 +72,7 @@ class Generator {
     if (!FileSystem.exists(dir))
       FileSystem.createDirectory(dir);
     final ctx = module.createContext(api);
-    final moduleEmitter = new ModuleEmitter(ctx, Writer.fileWriter(path), new SourceMapGenerator());
+    final moduleEmitter = new ModuleEmitter(ctx, Writer.fileWriter(path), new SourceMapGenerator(path + '.map'));
     moduleEmitter.emitModule(module);
   }
 

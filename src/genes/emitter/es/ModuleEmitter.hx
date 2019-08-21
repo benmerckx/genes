@@ -19,6 +19,7 @@ class ModuleEmitter extends ExprEmitter {
         default:
       }
     writer.close();
+    sourceMap.write();
   }
 
   function emitImports(module: String, imports: Array<Dependency>) {

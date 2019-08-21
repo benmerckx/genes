@@ -44,6 +44,7 @@ class SourceMapGenerator {
     '8', '9', '+', '/'
   ];
 
+  final path: String;
   final sources: Array<String> = [];
   var mappings = '';
   var previousGeneratedColumn = 0;
@@ -52,7 +53,8 @@ class SourceMapGenerator {
   var previousOriginalLine = 0;
   var previousSource = 0;
 
-  public function new() {}
+  public function new(path: String)
+    this.path = path;
 
   static function toVlq(number: Int)
     return (number < 0) ? ((-1 * number) << 1) + 1 : (number << 1);
@@ -104,11 +106,11 @@ class SourceMapGenerator {
     previousSource = source;
   }
 
-  public function toJSON(output: String) {
+  public function toJSON() {
     return {
       version: 3,
       names: [],
-      file: output,
+      file: path,
       sources: sources,
       sourcesContent: sources.map(source -> switch source {
         case null | '?': null;
@@ -116,5 +118,9 @@ class SourceMapGenerator {
       }),
       mappings: mappings
     }
+  }
+
+  public function write() {
+    sys.io.File.saveContent(path, haxe.Json.stringify(toJSON()));
   }
 }

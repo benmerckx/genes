@@ -9,7 +9,7 @@ class Writer {
   final writer: (data: String) -> Void;
 
   public final close: () -> Void;
-  public var line(default, null): Int = 0;
+  public var line(default, null): Int = 1;
   public var column(default, null): Int = 0;
 
   public function new(writer, close) {
