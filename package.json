@@ -2,7 +2,7 @@
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
-		"test": "rimraf bin && haxe test.hxml --times",
+		"test": "rimraf bin && haxe test.hxml --times -D macro-times",
 		"postinstall": "lix download"
 	},
 	"devDependencies": {

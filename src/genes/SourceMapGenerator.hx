@@ -1,6 +1,39 @@
 package genes;
 
-import genes.SourceNode;
+import haxe.macro.Compiler;
+import haxe.macro.Type;
+import haxe.macro.Expr.Position;
+import haxe.display.Position.Location;
+import haxe.macro.PositionTools.toLocation;
+
+@:structInit
+class SourcePositionData {
+  public final line: Int;
+  public final column: Int;
+  public final file: Null<String>;
+}
+
+@:forward
+abstract SourcePosition(SourcePositionData) from SourcePositionData {
+  @:from static function fromTypedExpr(expr: TypedExpr)
+    return fromPos(expr.pos);
+
+  @:from static function fromPos(pos: Position)
+    return fromLocation(toLocation(pos));
+
+  @:from static function fromLocation(location: Location): SourcePosition
+    return ({
+      line: location.range.start.line,
+      column: location.range.start.character - 1,
+      file: location.file
+    } : SourcePositionData);
+
+  public static final EMPTY: SourcePosition = ({
+    line: 1,
+    column: 0,
+    file: null
+  } : SourcePositionData);
+}
 
 class SourceMapGenerator {
   static final chars = [

@@ -9,8 +9,8 @@ import haxe.macro.Type;
 import sys.FileSystem;
 import sys.io.File;
 import haxe.io.Path;
-import genes.generator.es.ModuleGenerator;
-import genes.generator.dts.DefinitionGenerator;
+import genes.emitter.es.ModuleEmitter;
+import genes.emitter.dts.DefinitionEmitter;
 
 using Lambda;
 using StringTools;
@@ -66,14 +66,14 @@ class Generator {
 
   static function generateModule(api: JSGenApi, module: Module) {
     final outputDir = Path.directory(api.outputFile);
-    function save(file: String, content: String) {
-      final path = Path.join([outputDir, file]);
-      final dir = Path.directory(path);
-      if (!FileSystem.exists(dir))
-        FileSystem.createDirectory(dir);
-      File.saveContent(path, content);
-    }
-    ModuleGenerator.module(api, save, module);
+    final extension = Path.extension(api.outputFile);
+    final path = [Path.join([outputDir, module.path]), extension].join('.');
+    final dir = Path.directory(path);
+    if (!FileSystem.exists(dir))
+      FileSystem.createDirectory(dir);
+    final ctx = module.createContext(api);
+    final moduleEmitter = new ModuleEmitter(ctx, Writer.fileWriter(path), new SourceMapGenerator());
+    moduleEmitter.emitModule(module);
   }
 
   #if macro

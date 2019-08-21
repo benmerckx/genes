@@ -3,7 +3,6 @@ package genes;
 import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.macro.Expr.Position;
-import genes.generator.es.ExprGenerator.*;
 
 using StringTools;
 using haxe.macro.TypedExprTools;
@@ -162,7 +161,7 @@ class Module {
           for (e in el)
             addFromExpr(e);
         case {expr: TField(x, f)}
-          if (fieldName(f) == "iterator"): // Todo: conditions here could be refined
+          if (genes.util.TypedExprUtil.fieldName(f) == "iterator"): // Todo: conditions here could be refined
           add(getModuleType('HxOverrides'));
           addFromExpr(x);
         case e:
@@ -257,4 +256,13 @@ class Module {
       });
     return fields;
   }
+
+  public function createContext(api: haxe.macro.JSGenApi): genes.Context
+    return {
+      expr: api.generateStatement,
+      value: api.generateValue,
+      hasFeature: api.hasFeature,
+      addFeature: api.addFeature,
+      typeAccessor: typeAccessor
+    }
 }
