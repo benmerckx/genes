@@ -18,10 +18,43 @@ class DefinitionEmitter extends ModuleEmitter {
       switch member {
         case MClass(cl, params, fields):
           emitClassDefinition(cl, params, fields);
+        case MEnum(et, params):
+          emitEnumDefinition(et, params);
         /*case MType(def, params):
           emitTypeDefinition(def, params); */
         default:
       }
+  }
+
+  function emitEnumDefinition(et: EnumType, params: Array<Type>) {
+    final id = et.pack.concat([et.name]).join('.');
+    writeNewline();
+    write('export declare type ');
+    emitPos(et.pos);
+    emitBaseType(et, params);
+    emitPos(et.pos);
+    write(' = ');
+    increaseIndent();
+    for (name => c in et.constructs) {
+      writeNewline();
+      write('| ');
+      emitPos(c.pos);
+      write('{_hx_index: ${c.index}');
+      switch c.type {
+        case TFun(args, ret):
+          for (arg in args) {
+            write(', ');
+            emitIdent(arg.name);
+            write(': ');
+            emitType(arg.t);
+          }
+        default:
+      }
+      write(', __enum__: "${id}"}');
+      write('  // ' + name);
+    }
+    decreaseIndent();
+    writeNewline();
   }
 
   /*function emitTypeDefinition(def: DefType, params: Array<Type>) {
@@ -72,9 +105,18 @@ class DefinitionEmitter extends ModuleEmitter {
                 write('>');
               }
               write('(');
-              for (arg in join(args, write.bind(', '))) {
+              var optionalPos = args.length;
+              for (i in 0...args.length) {
+                final fromEnd = args.length - 1 - i;
+                if (args[fromEnd].opt)
+                  optionalPos = fromEnd;
+                else
+                  break;
+              }
+              for (i in joinIt(0...args.length, write.bind(', '))) {
+                final arg = args[i];
                 emitIdent(arg.name);
-                if (arg.opt)
+                if (arg.opt && i >= optionalPos)
                   write('?');
                 write(': ');
                 emitType(arg.t);

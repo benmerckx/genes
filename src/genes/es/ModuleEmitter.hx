@@ -40,11 +40,14 @@ class ModuleEmitter extends ExprEmitter {
     writeSpace();
     switch what {
       case [def = {type: DependencyType.DDefault}]:
+        emitPos(def.pos);
         write(if (def.alias != null) def.alias else def.name);
       case defs:
         write('{');
-        write(defs.map(def -> def.name + if (def.alias != null) ' as ${def.alias}' else '')
-          .join(', '));
+        for (def in join(defs, write.bind(', '))) {
+          emitPos(def.pos);
+          write(def.name + if (def.alias != null) ' as ${def.alias}' else '');
+        }
         write('}');
     }
     writeSpace();

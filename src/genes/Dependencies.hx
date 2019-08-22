@@ -2,6 +2,7 @@ package genes;
 
 import haxe.macro.Type;
 import genes.Module;
+import genes.SourceMapGenerator;
 
 enum DependencyType {
   DName;
@@ -11,7 +12,8 @@ enum DependencyType {
 typedef Dependency = {
   type: DependencyType,
   name: String,
-  ?alias: String
+  ?alias: String,
+  ?pos: SourcePosition
 }
 
 private typedef ModuleName = String;
@@ -67,7 +69,8 @@ class Dependencies {
       case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base):
         // check meta
         var path = module.toPath(base.module);
-        var dependency: Dependency = {type: DName, name: base.name}
+        var dependency: Dependency = {type: DName, name: base.name,
+          pos: base.pos}
         if (base.isExtern) {
           final name = switch base.meta.extract(':native') {
             case [{params: [{expr: EConst(CString(name))}]}]:

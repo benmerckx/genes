@@ -31,16 +31,18 @@ class TypeEmitter {
   public static function emitType(writer: TypeWriter, type: Type) {
     final write = writer.write, emitPos = writer.emitPos,
     includeType = writer.includeType;
-
     switch type {
       case TInst(ref = _.get() => cl, params):
         switch [cl, params] {
           case [{pack: [], name: 'String'}, _]:
+            emitPos(cl.pos);
             write('string');
           case [{pack: [], name: "Array"}, [elemT]]:
+            emitPos(cl.pos);
             emitType(writer, elemT);
             write('[]');
           case [{name: name, kind: KTypeParameter(_)}, _]:
+            emitPos(cl.pos);
             write(name);
           default:
             includeType(TInst(ref, params));
@@ -49,21 +51,27 @@ class TypeEmitter {
       case TAbstract(_.get() => ab, params):
         switch [ab, params] {
           case [{pack: [], name: "Int" | "Float"}, _]:
+            emitPos(ab.pos);
             write('number');
           case [{pack: [], name: "Bool"}, _]:
+            emitPos(ab.pos);
             write('boolean');
           case [{pack: [], name: "Void"}, _]:
+            emitPos(ab.pos);
             write('void');
           case [{pack: [], name: "Null"}, [realT]]: // Haxe 4.x
             // TODO: generate `| null` union unless it comes from an optional field?
+            emitPos(ab.pos);
             emitType(writer, realT);
           case [{pack: ["haxe", "extern"], name: "EitherType"}, [aT, bT]]:
             emitType(writer, aT);
+            emitPos(ab.pos);
             write(' | ');
             emitType(writer, bT);
           default:
             // TODO: do we want to handle more `type Name = Underlying` cases?
             if (ab.meta.has(":coreType")) {
+              emitPos(ab.pos);
               write('any');
             } else {
               emitType(writer, ab.type.applyTypeParameters(ab.params, params));
@@ -72,6 +80,7 @@ class TypeEmitter {
       case TAnonymous(_.get() => anon):
         write('{');
         for (field in join(anon.fields, write.bind(', '))) {
+          emitPos(field.pos);
           write(field.name);
           if (field.meta.has(':optional'))
             write('?');
@@ -85,12 +94,7 @@ class TypeEmitter {
             // TODO: generate `| null` union unless it comes from an optional field?
             emitType(writer, realT);
           default:
-            switch (dt.type) {
-              case TAnonymous(_) if (dt.meta.has(":expose")):
-                emitBaseType(writer, dt, params);
-              default:
-                emitType(writer, dt.type.applyTypeParameters(dt.params, params));
-            }
+            emitType(writer, dt.type.applyTypeParameters(dt.params, params));
         }
 
       case TFun(args, ret):
@@ -105,7 +109,8 @@ class TypeEmitter {
         write('{[key: string]: ');
         emitType(writer, elemT);
         write('}');
-      case TEnum(_.get() => et, params):
+      case TEnum(ref = _.get() => et, params):
+        includeType(TEnum(ref, params));
         emitBaseType(writer, et, params);
       default:
         write('any');

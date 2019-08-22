@@ -60,13 +60,8 @@ class Module {
   }
 
   public function toPath(from: String) {
-    final parts = from.split('.');
-    final dirs = module.split('.');
-    return switch dirs.length {
-      case 1: './' + parts.join('/');
-      case v:
-        [for (i in 0...v - 1) '..'].concat(parts).join('/');
-    }
+    final to = genes.util.PathUtil.relative(path, from.replace('.', '/'));
+    return if (to.charAt(0) != '.') './' + to else to;
   }
 
   public function typeDependencies() {
@@ -96,8 +91,16 @@ class Module {
             case {t: t}: dependencies.add(TClassDecl(t));
           }
           for (field in fields)
-            if (field.expr != null)
-              addType(field.expr.t);
+            addType(field.type);
+        case MEnum(et, _):
+          for (c in et.constructs) {
+            switch c.type {
+              case TFun(args, ret):
+                for (arg in args)
+                  addType(arg.t);
+              default:
+            }
+          }
         case MMain(expr):
           addType(expr.t);
         default:
@@ -189,7 +192,10 @@ class Module {
         expr: field.expr(),
         pos: field.pos,
         isStatic: true,
-        params: field.params
+        params: (switch cl.kind {
+          case KAbstractImpl(_.get().params => params): params;
+          default: [];
+        }).concat(field.params)
       });
     return fields;
   }
