@@ -8,6 +8,7 @@ import haxe.macro.PositionTools.toLocation;
 import haxe.io.Path;
 import sys.io.File;
 import haxe.Json;
+import genes.util.PathUtil;
 
 @:structInit
 class SourcePositionData {
@@ -112,14 +113,17 @@ class SourceMapGenerator {
       version: 3,
       names: [],
       file: Path.withoutDirectory(path),
-      sources: sources,
+      sourceRoot: "",
+      sources: sources.map(source -> if (source == '?') null else PathUtil.relative(path, source)),
       mappings: mappings
     }
+    #if source_map_content
     if (withSources)
       map.sourcesContent = sources.map(source -> switch source {
         case null | '?': null;
         case file: File.getContent(file);
       });
+    #end
     return map;
   }
 

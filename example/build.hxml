@@ -1,0 +1,4 @@
+-lib genes
+-debug
+-main Hello
+-js dist/index.js

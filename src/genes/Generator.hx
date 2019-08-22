@@ -48,10 +48,10 @@ class Generator {
         }, _) | TEnum(_.get() => {
             module: module,
             isExtern: false
-          }, _) | TType(_.get() => {
+          }, _) /*| TType(_.get() => {
             module: module,
             isExtern: false
-          }, _):
+          }, _)*/:
           if (modules.exists(module))
             modules.get(module).push(type);
           else
@@ -70,12 +70,18 @@ class Generator {
     final ctx = module.createContext(api);
     final moduleEmitter = new ModuleEmitter(ctx, Writer.fileWriter(path));
     moduleEmitter.emitModule(module);
+    #if (debug || js_source_map)
     moduleEmitter.emitSourceMap(path + '.map', true);
+    #end
     moduleEmitter.finish();
+    #if dts
     final definitionEmitter = new DefinitionEmitter(ctx, Writer.fileWriter(definition));
     definitionEmitter.emitDefinition(module);
+    #if (debug || js_source_map)
     definitionEmitter.emitSourceMap(definition + '.map');
+    #end
     definitionEmitter.finish();
+    #end
   }
 
   #if macro

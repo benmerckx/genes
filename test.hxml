@@ -1,6 +1,10 @@
 -lib genes
 -lib hxnodejs
 -lib tink_unittest
+
+-debug
+-D dts
+
 -dce full
 -main tests.Run
 -js bin/test.js

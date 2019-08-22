@@ -21,6 +21,7 @@ class Writer {
 
   public function write(data: String) {
     writer(data);
+    #if (debug || js_source_map)
     for (char in data)
       if (char == '\n'.code) {
         line++;
@@ -28,6 +29,7 @@ class Writer {
       } else {
         column++;
       }
+    #end
   }
 
   public function isEmpty() {

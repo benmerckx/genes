@@ -19,8 +19,9 @@ class Emitter {
   }
 
   function emitPos(pos: SourcePosition) {
+    #if (debug || js_source_map)
     switch pos {
-      case null:
+      case null | {file: '?'}:
       case {column: column, line: line, file: file}:
         if (lastPos.column != column || lastPos.line != line)
           sourceMap.addMapping(pos, {
@@ -30,6 +31,7 @@ class Emitter {
           });
         lastPos = pos;
     }
+    #end
   }
 
   inline function write(data: String) {

@@ -100,6 +100,7 @@ class ModuleEmitter extends ExprEmitter {
         default:
       }
     if (cl.init != null) {
+      emitPos(cl.pos);
       emitExpr(cl.init);
       writeNewline();
     }

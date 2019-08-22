@@ -29,12 +29,13 @@ class DefinitionEmitter extends ModuleEmitter {
   }*/
   function emitClassDefinition(cl: ClassType, params: Array<Type>,
       fields: Array<Field>) {
-    emitPos(cl.pos);
     writeNewline();
     write('export declare ');
     write(if (cl.isInterface) 'interface' else 'class');
     writeSpace();
+    emitPos(cl.pos);
     emitBaseType(cl, params);
+    emitPos(cl.pos);
     switch cl.superClass {
       case null:
       case {t: t, params: params}:
@@ -57,10 +58,11 @@ class DefinitionEmitter extends ModuleEmitter {
           switch field.type {
             case TFun(args, ret):
               writeNewline();
-              emitPos(field.pos);
               if (field.isStatic)
                 write('static ');
+              emitPos(field.pos);
               write(field.name);
+              emitPos(field.pos);
               write('(');
               for (arg in join(args, write.bind(', '))) {
                 emitIdent(arg.name);
@@ -92,10 +94,12 @@ class DefinitionEmitter extends ModuleEmitter {
   }
 
   function emitBaseType(type: BaseType, params: Array<Type>) {
+    // Todo: emit positions
     write(formatName(type, params));
   }
 
   function emitType(type: Type) {
+    // Todo: emit positions
     write(renderType(type));
   }
 
