@@ -3,6 +3,10 @@ package genes;
 import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.macro.Expr.Position;
+import genes.util.TypeUtil;
+import genes.Dependencies;
+import genes.util.TypeUtil;
+import genes.dts.TypeEmitter;
 
 using StringTools;
 using haxe.macro.TypedExprTools;
@@ -20,6 +24,7 @@ typedef Field = {
   final expr: TypedExpr;
   final pos: Position;
   final isStatic: Bool;
+  final params: Array<TypeParameter>;
 }
 
 enum Member {
@@ -29,24 +34,10 @@ enum Member {
   MMain(expr: TypedExpr);
 }
 
-enum DependencyType {
-  DName;
-  DDefault;
-}
-
-typedef Dependency = {
-  type: DependencyType,
-  name: String,
-  ?alias: String
-}
-
-private typedef ModuleName = String;
-
 class Module {
   public final module: String;
   public final path: String;
   public final members: Array<Member>;
-  public final dependencies: Map<ModuleName, Array<Dependency>>;
 
   public function new(module, types: Array<Type>, ?main: TypedExpr) {
     this.module = module;
@@ -66,10 +57,9 @@ class Module {
     ];
     if (main != null)
       members.push(MMain(main));
-    dependencies = createDependencies();
   }
 
-  function toPath(from: String) {
+  public function toPath(from: String) {
     final parts = from.split('.');
     final dirs = module.split('.');
     return switch dirs.length {
@@ -79,90 +69,57 @@ class Module {
     }
   }
 
-  static function getModuleType(module: String): ModuleType
-    return switch haxe.macro.Context.getType(module) {
-      case TEnum(r, _): TEnumDecl(r);
-      case TInst(r, _): TClassDecl(r);
-      case TType(r, _): TTypeDecl(r);
-      case TAbstract(r, _): TAbstract(r);
-      case _: throw 'assert';
-    }
-
-  function createDependencies() {
-    final dependencies = new Map<ModuleName, Array<Dependency>>();
-    final aliases = new Map<String, String>();
-    final aliasCount = new Map<String, Int>();
-    function push(module: String, dependency: Dependency) {
-      // Check for name clashes
-      final key = module + '.' + dependency.name;
-      switch aliases[key] {
-        case null:
-          for (member in members)
-            switch member {
-              case MClass({name: name}, _, _) | MEnum({name: name}, _):
-                if (name == dependency.name) {
-                  aliases[key] = name + '__' +
-                    (aliasCount[name] = switch aliasCount[name] {
-                    case null: 1;
-                    case v: v + 1;
-                  });
-                  dependency.alias = aliases[key];
-                  break;
-                }
-              default:
-            }
-        case v:
-          dependency.alias = v;
-      }
-      if (dependencies.exists(module)) {
-        final imports = dependencies.get(module);
-        for (i in imports)
-          if (i.name == dependency.name && i.alias == dependency.alias)
-            return;
-        imports.push(dependency);
-      } else {
-        dependencies.set(module, [dependency]);
+  public function typeDependencies() {
+    final dependencies = new Dependencies(this, false);
+    final writer = {
+      write: function(code: String) {},
+      emitPos: function(pos) {},
+      includeType: function(type: Type) {
+        dependencies.add(TypeUtil.typeToModuleType(type));
       }
     }
-    function add(type: ModuleType) {
-      switch type {
-        case TClassDecl(_.get() => {isInterface: true}):
-        case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base):
-          // check meta
-          var path = toPath(base.module); // Todo: don't hardcode extension here
-          var dependency: Dependency = {type: DName, name: base.name}
-          if (base.isExtern) {
-            final name = switch base.meta.extract(':native') {
-              case [{params: [{expr: EConst(CString(name))}]}]:
-                name;
-              default: base.name;
-            }
-            switch base.meta.extract(':jsRequire') {
-              case [{params: [{expr: EConst(CString(m))}]}]:
-                path = m;
-                dependency = {type: DDefault, name: name}
-              default:
-                return;
-            }
-          } else if (base.module == module) {
-            return;
+    function addBaseType(type: BaseType, params: Array<Type>)
+      TypeEmitter.emitBaseType(writer, type, params);
+    function addType(type: Type)
+      TypeEmitter.emitType(writer, type);
+    for (member in members) {
+      switch member {
+        case MClass(cl, _, fields):
+          switch cl.interfaces {
+            case null | []:
+            case v:
+              for (i in v)
+                addBaseType(i.t.get(), i.params);
           }
-          push(path, dependency);
+          switch cl.superClass {
+            case null:
+            case {t: t}: dependencies.add(TClassDecl(t));
+          }
+          for (field in fields)
+            if (field.expr != null)
+              addType(field.expr.t);
+        case MMain(expr):
+          addType(expr.t);
         default:
       }
     }
+    return dependencies;
+  }
+
+  public function codeDependencies() {
+    final dependencies = new Dependencies(this);
     function addFromExpr(e: TypedExpr)
       switch e {
         case null:
         case {expr: TTypeExpr(t)}:
-          add(t);
+          dependencies.add(t);
         case {expr: TNew(c, _, el)}:
-          add(TClassDecl(c));
+          dependencies.add(TClassDecl(c));
           for (e in el)
             addFromExpr(e);
         case {expr: TField(x, f)}
-          if (genes.util.TypedExprUtil.fieldName(f) == "iterator"): // Todo: conditions here could be refined
-          add(getModuleType('HxOverrides'));
+          if (TypeUtil.fieldName(f) == "iterator"): // Todo: conditions here could be refined
+          dependencies.add(TypeUtil.getModuleType('HxOverrides'));
           addFromExpr(x);
         case e:
           e.iter(addFromExpr);
@@ -174,11 +131,11 @@ class Module {
             case null | []:
             case v:
               for (i in v)
-                add(TClassDecl(i.t));
+                dependencies.add(TClassDecl(i.t));
           }
           switch cl.superClass {
             case null:
-            case {t: t}: add(TClassDecl(t));
+            case {t: t}: dependencies.add(TClassDecl(t));
           }
           for (field in fields)
             addFromExpr(field.expr);
@@ -190,29 +147,6 @@ class Module {
     }
     return dependencies;
   }
-
-  public function typeAccessor(type: ModuleType)
-    switch type {
-      case TAbstract(_.get() => cl = {meta: meta, name: name}):
-        return switch meta.has(':coreType') {
-          case true: '"$$hxCoreType__$name"';
-          case false: throw 'assert';
-        }
-      case TClassDecl(_.get() => {
-        module: m,
-        name: name
-      }) | TEnumDecl(_.get() => {module: m, name: name}):
-        // check alias in this module
-        final path = toPath(m);
-        final imports = dependencies.get(path);
-        if (imports != null)
-          for (i in imports)
-            if (i.name == name)
-              return if (i.alias != null) i.alias else i.name;
-        return name;
-      case TTypeDecl(_.get() => {name: name}):
-        return name; // Todo: does this even happen?
-    }
 
   static function fieldsOf(cl: ClassType) {
     final fields = [];
@@ -226,7 +160,8 @@ class Module {
           expr: e,
           pos: e.pos,
           name: 'constructor',
-          isStatic: false
+          isStatic: false,
+          params: []
         });
     }
     for (field in cl.fields.get()) {
@@ -239,7 +174,8 @@ class Module {
         type: field.type,
         expr: field.expr(),
         pos: field.pos,
-        isStatic: false
+        isStatic: false,
+        params: field.params
       });
     }
     for (field in cl.statics.get())
@@ -252,7 +188,8 @@ class Module {
         type: field.type,
         expr: field.expr(),
         pos: field.pos,
-        isStatic: true
+        isStatic: true,
+        params: field.params
       });
     return fields;
   }
@@ -263,6 +200,10 @@ class Module {
       value: api.generateValue,
       hasFeature: api.hasFeature,
       addFeature: api.addFeature,
-      typeAccessor: typeAccessor
+      typeAccessor: (type: ModuleType) -> switch type {
+        case TAbstract(_.get() => {name: name}) | TClassDecl(_.get() =>
+          {name: name}) | TEnumDecl(_.get() =>
+            {name: name}) | TTypeDecl(_.get() => {name: name}): return name;
+      }
     }
 }

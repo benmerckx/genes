@@ -3,7 +3,19 @@ package genes.util;
 import haxe.macro.Expr.Position;
 import haxe.macro.Type;
 
-class TypedExprUtil {
+class TypeUtil {
+  public static function typeToModuleType(type: Type): ModuleType
+    return switch type {
+      case TEnum(r, _): TEnumDecl(r);
+      case TInst(r, _): TClassDecl(r);
+      case TType(r, _): TTypeDecl(r);
+      case TAbstract(r, _): TAbstract(r);
+      case _: throw 'assert';
+    }
+
+  public static function getModuleType(module: String)
+    return typeToModuleType(haxe.macro.Context.getType(module));
+
   public static function block(e: TypedExpr): TypedExpr
     return switch e.expr {
       case TBlock(_): e;
@@ -28,7 +40,8 @@ class TypedExprUtil {
       case FDynamic(n): n;
     }
 
-  public static function isDynamicIterator(ctx: genes.Context, e: TypedExpr): Bool
+  public static function isDynamicIterator(ctx: genes.Context,
+      e: TypedExpr): Bool
     return switch e.expr {
       case TField(x, f) if (fieldName(f) == "iterator" && ctx.hasFeature('HxOverrides.iter')):
         switch haxe.macro.Context.followWithAbstracts(x.t) {

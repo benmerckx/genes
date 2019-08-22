@@ -1,8 +1,9 @@
-package genes.emitter.es;
+package genes.es;
 
 import haxe.macro.Expr;
 import haxe.macro.Type;
-import genes.util.TypedExprUtil.*;
+import genes.util.TypeUtil.*;
+import genes.util.IteratorUtil.*;
 
 using haxe.macro.TypedExprTools;
 
@@ -716,21 +717,4 @@ class ExprEmitter extends Emitter {
 
   function decreaseIndent()
     indent--;
-
-  function join<T>(input: Iterable<T>, joiner: () -> Void)
-    return joinIt(input.iterator(), joiner);
-
-  function joinIt<T>(iterator: Iterator<T>, joiner: () -> Void): Iterator<T> {
-    var started = false;
-    return {
-      hasNext: iterator.hasNext,
-      next: () -> {
-        if (!started)
-          started = true;
-        else
-          joiner();
-        return iterator.next();
-      }
-    }
-  }
 }

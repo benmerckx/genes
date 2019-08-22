@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "haxe build.hxml && rollup -m inline ./dist/index.js --file ./dist/bundle.js --format iife && sorcery -i ./dist/bundle.js"
+    "build": "haxe build.hxml && rollup dist/index.js -m inline -o dist/bundle.js -f iife && sorcery -i dist/bundle.js"
   },
   "devDependencies": {
     "lix": "^15.5.3",

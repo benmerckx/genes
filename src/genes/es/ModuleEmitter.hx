@@ -1,15 +1,19 @@
-package genes.emitter.es;
+package genes.es;
 
 import genes.Emitter;
+import genes.Dependencies;
 import genes.Module;
 import haxe.macro.Type;
+import genes.util.IteratorUtil.*;
 
 class ModuleEmitter extends ExprEmitter {
   public function emitModule(module: Module) {
+    final dependencies = module.codeDependencies();
+    ctx.typeAccessor = dependencies.typeAccessor;
     final typed = module.members.filter(m -> m.match(MType(_, _)));
     if (typed.length == module.members.length)
       return;
-    for (module => imports in module.dependencies)
+    for (module => imports in dependencies.imports)
       emitImports(module, imports);
     for (member in module.members)
       switch member {

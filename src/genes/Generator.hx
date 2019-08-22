@@ -7,8 +7,8 @@ import haxe.macro.Context;
 import haxe.macro.Compiler;
 import haxe.macro.Type;
 import haxe.io.Path;
-import genes.emitter.es.ModuleEmitter;
-import genes.emitter.dts.DefinitionEmitter;
+import genes.es.ModuleEmitter;
+import genes.dts.DefinitionEmitter;
 
 using Lambda;
 using StringTools;
