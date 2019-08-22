@@ -192,10 +192,18 @@ class Module {
         expr: field.expr(),
         pos: field.pos,
         isStatic: true,
-        params: (switch cl.kind {
-          case KAbstractImpl(_.get().params => params): params;
-          default: [];
-        }).concat(field.params)
+        params: {
+          final params = switch cl.kind {
+            case KAbstractImpl(_.get().params => params): params;
+            default: [];
+          }
+          for (param in field.params) {
+            if (params.filter(p -> p.name == param.name).length > 0)
+              continue;
+            params.push(param);
+          }
+          params;
+        }
       });
     return fields;
   }
