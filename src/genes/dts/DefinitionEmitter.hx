@@ -82,7 +82,7 @@ class DefinitionEmitter extends ModuleEmitter {
       case null | []:
       case interfaces:
         for (int in interfaces) {
-          write(' implements ');
+          write(' extends ');
           emitBaseType(int.t.get(), int.params);
         }
     }

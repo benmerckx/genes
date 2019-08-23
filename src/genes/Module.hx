@@ -83,8 +83,10 @@ class Module {
           switch cl.interfaces {
             case null | []:
             case v:
-              for (i in v)
+              for (i in v) {
+                dependencies.add(TClassDecl(i.t));
                 addBaseType(i.t.get(), i.params);
+              }
           }
           switch cl.superClass {
             case null:
