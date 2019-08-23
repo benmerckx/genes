@@ -81,10 +81,12 @@ class DefinitionEmitter extends ModuleEmitter {
     switch cl.interfaces {
       case null | []:
       case interfaces:
-        for (int in interfaces) {
+        if (cl.isInterface)
           write(' extends ');
+        else
+          write(' implements ');
+        for (int in join(interfaces, write.bind(', ')))
           emitBaseType(int.t.get(), int.params);
-        }
     }
     write(' {');
     increaseIndent();
