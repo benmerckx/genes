@@ -20,6 +20,11 @@ class TypeEmitter {
     final write = writer.write, emitPos = writer.emitPos;
     emitPos(type.pos);
     write(type.name);
+    emitParams(writer, params);
+  }
+
+  public static function emitParams(writer: TypeWriter, params: Array<Type>) {
+    final write = writer.write;
     if (params.length > 0) {
       write('<');
       for (param in join(params, write.bind(', ')))

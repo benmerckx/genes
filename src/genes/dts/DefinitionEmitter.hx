@@ -28,17 +28,23 @@ class DefinitionEmitter extends ModuleEmitter {
 
   function emitEnumDefinition(et: EnumType, params: Array<Type>) {
     final id = et.pack.concat([et.name]).join('.');
+    final paramNames = params.map(t -> switch t {
+      case TInst(_.get().name => name, _): name;
+      default: throw 'assert';
+    });
     writeNewline();
-    write('export declare type ');
+    write('export declare namespace ');
     emitPos(et.pos);
-    emitBaseType(et, params);
-    emitPos(et.pos);
-    write(' = ');
+    write(et.name);
+    write(' {');
     increaseIndent();
     for (name => c in et.constructs) {
       writeNewline();
-      write('| ');
+      write('export type ');
       emitPos(c.pos);
+      write(name);
+      emitParams(params);
+      write(' = ');
       write('{_hx_index: ${c.index}');
       switch c.type {
         case TFun(args, ret):
@@ -46,12 +52,67 @@ class DefinitionEmitter extends ModuleEmitter {
             write(', ');
             emitIdent(arg.name);
             write(': ');
-            emitType(arg.t);
+            switch arg.t {
+              case TInst(_.get() => {name: name, kind: KTypeParameter([])}, []):
+                if (paramNames.indexOf(name) > -1) write(name) else
+                  write('any');
+              default:
+                emitType(arg.t);
+            }
           }
         default:
       }
       write(', __enum__: "${id}"}');
-      write('  // ' + name);
+      writeNewline();
+      write('export const ');
+      write(name);
+      write(': ');
+      switch c.type {
+        case TFun(args, ret):
+          final params = paramNames.concat(c.params.map(p -> p.name));
+          if (params.length > 0) {
+            write('<');
+            for (param in join(params, write.bind(', ')))
+              write(param);
+            write('>');
+          }
+          write('(');
+          for (arg in join(args, write.bind(', '))) {
+            emitIdent(arg.name);
+            write(': ');
+            emitType(arg.t);
+          }
+          write(') => ');
+          emitType(ret);
+        case TEnum(_, params):
+          write(name);
+          // Unfortunately it seems we can't get at the return params here
+          if (params.length > 0) {
+            write('<');
+            for (param in join(params, write.bind(', ')))
+              write('any');
+            write('>');
+          }
+        default:
+      }
+    }
+    decreaseIndent();
+    writeNewline();
+    write('}');
+    writeNewline();
+    writeNewline();
+    write('export declare type ');
+    emitBaseType(et, params);
+    write(' = ');
+    increaseIndent();
+    for (name => c in et.constructs) {
+      writeNewline();
+      write('| ');
+      write(et.name);
+      write('.');
+      emitPos(c.pos);
+      write(name);
+      emitParams(params);
     }
     decreaseIndent();
     writeNewline();
@@ -153,5 +214,9 @@ class DefinitionEmitter extends ModuleEmitter {
 
   function emitType(type: Type) {
     TypeEmitter.emitType(this, type);
+  }
+
+  function emitParams(params: Array<Type>) {
+    TypeEmitter.emitParams(this, params);
   }
 }

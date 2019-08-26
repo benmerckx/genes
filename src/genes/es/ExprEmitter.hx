@@ -542,6 +542,7 @@ class ExprEmitter extends Emitter {
       leaf(c.expr);
       writeNewline();
       write('break'); // Todo: implement needs_switch_break
+      decreaseIndent();
       writeNewline();
     }
     switch def {
@@ -552,6 +553,7 @@ class ExprEmitter extends Emitter {
         leaf(e);
         writeNewline();
     }
+    decreaseIndent();
     writeNewline();
     write('}');
   }

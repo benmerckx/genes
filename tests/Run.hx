@@ -13,7 +13,8 @@ class Run {
       new TestMap(),
       new TestIterators(),
       // TS
-      new TestTypedef()
+      new TestTypedef(),
+      new TestEnum()
     ])).handle(Runner.exit);
   }
 }
