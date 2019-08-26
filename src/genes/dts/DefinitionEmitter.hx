@@ -94,8 +94,7 @@ class DefinitionEmitter extends ModuleEmitter {
                   name: name,
                   kind: KTypeParameter([])
                 }, []):
-                  if (paramNames.indexOf(name) > -1) write(name) else
-                    write('any');
+                  write('any');
                 default:
                   emitType(param);
               }
