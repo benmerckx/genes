@@ -86,11 +86,19 @@ class DefinitionEmitter extends ModuleEmitter {
           emitType(ret);
         case TEnum(_, params):
           write(name);
-          // Unfortunately it seems we can't get at the return params here
           if (params.length > 0) {
             write('<');
             for (param in join(params, write.bind(', ')))
-              write('any');
+              switch param {
+                case TInst(_.get() => {
+                  name: name,
+                  kind: KTypeParameter([])
+                }, []):
+                  if (paramNames.indexOf(name) > -1) write(name) else
+                    write('any');
+                default:
+                  emitType(param);
+              }
             write('>');
           }
         default:

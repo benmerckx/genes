@@ -123,7 +123,7 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     writehxEnums();
     write('[');
-    emitString(et.name);
+    emitString(id);
     write(']');
     write(' = ');
     writeNewline();
