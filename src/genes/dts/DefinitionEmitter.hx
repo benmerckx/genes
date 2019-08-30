@@ -10,10 +10,10 @@ import genes.dts.TypeEmitter;
 
 class DefinitionEmitter extends ModuleEmitter {
   public function emitDefinition(module: Module) {
-    final dependencies = module.typeDependencies();
+    final dependencies = module.typeDependencies;
     ctx.typeAccessor = dependencies.typeAccessor;
-    for (module => imports in dependencies.imports)
-      emitImports(module, imports);
+    for (path => imports in dependencies.imports)
+      emitImports(if (imports[0].external) path else module.toPath(path), imports);
     for (member in module.members)
       switch member {
         case MClass(cl, params, fields):

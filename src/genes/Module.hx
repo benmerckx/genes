@@ -38,6 +38,8 @@ class Module {
   public final module: String;
   public final path: String;
   public final members: Array<Member>;
+  public var typeDependencies(get, null): Dependencies;
+  public var codeDependencies(get, null): Dependencies;
 
   public function new(module, types: Array<Type>, ?main: TypedExpr) {
     this.module = module;
@@ -64,7 +66,9 @@ class Module {
     return if (to.charAt(0) != '.') './' + to else to;
   }
 
-  public function typeDependencies() {
+  function get_typeDependencies() {
+    if (typeDependencies != null)
+      return typeDependencies;
     final dependencies = new Dependencies(this, false);
     final writer = {
       write: function(code: String) {},
@@ -108,10 +112,12 @@ class Module {
         default:
       }
     }
-    return dependencies;
+    return typeDependencies = dependencies;
   }
 
-  public function codeDependencies() {
+  function get_codeDependencies() {
+    if (codeDependencies != null)
+      return codeDependencies;
     final dependencies = new Dependencies(this);
     function addFromExpr(e: TypedExpr)
       switch e {
@@ -150,7 +156,7 @@ class Module {
         default:
       }
     }
-    return dependencies;
+    return codeDependencies = dependencies;
   }
 
   static function fieldsOf(cl: ClassType) {

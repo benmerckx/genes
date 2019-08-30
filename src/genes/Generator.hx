@@ -32,9 +32,34 @@ class Generator {
     for (module => types in toGenerate)
       if (module != output)
         addModule(module, types);
-    for (module in modules)
+    function testCycles(initial: String, test: String, seen: Array<String>) {
+      seen = seen.concat([test]);
+      final dependencies = switch modules[test] {
+        case null: [];
+        case v: [for (k in v.codeDependencies.imports.keys()) k];
+      }
+      for (dependency in dependencies) {
+        if (seen.indexOf(dependency) > -1) {
+          if (dependency == initial)
+            return [test, dependency];
+          else
+            continue;
+        }
+        final cycles = testCycles(initial, dependency, seen);
+        if (cycles.length > 0) {
+          return cycles;
+        }
+      }
+      return [];
+    }
+    for (module in modules) {
+      switch testCycles(module.module, module.module, []) {
+        case []:
+        case v:
+          Context.warning('Circular dependency: ${v.join(' => ')}', Context.currentPos());
+      }
       generateModule(api, module);
-    return modules;
+    }
   }
 
   static function typesPerModule(types: Array<Type>) {

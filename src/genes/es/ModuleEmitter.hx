@@ -8,13 +8,13 @@ import genes.util.IteratorUtil.*;
 
 class ModuleEmitter extends ExprEmitter {
   public function emitModule(module: Module) {
-    final dependencies = module.codeDependencies();
+    final dependencies = module.codeDependencies;
     ctx.typeAccessor = dependencies.typeAccessor;
     final typed = module.members.filter(m -> m.match(MType(_, _)));
     if (typed.length == module.members.length)
       return;
-    for (module => imports in dependencies.imports)
-      emitImports(module, imports);
+    for (path => imports in dependencies.imports)
+      emitImports(if (imports[0].external) path else module.toPath(path), imports);
     for (member in module.members)
       switch member {
         case MClass(cl, _, fields):

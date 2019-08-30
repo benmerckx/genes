@@ -5,7 +5,7 @@
 -debug
 -D dts
 
--dce full
+#-dce full
 -main tests.Run
 -js bin/test.js
 --times 

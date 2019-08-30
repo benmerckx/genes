@@ -12,6 +12,7 @@ enum DependencyType {
 typedef Dependency = {
   type: DependencyType,
   name: String,
+  external: Bool,
   ?alias: String,
   ?pos: SourcePosition
 }
@@ -23,31 +24,39 @@ class Dependencies {
 
   final module: Module;
   final runtime: Bool;
+  final names: Array<{name: String, module: String}>;
   final aliases = new Map<String, String>();
   final aliasCount = new Map<String, Int>();
 
   public function new(module: Module, runtime = true) {
     this.module = module;
     this.runtime = runtime;
+    this.names = [
+      for (member in module.members)
+        if (member.match(MClass(_, _, _) | MEnum(_, _)))
+          switch member {
+            case MClass({name: name,
+              module: module}, _, _) | MEnum({name: name, module: module}, _):
+              {name: name, module: module}
+            default:
+              throw 'assert';
+          }
+    ];
   }
 
   public function push(module: String, dependency: Dependency) {
     final key = module + '.' + dependency.name;
     switch aliases[key] {
       case null:
-        for (member in this.module.members)
-          switch member {
-            case MClass({name: name}, _, _) | MEnum({name: name}, _):
-              if (name == dependency.name) {
-                aliases[key] = name + '__' +
-                  (aliasCount[name] = switch aliasCount[name] {
-                  case null: 1;
-                  case v: v + 1;
-                });
-                dependency.alias = aliases[key];
-                break;
-              }
-            default:
+        for (named in names)
+          if (named.module != module && named.name == dependency.name) {
+            aliases[key] = named.name + '__' +
+              (aliasCount[named.name] = switch aliasCount[named.name] {
+              case null: 1;
+              case v: v + 1;
+            });
+            dependency.alias = aliases[key];
+            break;
           }
       case v:
         dependency.alias = v;
@@ -58,8 +67,10 @@ class Dependencies {
         if (i.name == dependency.name && i.alias == dependency.alias)
           return;
       deps.push(dependency);
+      names.push({name: dependency.name, module: module});
     } else {
       imports.set(module, [dependency]);
+      names.push({name: dependency.name, module: module});
     }
   }
 
@@ -68,9 +79,13 @@ class Dependencies {
       case TClassDecl(_.get() => {isInterface: true}) if (runtime):
       case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base):
         // check meta
-        var path = module.toPath(base.module);
-        var dependency: Dependency = {type: DName, name: base.name,
-          pos: base.pos}
+        var path = base.module;
+        var dependency: Dependency = {
+          type: DName,
+          name: base.name,
+          external: false,
+          pos: base.pos
+        }
         if (base.isExtern) {
           final name = switch base.meta.extract(':native') {
             case [{params: [{expr: EConst(CString(name))}]}]:
@@ -80,7 +95,7 @@ class Dependencies {
           switch base.meta.extract(':jsRequire') {
             case [{params: [{expr: EConst(CString(m))}]}]:
               path = m;
-              dependency = {type: DDefault, name: name}
+              dependency = {type: DDefault, name: name, external: true}
             default:
               return;
           }
@@ -100,11 +115,10 @@ class Dependencies {
           case false: throw 'assert';
         }
       case TClassDecl(_.get() => {
-        module: m,
+        module: path,
         name: name
-      }) | TEnumDecl(_.get() => {module: m, name: name}):
+      }) | TEnumDecl(_.get() => {module: path, name: name}):
         // check alias in this module
-        final path = module.toPath(m);
         final deps = imports.get(path);
         if (deps != null)
           for (i in deps)
