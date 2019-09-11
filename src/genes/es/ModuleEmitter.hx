@@ -62,6 +62,7 @@ class ModuleEmitter extends ExprEmitter {
       return;
     emitPos(cl.pos);
     writeNewline();
+    emitComment(cl.doc);
     write('export class ');
     write(cl.name);
     write(switch cl.superClass {
@@ -77,6 +78,9 @@ class ModuleEmitter extends ExprEmitter {
             case TFunction(f):
               writeNewline();
               emitPos(field.pos);
+              if (field.doc != null)
+                writeNewline();
+              emitComment(field.doc);
               if (field.isStatic)
                 write('static ');
               write(field.name);
@@ -117,6 +121,7 @@ class ModuleEmitter extends ExprEmitter {
     final id = et.pack.concat([et.name]).join('.');
     emitPos(et.pos);
     writeNewline();
+    emitComment(et.doc);
     write('export const ');
     write(et.name);
     write(' = ');
@@ -144,6 +149,7 @@ class ModuleEmitter extends ExprEmitter {
       writeNewline();
     })) {
       emitPos(c.pos);
+      emitComment(c.doc);
       write(name);
       write(': ');
       write(switch c.type {

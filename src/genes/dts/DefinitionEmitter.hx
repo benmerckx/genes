@@ -108,12 +108,14 @@ class DefinitionEmitter extends ModuleEmitter {
     write('}');
     writeNewline();
     writeNewline();
+    emitComment(et.doc);
     write('export declare type ');
     emitBaseType(et, params);
     write(' = ');
     increaseIndent();
     for (name => c in et.constructs) {
       writeNewline();
+      emitComment(c.doc);
       write('| ');
       write(et.name);
       write('.');
@@ -125,19 +127,14 @@ class DefinitionEmitter extends ModuleEmitter {
     writeNewline();
   }
 
-  /*function emitTypeDefinition(def: DefType, params: Array<Type>) {
-    emitPos(def.pos);
-    writeNewline();
-    write('export declare type ');
-    emitBaseType(def, params);
-  }*/
   function emitClassDefinition(cl: ClassType, params: Array<Type>,
       fields: Array<Field>) {
     writeNewline();
+    emitPos(cl.pos);
+    emitComment(cl.doc);
     write('export declare ');
     write(if (cl.isInterface) 'interface' else 'class');
     writeSpace();
-    emitPos(cl.pos);
     emitBaseType(cl, params);
     emitPos(cl.pos);
     switch cl.superClass {
@@ -158,12 +155,14 @@ class DefinitionEmitter extends ModuleEmitter {
     }
     write(' {');
     increaseIndent();
-    for (field in fields)
+    for (field in fields) {
       switch field.kind {
         case Constructor | Method:
           switch field.type {
             case TFun(args, ret):
               writeNewline();
+              if (field.doc != null) writeNewline();
+              emitComment(field.doc);
               if (field.isStatic)
                 write('static ');
               emitPos(field.pos);
@@ -201,12 +200,16 @@ class DefinitionEmitter extends ModuleEmitter {
         case Property:
           writeNewline();
           emitPos(field.pos);
+          if (field.doc != null)
+            writeNewline();
+          emitComment(field.doc);
           if (field.isStatic)
             write('static ');
           write(field.name);
           write(': ');
           emitType(field.type);
       }
+    }
     decreaseIndent();
     writeNewline();
     write('}');

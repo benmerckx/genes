@@ -12,6 +12,7 @@ class Run {
       new TestImportAlias(),
       new TestMap(),
       new TestIterators(),
+      new TestComments(),
       // TS
       new TestTypedef(),
       new TestEnum()

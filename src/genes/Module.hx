@@ -25,6 +25,7 @@ typedef Field = {
   final pos: Position;
   final isStatic: Bool;
   final params: Array<TypeParameter>;
+  final doc: Null<String>;
 }
 
 enum Member {
@@ -172,7 +173,8 @@ class Module {
           pos: e.pos,
           name: 'constructor',
           isStatic: false,
-          params: []
+          params: [],
+          doc: null
         });
     }
     for (field in cl.fields.get()) {
@@ -186,7 +188,8 @@ class Module {
         expr: field.expr(),
         pos: field.pos,
         isStatic: false,
-        params: field.params
+        params: field.params,
+        doc: field.doc
       });
     }
     for (field in cl.statics.get())
@@ -211,7 +214,8 @@ class Module {
             params.push(param);
           }
           params;
-        }
+        },
+        doc: field.doc
       });
     return fields;
   }

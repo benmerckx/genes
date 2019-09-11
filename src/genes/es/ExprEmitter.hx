@@ -652,6 +652,20 @@ class ExprEmitter extends Emitter {
       write('.${name}');
   }
 
+  function emitComment(text: Null<String>) {
+    if (text == null)
+      return;
+    final comment = text.trim();
+    write('/**');
+    writeNewline();
+    for (line in comment.split('\n')) {
+      write(line.trim());
+      writeNewline();
+    }
+    write('*/');
+    writeNewline();
+  }
+
   public function writeUnop(op: Unop)
     write(switch (op) {
       case OpIncrement: "++";
