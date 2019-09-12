@@ -20,6 +20,8 @@ class DefinitionEmitter extends ModuleEmitter {
           emitClassDefinition(cl, params, fields);
         case MEnum(et, params):
           emitEnumDefinition(et, params);
+        case MExport(path):
+          emitExport(path);
         /*case MType(def, params):
           emitTypeDefinition(def, params); */
         default:

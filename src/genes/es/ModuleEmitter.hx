@@ -23,8 +23,17 @@ class ModuleEmitter extends ExprEmitter {
           emitEnum(et);
         case MMain(e):
           emitExpr(e);
+        case MExport(path):
+          emitExport(path);
         default:
       }
+  }
+
+  function emitExport(path: String) {
+    writeNewline();
+    write('export * from ');
+    emitString(path);
+    writeNewline();
   }
 
   function emitImports(module: String, imports: Array<Dependency>) {

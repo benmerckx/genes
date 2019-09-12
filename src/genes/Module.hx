@@ -28,10 +28,16 @@ typedef Field = {
   final doc: Null<String>;
 }
 
+enum Export {
+  Type(type: Type);
+  External(path: String);
+}
+
 enum Member {
   MClass(type: ClassType, params: Array<Type>, fields: Array<Field>);
   MEnum(type: EnumType, params: Array<Type>);
   MType(type: DefType, params: Array<Type>);
+  MExport(path: String);
   MMain(expr: TypedExpr);
 }
 
@@ -42,18 +48,20 @@ class Module {
   public var typeDependencies(get, null): Dependencies;
   public var codeDependencies(get, null): Dependencies;
 
-  public function new(module, types: Array<Type>, ?main: TypedExpr) {
+  public function new(module, exports: Array<Export>, ?main: TypedExpr) {
     this.module = module;
     path = module.split('.').join('/');
     members = [
-      for (type in types)
+      for (type in exports)
         switch type {
-          case TEnum(_.get() => et, params):
+          case Type(TEnum(_.get() => et, params)):
             MEnum(et, params);
-          case TInst(_.get() => cl, params):
+          case Type(TInst(_.get() => cl, params)):
             MClass(cl, params, fieldsOf(cl));
-          case TType(_.get() => tt, params):
+          case Type(TType(_.get() => tt, params)):
             MType(tt, params);
+          case External(path):
+            MExport(toPath(path));
           default:
             throw 'assert';
         }

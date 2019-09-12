@@ -19,7 +19,7 @@ class Emitter {
   }
 
   public function emitPos(pos: SourcePosition) {
-    #if (debug || js_source_map)
+    #if (debug || js_source_map || source_map)
     switch pos {
       case null | {file: '?'}:
       case {column: column, line: line, file: file}:
