@@ -372,6 +372,12 @@ class ExprEmitter extends Emitter {
         write('(o=>Array.isArray(o)?HxOverrides.iter(o):o.iterator())(');
         emitValue(x);
         write(')');
+      case [TConst(TSuper), args]:
+        write('super.new');
+        write('(');
+        for (param in join(args, write.bind(', ')))
+          emitValue(param);
+        write(')');
       default:
         emitValue(e);
         write('(');

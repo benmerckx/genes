@@ -171,7 +171,7 @@ class Module {
           type: e.t,
           expr: e,
           pos: e.pos,
-          name: 'constructor',
+          name: 'new',
           isStatic: false,
           params: [],
           doc: null

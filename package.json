@@ -2,7 +2,7 @@
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
-		"test": "rimraf bin && haxe test.hxml && node --no-warnings --experimental-modules --es-module-specifier-resolution=node bin/test.js",
+		"test": "haxe test.hxml && node --no-warnings --experimental-modules --es-module-specifier-resolution=node bin/test.js",
 		"postinstall": "lix download"
 	},
 	"devDependencies": {

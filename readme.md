@@ -13,9 +13,8 @@ Options:
 
 ## Limitations
 
-These will currently fail at runtime:
+This will currently fail at runtime and produce a compiler warning:
 
-- No `this` access before `super` call in your constructor (unless someone feels like porting [this](https://github.com/HaxeFoundation/haxe/blob/ee31280c11d2302a7f6ebb9a7d09067070e59dc3/src/filters/ES6Ctors.ml#L69))
 - No circular static inits or inheritance
 
 ## Alternatives

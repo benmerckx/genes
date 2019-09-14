@@ -71,6 +71,16 @@ class ModuleEmitter extends ExprEmitter {
     });
     write(' {');
     increaseIndent();
+    if (cl.superClass == null) {
+      writeNewline();
+      write('constructor() {');
+      increaseIndent();
+      writeNewline();
+      write('this.new.apply(this, arguments)');
+      decreaseIndent();
+      writeNewline();
+      write('}');
+    }
     for (field in fields)
       switch field.kind {
         case Constructor | Method:
