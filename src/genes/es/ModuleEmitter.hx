@@ -17,8 +17,11 @@ class ModuleEmitter extends ExprEmitter {
       emitImports(if (imports[0].external) path else module.toPath(path), imports);
     for (member in module.members)
       switch member {
-        case MClass(cl, _, fields):
-          emitClass(cl, fields);
+        case MClass(cl, _, fields) if (!cl.isInterface):
+          if (cl.superClass != null)
+            emitDeferredClass(cl, fields);
+          else
+            emitClass(cl, fields);
         case MEnum(et, _):
           emitEnum(et);
         case MMain(e):
@@ -57,17 +60,45 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
   }
 
-  function emitClass(cl: ClassType, fields: Array<Field>) {
-    if (cl.isInterface)
-      return;
+  function emitDeferredClass(cl: ClassType, fields: Array<Field>) {
+    writeNewline();
+    write('export let ${cl.name} = DeferClass.deferClass(() =>');
+    increaseIndent();
+    emitClass(cl, fields, false);
+    write(', res => ${cl.name} = res');
+    decreaseIndent();
+    writeNewline();
+    write(')');
+    for (field in fields)
+      switch field.kind {
+        case Property if (field.isStatic && field.expr != null):
+          writeNewline();
+          emitPos(field.pos);
+          write('DeferClass.deferStatic(');
+          emitIdent(cl.name);
+          write(', ');
+          emitString(field.name);
+          write(', () => ');
+          switch field.expr {
+            case null: write('null');
+            case e: emitValue(e);
+          }
+          write(')');
+        default:
+      }
+  }
+
+  function emitClass(cl: ClassType, fields: Array<Field>, export = true) {
     emitPos(cl.pos);
     writeNewline();
     emitComment(cl.doc);
-    write('export class ');
+    if (export)
+      write('export ');
+    write('class ');
     write(cl.name);
     write(switch cl.superClass {
       case null: '';
-      case {t: t}: ' extends ${t.get().name}';
+      case {t: t}: ' extends (${t.get().name}.class || ${t.get().name})';
     });
     write(' {');
     increaseIndent();
@@ -107,6 +138,8 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     write('}');
     writeNewline();
+    if (!export)
+      return;
     for (field in fields)
       switch field.kind {
         case Property if (field.isStatic && field.expr != null):
