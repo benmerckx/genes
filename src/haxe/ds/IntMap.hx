@@ -13,6 +13,7 @@ extern class IntMap<T> implements haxe.Constraints.IMap<Int, T> {
     return new haxe.iterators.MapKeyValueIterator(this);
   public function copy(): IntMap<T>;
   public function toString(): String;
+  public function clear(): Void;
 }
 #else
 class IntMap<T> extends genes.util.EsMap<Int, T> implements haxe.Constraints.IMap<Int, T> {

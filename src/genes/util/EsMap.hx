@@ -53,4 +53,8 @@ class EsMap<K, V> {
       }
     }
   }
+
+  public function clear() {
+    inst.clear();
+  }
 }

@@ -29,7 +29,7 @@ abstract SourcePosition(SourcePositionData) from SourcePositionData {
     return ({
       line: location.range.start.line,
       column: location.range.start.character - 1,
-      file: location.file
+      file: location.file.toString()
     } : SourcePositionData);
 
   public static final EMPTY: SourcePosition = ({
