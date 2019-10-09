@@ -20,7 +20,7 @@ typedef Dependency = {
 private typedef ModuleName = String;
 
 class Dependencies {
-  public final imports = new Map<ModuleName, Array<Dependency>>();
+  public final imports: Map<ModuleName, Array<Dependency>> = [];
 
   final module: Module;
   final runtime: Bool;
@@ -35,13 +35,21 @@ class Dependencies {
       for (member in module.members)
         if (member.match(MClass(_, _, _) | MEnum(_, _)))
           switch member {
-            case MClass({name: name,
-              module: module}, _, _) | MEnum({name: name, module: module}, _):
+            case MClass({
+              name: name,
+              module: module
+            }, _, _) | MEnum({name: name, module: module}, _):
               {name: name, module: module}
             default:
               throw 'assert';
           }
     ];
+    if (module.module != 'genes.Register')
+      push('genes.Register', {
+        type: DName,
+        name: 'Register',
+        external: false
+      });
   }
 
   public function push(module: String, dependency: Dependency) {

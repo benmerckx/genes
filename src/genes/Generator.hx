@@ -9,6 +9,7 @@ import haxe.macro.Type;
 import haxe.io.Path;
 import genes.es.ModuleEmitter;
 import genes.dts.DefinitionEmitter;
+import haxe.macro.Context;
 
 using Lambda;
 using StringTools;
@@ -53,11 +54,15 @@ class Generator {
       return [];
     }
     for (module in modules) {
-      switch testCycles(module.module, module.module, []) {
-        case []:
-        case v:
-          Context.warning('Circular dependency: ${v.join(' => ')}', Context.currentPos());
-      }
+      /** // Todo: move detection to module and only defer if a cycle is detected
+        final endTimer = Context.timer('cycles');
+        switch testCycles(module.module, module.module, []) {
+          case []:
+          case v:
+            Context.warning('Circular dependency: ${v.join(' => ')}', Context.currentPos());
+        }
+        endTimer();
+      **/
       generateModule(api, module);
     }
   }

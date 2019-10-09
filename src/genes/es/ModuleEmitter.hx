@@ -5,10 +5,16 @@ import genes.Dependencies;
 import genes.Module;
 import haxe.macro.Type;
 import genes.util.IteratorUtil.*;
+import haxe.macro.Context;
+
+using genes.util.TypeUtil;
 
 class ModuleEmitter extends ExprEmitter {
+  final register = Context.getType('genes.Register').typeToModuleType();
+
   public function emitModule(module: Module) {
     final dependencies = module.codeDependencies;
+    final endTimer = Context.timer('emitModule');
     ctx.typeAccessor = dependencies.typeAccessor;
     final typed = module.members.filter(m -> m.match(MType(_, _)));
     if (typed.length == module.members.length)
@@ -17,14 +23,20 @@ class ModuleEmitter extends ExprEmitter {
       emitImports(if (imports[0].external) path else module.toPath(path), imports);
     for (member in module.members)
       switch member {
-        case MClass(cl, _, fields):
-          emitClass(cl, fields);
+        case MClass(cl, _, fields) if (!cl.isInterface):
+          if (cl.superClass != null)
+            emitDeferredClass(cl, fields);
+          else
+            emitClass(cl, fields);
+          emitDeferredStatics(cl, fields);
+          emitInit(cl);
         case MEnum(et, _):
           emitEnum(et);
         case MMain(e):
           emitExpr(e);
         default:
       }
+    endTimer();
   }
 
   function emitImports(module: String, imports: Array<Dependency>) {
@@ -57,17 +69,76 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
   }
 
-  function emitClass(cl: ClassType, fields: Array<Field>) {
-    if (cl.isInterface)
-      return;
+  function emitDeferredClass(cl: ClassType, fields: Array<Field>) {
+    writeNewline();
+    write('export let ${cl.name} = ');
+    write(ctx.typeAccessor(register));
+    write('.createClass(() =>');
+    increaseIndent();
+    emitClass(cl, fields, false);
+    write(', res => ${cl.name} = res');
+    decreaseIndent();
+    writeNewline();
+    write(')');
+    writeNewline();
+  }
+
+  function emitStatics(cl: ClassType, fields: Array<Field>) {
+    for (field in fields)
+      switch field.kind {
+        case Property if (field.isStatic && field.expr != null):
+          writeNewline();
+          emitPos(field.pos);
+          emitIdent(cl.name);
+          emitField(field.name);
+          write(' = ');
+          switch field.expr {
+            case e: emitValue(e);
+          }
+        default:
+      }
+  }
+
+  function emitDeferredStatics(cl: ClassType, fields: Array<Field>) {
+    for (field in fields)
+      switch field.kind {
+        case Property if (field.isStatic && field.expr != null):
+          writeNewline();
+          emitPos(field.pos);
+          write(ctx.typeAccessor(register));
+          write('.createStatic(');
+          emitIdent(cl.name);
+          write(', ');
+          emitString(field.name);
+          write(', () => ');
+          switch field.expr {
+            case null: write('null');
+            case e: emitValue(e);
+          }
+          write(')');
+        default:
+      }
+  }
+
+  function emitInit(cl: ClassType) {
+    if (cl.init != null) {
+      emitPos(cl.pos);
+      emitExpr(cl.init);
+      writeNewline();
+    }
+  }
+
+  function emitClass(cl: ClassType, fields: Array<Field>, export = true) {
     emitPos(cl.pos);
     writeNewline();
     emitComment(cl.doc);
-    write('export class ');
+    if (export)
+      write('export ');
+    write('class ');
     write(cl.name);
     write(switch cl.superClass {
       case null: '';
-      case {t: t}: ' extends ${t.get().name}';
+      case {t: t}: ' extends (${t.get().name}.class || ${t.get().name})';
     });
     write(' {');
     increaseIndent();
@@ -107,24 +178,6 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     write('}');
     writeNewline();
-    for (field in fields)
-      switch field.kind {
-        case Property if (field.isStatic && field.expr != null):
-          writeNewline();
-          emitPos(field.pos);
-          emitIdent(cl.name);
-          emitField(field.name);
-          write(' = ');
-          switch field.expr {
-            case e: emitValue(e);
-          }
-        default:
-      }
-    if (cl.init != null) {
-      emitPos(cl.pos);
-      emitExpr(cl.init);
-      writeNewline();
-    }
   }
 
   function emitEnum(et: EnumType) {

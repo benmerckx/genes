@@ -70,6 +70,7 @@ class Module {
   function get_typeDependencies() {
     if (typeDependencies != null)
       return typeDependencies;
+    final endTimer = Context.timer('typeDependencies');
     final dependencies = new Dependencies(this, false);
     final writer = {
       write: function(code: String) {},
@@ -113,12 +114,14 @@ class Module {
         default:
       }
     }
+    endTimer();
     return typeDependencies = dependencies;
   }
 
   function get_codeDependencies() {
     if (codeDependencies != null)
       return codeDependencies;
+    final endTimer = Context.timer('codeDependencies');
     final dependencies = new Dependencies(this);
     function addFromExpr(e: TypedExpr)
       switch e {
@@ -157,6 +160,7 @@ class Module {
         default:
       }
     }
+    endTimer();
     return codeDependencies = dependencies;
   }
 

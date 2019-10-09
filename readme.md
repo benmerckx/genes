@@ -1,6 +1,8 @@
 # genes
 
-An attempt at generating seperate ES6 modules and Typescript definitions from Haxe modules.
+Generates ES6 modules and Typescript definitions from Haxe modules.
+
+Requires Haxe nightly (e6ecc54+)
 
 ## Usage
 
@@ -13,9 +15,16 @@ Options:
 
 ## Limitations
 
-This will currently fail at runtime and produce a compiler warning:
+Circular statics and inheritance are currently solved by:
 
-- No circular static inits or inheritance
+- Making each static lazy
+- Deferring resolving the inheritance chain until usage
+
+In the future I'd like to make this more configurable by providing
+these options as defines:
+
+- Opt-out completely
+- Detect when needed by dependency graph (adds compile time)
 
 ## Alternatives
 

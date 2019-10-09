@@ -7,10 +7,12 @@ import genes.Module;
 import genes.util.TypeUtil;
 import genes.util.IteratorUtil.*;
 import genes.dts.TypeEmitter;
+import haxe.macro.Context;
 
 class DefinitionEmitter extends ModuleEmitter {
   public function emitDefinition(module: Module) {
     final dependencies = module.typeDependencies;
+    final endTimer = Context.timer('emitDefinition');
     ctx.typeAccessor = dependencies.typeAccessor;
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path), imports);
@@ -24,6 +26,7 @@ class DefinitionEmitter extends ModuleEmitter {
           emitTypeDefinition(def, params); */
         default:
       }
+    endTimer();
   }
 
   function emitEnumDefinition(et: EnumType, params: Array<Type>) {
