@@ -77,7 +77,9 @@ class ModuleEmitter extends ExprEmitter {
     write('.createClass(() =>');
     increaseIndent();
     emitClass(cl, fields, false);
-    write(', res => ${cl.name} = res');
+    write(', ');
+    writeNewline();
+    write('res => ${cl.name} = res');
     decreaseIndent();
     writeNewline();
     write(')');
@@ -206,7 +208,8 @@ class ModuleEmitter extends ExprEmitter {
     decreaseIndent();
     writeNewline();
     write('}');
-    writeNewline();
+    if (export)
+      writeNewline();
   }
 
   function emitEnum(et: EnumType) {
