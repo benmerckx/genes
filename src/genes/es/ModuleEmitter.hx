@@ -235,7 +235,7 @@ class ModuleEmitter extends ExprEmitter {
       writeNewline();
     }
     write('__constructs__: [');
-    for (c in joinIt(et.constructs.keys(), write.bind(', ')))
+    for (c in join(et.names, write.bind(', ')))
       emitString(c);
     write('],');
     writeNewline();

@@ -8,6 +8,11 @@ enum Gen<A, B> {
   More<T>(a : A, b : B, c : T) : Gen<T, T>;
 }
 
+enum Order {
+  Asc;
+  Desc;
+}
+
 enum abstract Str(String) to String {
   final A = 'a';
 }
@@ -18,7 +23,9 @@ class TestEnum {
   public function test()
     return assert(Gen.Single == Gen.Single);
 
-  public function testAbstract() {
+  public function testAbstract()
     return assert((Str.A : String) == 'a');
-  }
+
+  public function testConstructorOrder()
+    return assert(Asc.getName().toUpperCase() == 'ASC');
 }
