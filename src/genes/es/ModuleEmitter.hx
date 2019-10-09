@@ -82,6 +82,29 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     write(')');
     writeNewline();
+    for (field in fields)
+      switch field.kind {
+        case Constructor | Method:
+          switch field.expr.expr {
+            case TFunction(f) if (field.isStatic):
+              writeNewline();
+              emitPos(field.pos);
+              if (field.doc != null)
+                writeNewline();
+              emitComment(field.doc);
+              emitIdent(cl.name);
+              emitField(field.name);
+              write(' = function');
+              write('(');
+              for (arg in join(f.args, write.bind(', ')))
+                emitIdent(arg.v.name);
+              write(') ');
+              emitExpr(f.expr);
+              writeNewline();
+            default:
+          }
+        default:
+      }
   }
 
   function emitStatics(cl: ClassType, fields: Array<Field>) {
@@ -137,10 +160,15 @@ class ModuleEmitter extends ExprEmitter {
       write('export ');
     write('class ');
     write(cl.name);
-    write(switch cl.superClass {
-      case null: '';
-      case {t: t}: ' extends (${t.get().name}.class || ${t.get().name})';
-    });
+    switch cl.superClass {
+      case null:
+      case {t: TClassDecl(_) => t}:
+        write(' extends (');
+        write(ctx.typeAccessor(t));
+        write('.class || ');
+        write(ctx.typeAccessor(t));
+        write(')');
+    }
     write(' {');
     increaseIndent();
     if (cl.superClass == null) {
@@ -157,7 +185,7 @@ class ModuleEmitter extends ExprEmitter {
       switch field.kind {
         case Constructor | Method:
           switch field.expr.expr {
-            case TFunction(f):
+            case TFunction(f) if (export || !field.isStatic):
               writeNewline();
               emitPos(field.pos);
               if (field.doc != null)
@@ -171,7 +199,7 @@ class ModuleEmitter extends ExprEmitter {
                 emitIdent(arg.v.name);
               write(') ');
               emitExpr(f.expr);
-            default: throw 'assert';
+            default:
           }
         default:
       }
