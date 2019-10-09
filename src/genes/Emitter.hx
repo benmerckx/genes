@@ -41,9 +41,11 @@ class Emitter {
   public function emitSourceMap(path: String, withSources = false) {
     if (writer.isEmpty())
       return;
+    final endTimer = haxe.macro.Context.timer('emitSourceMap');
     final output = Path.withoutDirectory(path);
     write('\n//# sourceMappingURL=$output');
     sourceMap.write(path, withSources);
+    endTimer();
   }
 
   public function finish() {
