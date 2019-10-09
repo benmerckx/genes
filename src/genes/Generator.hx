@@ -3,13 +3,12 @@ package genes;
 import haxe.macro.Type;
 import haxe.macro.Expr;
 import haxe.macro.JSGenApi;
-import haxe.macro.Context;
 import haxe.macro.Compiler;
 import haxe.macro.Type;
 import haxe.io.Path;
 import genes.es.ModuleEmitter;
 import genes.dts.DefinitionEmitter;
-import haxe.macro.Context;
+import genes.util.Timer.timer;
 
 using Lambda;
 using StringTools;
@@ -55,7 +54,7 @@ class Generator {
     }
     for (module in modules) {
       /** // Todo: move detection to module and only defer if a cycle is detected
-        final endTimer = Context.timer('cycles');
+        final endTimer = timer('cycles');
         switch testCycles(module.module, module.module, []) {
           case []:
           case v:

@@ -7,6 +7,7 @@ import genes.util.TypeUtil;
 import genes.Dependencies;
 import genes.util.TypeUtil;
 import genes.dts.TypeEmitter;
+import genes.util.Timer.timer;
 
 using StringTools;
 using haxe.macro.TypedExprTools;
@@ -70,7 +71,7 @@ class Module {
   function get_typeDependencies() {
     if (typeDependencies != null)
       return typeDependencies;
-    final endTimer = Context.timer('typeDependencies');
+    final endTimer = timer('typeDependencies');
     final dependencies = new Dependencies(this, false);
     final writer = {
       write: function(code: String) {},
@@ -121,7 +122,7 @@ class Module {
   function get_codeDependencies() {
     if (codeDependencies != null)
       return codeDependencies;
-    final endTimer = Context.timer('codeDependencies');
+    final endTimer = timer('codeDependencies');
     final dependencies = new Dependencies(this);
     function addFromExpr(e: TypedExpr)
       switch e {

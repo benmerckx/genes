@@ -2,7 +2,7 @@
 
 Generates ES6 modules and Typescript definitions from Haxe modules.
 
-Requires Haxe nightly (e6ecc54+)
+Requires Haxe 4
 
 ## Usage
 

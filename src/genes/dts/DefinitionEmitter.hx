@@ -8,11 +8,12 @@ import genes.util.TypeUtil;
 import genes.util.IteratorUtil.*;
 import genes.dts.TypeEmitter;
 import haxe.macro.Context;
+import genes.util.Timer.timer;
 
 class DefinitionEmitter extends ModuleEmitter {
   public function emitDefinition(module: Module) {
     final dependencies = module.typeDependencies;
-    final endTimer = Context.timer('emitDefinition');
+    final endTimer = timer('emitDefinition');
     ctx.typeAccessor = dependencies.typeAccessor;
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path), imports);

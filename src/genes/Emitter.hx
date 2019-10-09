@@ -2,6 +2,7 @@ package genes;
 
 import genes.SourceMapGenerator;
 import haxe.io.Path;
+import genes.util.Timer.timer;
 
 class Emitter {
   final ctx: genes.Context;
@@ -41,7 +42,7 @@ class Emitter {
   public function emitSourceMap(path: String, withSources = false) {
     if (writer.isEmpty())
       return;
-    final endTimer = haxe.macro.Context.timer('emitSourceMap');
+    final endTimer = timer('emitSourceMap');
     final output = Path.withoutDirectory(path);
     write('\n//# sourceMappingURL=$output');
     sourceMap.write(path, withSources);
