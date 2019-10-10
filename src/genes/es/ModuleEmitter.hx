@@ -17,7 +17,7 @@ class ModuleEmitter extends ExprEmitter {
     final dependencies = module.codeDependencies;
     final endTimer = timer('emitModule');
     ctx.typeAccessor = dependencies.typeAccessor;
-    final typed = module.members.filter(m -> m.match(MType(_, _)));
+    final typed = module.members.filter(m -> m.match(MType(_, _) | MClass({isInterface: true}, _)));
     if (typed.length == module.members.length)
       return;
     for (path => imports in dependencies.imports)

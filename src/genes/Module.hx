@@ -161,6 +161,12 @@ class Module {
         default:
       }
     }
+    if (module != 'genes.Register')
+      dependencies.push('genes.Register', {
+        type: DName,
+        name: 'Register',
+        external: false
+      });
     endTimer();
     return codeDependencies = dependencies;
   }

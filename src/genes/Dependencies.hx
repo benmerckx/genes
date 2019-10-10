@@ -44,12 +44,6 @@ class Dependencies {
               throw 'assert';
           }
     ];
-    if (module.module != 'genes.Register')
-      push('genes.Register', {
-        type: DName,
-        name: 'Register',
-        external: false
-      });
   }
 
   public function push(module: String, dependency: Dependency) {
