@@ -5,7 +5,7 @@ class Timer {
     #if macro_times
     return haxe.macro.Context.timer(id);
     #else
-    return () -> {}
+    return function() {}
     #end
   }
 }
