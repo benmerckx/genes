@@ -43,7 +43,12 @@ class Module {
   public var typeDependencies(get, null): Dependencies;
   public var codeDependencies(get, null): Dependencies;
 
-  public function new(module, types: Array<Type>, ?main: TypedExpr) {
+  final modules: Map<String, Module>;
+  final cycleCache = new Map<String, Bool>();
+
+  public function new(modules: Map<String, Module>, module,
+      types: Array<Type>, ?main: TypedExpr) {
+    this.modules = modules;
     this.module = module;
     path = module.split('.').join('/');
     members = [
@@ -66,6 +71,35 @@ class Module {
   public function toPath(from: String) {
     final to = genes.util.PathUtil.relative(path, from.replace('.', '/'));
     return if (to.charAt(0) != '.') './' + to else to;
+  }
+
+  public function isCyclic(test: String)
+    return switch cycleCache.get(test) {
+      case null:
+        final res = testCycles(test, [module]).length > 0;
+        cycleCache.set(test, res);
+        res;
+      case v: v;
+    }
+
+  function testCycles(test: String, seen: Array<String>) {
+    seen = seen.concat([test]);
+    final dependencies = switch modules[test] {
+      case null: [];
+      case v: [for (k in v.codeDependencies.imports.keys()) k];
+    }
+    for (dependency in dependencies) {
+      if (seen.indexOf(dependency) > -1) {
+        if (dependency == module)
+          return [test, dependency];
+        else
+          continue;
+      }
+      final cycles = testCycles(dependency, seen);
+      if (cycles.length > 0)
+        return cycles;
+    }
+    return [];
   }
 
   function get_typeDependencies() {
@@ -124,22 +158,10 @@ class Module {
       return codeDependencies;
     final endTimer = timer('codeDependencies');
     final dependencies = new Dependencies(this);
-    function addFromExpr(e: TypedExpr)
-      switch e {
-        case null:
-        case {expr: TTypeExpr(t)}:
-          dependencies.add(t);
-        case {expr: TNew(c, _, el)}:
-          dependencies.add(TClassDecl(c));
-          for (e in el)
-            addFromExpr(e);
-        case {expr: TField(x, f)}
-          if (TypeUtil.fieldName(f) == "iterator"): // Todo: conditions here could be refined
-          dependencies.add(TypeUtil.getModuleType('HxOverrides'));
-          addFromExpr(x);
-        case e:
-          e.iter(addFromExpr);
-      }
+    function addFromExpr(e: TypedExpr) {
+      for (type in TypeUtil.typesInExpr(e))
+        dependencies.add(type);
+    }
     for (member in members) {
       switch member {
         case MClass(cl, _, fields):

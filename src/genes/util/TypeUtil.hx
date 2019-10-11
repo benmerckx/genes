@@ -3,6 +3,8 @@ package genes.util;
 import haxe.macro.Expr.Position;
 import haxe.macro.Type;
 
+using haxe.macro.TypedExprTools;
+
 class TypeUtil {
   public static function typeToModuleType(type: Type): ModuleType
     return switch type {
@@ -69,6 +71,36 @@ class TypeUtil {
       expr: edef == null ? e.expr : edef,
       pos: e.pos,
       t: t == null ? e.t : t
+    }
+  }
+
+  public static function moduleTypeName(module: ModuleType) {
+    return switch module {
+      case TClassDecl(_.get() => {module: module}): module;
+      case TEnumDecl(_.get() => {module: module}): module;
+      default: '';
+    }
+  }
+
+  public static function typesInExpr(e: TypedExpr) {
+    return switch e {
+      case null: [];
+      case {expr: TTypeExpr(t)}:
+        [t];
+      case {expr: TNew(c, _, el)}:
+        var res = [TClassDecl(c)];
+        for (e in el)
+          res = res.concat(typesInExpr(e));
+        res;
+      case {expr: TField(x, f)}
+        if (fieldName(f) == "iterator"): // Todo: conditions here could be refined
+        [getModuleType('HxOverrides')].concat(typesInExpr(x));
+      case e:
+        var res = [];
+        e.iter(e -> {
+          res = res.concat(typesInExpr(e));
+        });
+        res;
     }
   }
 }

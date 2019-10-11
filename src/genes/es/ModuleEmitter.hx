@@ -9,6 +9,7 @@ import haxe.macro.Context;
 import genes.util.Timer.timer;
 
 using genes.util.TypeUtil;
+using Lambda;
 
 class ModuleEmitter extends ExprEmitter {
   final register = Context.getType('genes.Register').typeToModuleType();
@@ -19,17 +20,19 @@ class ModuleEmitter extends ExprEmitter {
     ctx.typeAccessor = dependencies.typeAccessor;
     final typed = module.members.filter(m -> m.match(MType(_, _) | MClass({isInterface: true}, _)));
     if (typed.length == module.members.length)
-      return;
+      return endTimer();
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path), imports);
     for (member in module.members)
       switch member {
         case MClass(cl, _, fields) if (!cl.isInterface):
-          if (cl.superClass != null)
+          final isCyclic = cl.superClass != null && module.isCyclic(cl.superClass.t.get().module);
+          if (isCyclic) {
             emitDeferredClass(cl, fields);
-          else
+          } else {
             emitClass(cl, fields);
-          emitDeferredStatics(cl, fields);
+          }
+          emitStatics(module.isCyclic, cl, fields);
           emitInit(cl);
         case MEnum(et, _):
           emitEnum(et);
@@ -109,41 +112,44 @@ class ModuleEmitter extends ExprEmitter {
       }
   }
 
-  function emitStatics(cl: ClassType, fields: Array<Field>) {
+  function emitStatics(checkCycles: (module: String) -> Bool, cl: ClassType,
+      fields: Array<Field>) {
     for (field in fields)
-      switch field.kind {
-        case Property if (field.isStatic && field.expr != null):
-          writeNewline();
-          emitPos(field.pos);
-          emitIdent(cl.name);
-          emitField(field.name);
-          write(' = ');
-          switch field.expr {
-            case e: emitValue(e);
-          }
+      switch field {
+        case {kind: Property, isStatic: true, expr: expr}
+          if (expr != null):
+          final types = TypeUtil.typesInExpr(expr);
+          final isCyclic = types.fold((type, res) -> {
+            return res || checkCycles(TypeUtil.moduleTypeName(type));
+          }, false);
+          if (isCyclic)
+            emitDeferredStatic(cl, field);
+          else
+            emitStatic(cl, field);
         default:
       }
   }
 
-  function emitDeferredStatics(cl: ClassType, fields: Array<Field>) {
-    for (field in fields)
-      switch field.kind {
-        case Property if (field.isStatic && field.expr != null):
-          writeNewline();
-          emitPos(field.pos);
-          write(ctx.typeAccessor(register));
-          write('.createStatic(');
-          emitIdent(cl.name);
-          write(', ');
-          emitString(field.name);
-          write(', () => ');
-          switch field.expr {
-            case null: write('null');
-            case e: emitValue(e);
-          }
-          write(')');
-        default:
-      }
+  function emitStatic(cl: ClassType, field: Field) {
+    writeNewline();
+    emitPos(field.pos);
+    emitIdent(cl.name);
+    emitField(field.name);
+    write(' = ');
+    emitValue(field.expr);
+  }
+
+  function emitDeferredStatic(cl: ClassType, field: Field) {
+    writeNewline();
+    emitPos(field.pos);
+    write(ctx.typeAccessor(register));
+    write('.createStatic(');
+    emitIdent(cl.name);
+    write(', ');
+    emitString(field.name);
+    write(', function () { return ');
+    emitValue(field.expr);
+    write(' })');
   }
 
   function emitInit(cl: ClassType) {

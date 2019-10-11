@@ -20,7 +20,7 @@ class Generator {
     final modules = new Map();
     function addModule(module: String, types: Array<Type>,
         ?main: Null<TypedExpr>)
-      modules.set(module, new Module(module, types, main));
+      modules.set(module, new Module(modules, module, types, main));
     switch api.main {
       case null:
       case v:
@@ -32,38 +32,8 @@ class Generator {
     for (module => types in toGenerate)
       if (module != output)
         addModule(module, types);
-    function testCycles(initial: String, test: String, seen: Array<String>) {
-      seen = seen.concat([test]);
-      final dependencies = switch modules[test] {
-        case null: [];
-        case v: [for (k in v.codeDependencies.imports.keys()) k];
-      }
-      for (dependency in dependencies) {
-        if (seen.indexOf(dependency) > -1) {
-          if (dependency == initial)
-            return [test, dependency];
-          else
-            continue;
-        }
-        final cycles = testCycles(initial, dependency, seen);
-        if (cycles.length > 0) {
-          return cycles;
-        }
-      }
-      return [];
-    }
-    for (module in modules) {
-      /** // Todo: move detection to module and only defer if a cycle is detected
-        final endTimer = timer('cycles');
-        switch testCycles(module.module, module.module, []) {
-          case []:
-          case v:
-            Context.warning('Circular dependency: ${v.join(' => ')}', Context.currentPos());
-        }
-        endTimer();
-      **/
+    for (module in modules)
       generateModule(api, module);
-    }
   }
 
   static function typesPerModule(types: Array<Type>) {
