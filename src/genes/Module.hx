@@ -51,7 +51,7 @@ class Module {
     this.modules = modules;
     this.module = module;
     path = module.split('.').join('/');
-    final endTimer = timer('mesrebm');
+    final endTimer = timer('members');
     members = [
       for (type in types)
         switch type {
