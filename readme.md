@@ -13,6 +13,23 @@ Options:
 - add `-D dts` to generate Typescript definition files
 - use `-debug` or `-D js-source-map` to generate source maps
 
+## Dynamic imports
+
+```haxe
+import genes.Genes.dynamicImport;
+import my.module.MyClass;
+// ...
+dynamicImport(MyClass -> new MyClass()).then(trace);
+```
+
+Translates to:
+
+```js
+import('./my/module/MyClass')
+  .then(({MyClass}) => new MyClass())
+  .then(console.log)
+```
+
 ## Alternatives
 
 - Split output with require calls: [hxgenjs](https://github.com/kevinresol/hxgenjs)

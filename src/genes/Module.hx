@@ -51,6 +51,7 @@ class Module {
     this.modules = modules;
     this.module = module;
     path = module.split('.').join('/');
+    final endTimer = timer('mesrebm');
     members = [
       for (type in types)
         switch type {
@@ -66,11 +67,11 @@ class Module {
     ];
     if (main != null)
       members.push(MMain(main));
+    endTimer();
   }
 
   public function toPath(from: String) {
-    final to = genes.util.PathUtil.relative(path, from.replace('.', '/'));
-    return if (to.charAt(0) != '.') './' + to else to;
+    return genes.util.PathUtil.relative(path, from.replace('.', '/'));
   }
 
   public function isCyclic(test: String)

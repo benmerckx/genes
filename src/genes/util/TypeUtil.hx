@@ -1,6 +1,6 @@
 package genes.util;
 
-import haxe.macro.Expr.Position;
+import haxe.macro.Expr;
 import haxe.macro.Type;
 
 using haxe.macro.TypedExprTools;
@@ -82,9 +82,21 @@ class TypeUtil {
     }
   }
 
-  public static function typesInExpr(e: TypedExpr) {
+  public static function typesInExpr(e: TypedExpr): Array<ModuleType> {
     return switch e {
       case null: [];
+      case {
+        expr: TCall(call = {
+          expr: TField(_, FStatic(_.get() => {module: 'genes.Genes'}, _.get() => {name: 'ignore'}))
+        }, [{expr: TConst(TString(name))}, func])
+      }:
+        typesInExpr(call).concat(typesInExpr(func).filter(type -> {
+          return switch type {
+            case TClassDecl(_.get() => {name: typeName}):
+              typeName != name;
+            default: true;
+          }
+        }));
       case {expr: TTypeExpr(t)}:
         [t];
       case {expr: TNew(c, _, el)}:

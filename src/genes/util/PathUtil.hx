@@ -16,9 +16,10 @@ class PathUtil {
         samePartsLength = i;
         break;
       }
-    return [
+    final to = [
       for (i in samePartsLength...fromParts.length - 1)
         '..'
     ].concat(toParts.slice(samePartsLength)).join('/');
+    return if (to.charAt(0) != '.') './' + to else to;
   }
 }
