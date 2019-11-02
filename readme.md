@@ -35,7 +35,8 @@ import('./my/module/MyClass')
 
 - [ ] Extending extern classes
 - [ ] Most `Type` reflection (resolveClass/resolveEnum/...)
-- [ ] Improve `$hxEnums` declaration  
+- [ ] Improve `$hxEnums` declaration
+- [ ] Performance
 
 ## Alternatives
 
