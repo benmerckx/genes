@@ -30,6 +30,13 @@ import('./my/module/MyClass')
   .then(console.log)
 ```
 
+
+## Todo
+
+- [ ] Extending extern classes
+- [ ] Most `Type` reflection (resolveClass/resolveEnum/...)
+- [ ] Improve `$hxEnums` declaration  
+
 ## Alternatives
 
 - Split output with require calls: [hxgenjs](https://github.com/kevinresol/hxgenjs)
