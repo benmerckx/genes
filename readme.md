@@ -33,7 +33,7 @@ import('./my/module/MyClass')
 
 ## Todo
 
-- [ ] Extending extern classes
+- [x] Extending extern classes
 - [ ] Most `Type` reflection (resolveClass/resolveEnum/...)
 - [ ] Improve `$hxEnums` declaration
 - [ ] Performance
