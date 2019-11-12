@@ -30,7 +30,8 @@ typedef Field = {
 }
 
 enum Member {
-  MClass(type: ClassType, params: Array<Type>, fields: Array<Field>);
+  MClass(type: ClassType, params: Array<Type>, fields: Array<Field>,
+    extendsExtern: Bool);
   MEnum(type: EnumType, params: Array<Type>);
   MType(type: DefType, params: Array<Type>);
   MMain(expr: TypedExpr);
@@ -58,7 +59,7 @@ class Module {
           case TEnum(_.get() => et, params):
             MEnum(et, params);
           case TInst(_.get() => cl, params):
-            MClass(cl, params, fieldsOf(cl));
+            MClass(cl, params, fieldsOf(cl), hasExternSuper(cl));
           case TType(_.get() => tt, params):
             MType(tt, params);
           default:
@@ -121,7 +122,7 @@ class Module {
       TypeEmitter.emitType(writer, type);
     for (member in members) {
       switch member {
-        case MClass(cl, _, fields):
+        case MClass(cl, _, fields, _):
           switch cl.interfaces {
             case null | []:
             case v:
@@ -165,7 +166,7 @@ class Module {
     }
     for (member in members) {
       switch member {
-        case MClass(cl, _, fields):
+        case MClass(cl, _, fields, _):
           switch cl.interfaces {
             case null | []:
             case v:
@@ -194,6 +195,12 @@ class Module {
     return codeDependencies = dependencies;
   }
 
+  static function hasExternSuper(s: ClassType)
+    return switch s.superClass {
+      case null: s.isExtern;
+      case {t: _.get() => v}: hasExternSuper(v);
+    }
+
   static function fieldsOf(cl: ClassType) {
     final fields = [];
     switch cl.constructor {
@@ -205,7 +212,7 @@ class Module {
           type: e.t,
           expr: e,
           pos: e.pos,
-          name: 'new',
+          name: if (hasExternSuper(cl)) 'constructor' else 'new',
           isStatic: false,
           params: [],
           doc: null

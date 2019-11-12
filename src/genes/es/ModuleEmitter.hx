@@ -18,15 +18,16 @@ class ModuleEmitter extends ExprEmitter {
     final dependencies = module.codeDependencies;
     final endTimer = timer('emitModule');
     ctx.typeAccessor = dependencies.typeAccessor;
-    final typed = module.members.filter(m -> m.match(MType(_, _) | MClass({isInterface: true}, _)));
+    final typed = module.members.filter(m -> m.match(MType(_, _) | MClass({isInterface: true}, _, _, _)));
     if (typed.length == module.members.length)
       return endTimer();
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path), imports);
     for (member in module.members)
       switch member {
-        case MClass(cl, _, fields) if (!cl.isInterface):
+        case MClass(cl, _, fields, extendsExtern) if (!cl.isInterface):
           final isCyclic = cl.superClass != null && module.isCyclic(cl.superClass.t.get().module);
+          this.extendsExtern = extendsExtern;
           if (isCyclic) {
             emitDeferredClass(cl, fields);
           } else {
@@ -160,6 +161,12 @@ class ModuleEmitter extends ExprEmitter {
     }
   }
 
+  static function hasExternSuper(s: ClassType)
+    return switch s.superClass {
+      case null: s.isExtern;
+      case {t: _.get() => v}: hasExternSuper(v);
+    }
+
   function emitClass(cl: ClassType, fields: Array<Field>, export = true) {
     emitPos(cl.pos);
     writeNewline();
@@ -170,24 +177,30 @@ class ModuleEmitter extends ExprEmitter {
     write(cl.name);
     switch cl.superClass {
       case null:
+        write(' {');
+        increaseIndent();
+        writeNewline();
+        write('constructor() {');
+        increaseIndent();
+        writeNewline();
+        write('this.new.apply(this, arguments)');
+        decreaseIndent();
+        writeNewline();
+        write('}');
+      case {t: t}
+        if (extendsExtern):
+        write(' extends ');
+        write(ctx.typeAccessor(TClassDecl(t)));
+        write(' {');
+        increaseIndent();
       case {t: TClassDecl(_) => t}:
         write(' extends (');
         write(ctx.typeAccessor(t));
         write('.class || ');
         write(ctx.typeAccessor(t));
         write(')');
-    }
-    write(' {');
-    increaseIndent();
-    if (cl.superClass == null) {
-      writeNewline();
-      write('constructor() {');
-      increaseIndent();
-      writeNewline();
-      write('this.new.apply(this, arguments)');
-      decreaseIndent();
-      writeNewline();
-      write('}');
+        write(' {');
+        increaseIndent();
     }
     for (field in fields)
       switch field.kind {

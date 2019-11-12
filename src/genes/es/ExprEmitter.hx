@@ -30,6 +30,7 @@ class ExprEmitter extends Emitter {
   var inValue: Int = 0;
   var idCounter: Int = 0;
   var inLoop: Bool = false;
+  var extendsExtern: Bool = false;
 
   public function emitExpr(e: TypedExpr) {
     emitPos(e.pos);
@@ -373,7 +374,10 @@ class ExprEmitter extends Emitter {
         emitValue(x);
         write(')');
       case [TConst(TSuper), args]:
-        write('super.new');
+        if (extendsExtern)
+          write('super');
+        else
+          write('super.new');
         write('(');
         for (param in join(args, write.bind(', ')))
           emitValue(param);

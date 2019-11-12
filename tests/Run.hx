@@ -9,6 +9,7 @@ class Run {
       new TestBind(), new TestRequire(), new TestImportAlias(), new TestMap(),
       new TestIterators(), new TestComments(), new TestCycle(),
       new TestCycle2(), new TestTypedef(), new TestEnum(),
-      new TestImportModule(), new TestRegisterAlias()])).handle(Runner.exit);
+      new TestImportModule(), new TestRegisterAlias(),
+      new TestExtendExtern()])).handle(Runner.exit);
   }
 }

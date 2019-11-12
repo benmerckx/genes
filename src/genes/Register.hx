@@ -51,4 +51,17 @@ class Register {
       return res
     ');
   }
+
+  @:keep public static function external(cl) {
+    Syntax.code('
+      const wrapper = 
+        function() {
+          Object.setPrototypeOf(this.constructor.prototype, cl.prototype)
+          this.constructor.prototype.new = cl.prototype.constructor
+          this.new.apply(this, arguments)
+        }
+      wrapper.prototype.new = () => 123 // cl.prototype.constructor
+      return wrapper
+    ');
+  }
 }
