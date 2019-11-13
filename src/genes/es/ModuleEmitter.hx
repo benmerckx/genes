@@ -41,7 +41,7 @@ class ModuleEmitter extends ExprEmitter {
           emitExpr(e);
         default:
       }
-    endTimer();
+    return endTimer();
   }
 
   function emitImports(module: String, imports: Array<Dependency>) {

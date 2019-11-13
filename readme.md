@@ -34,6 +34,7 @@ import('./my/module/MyClass')
 ## Todo
 
 - [x] Extending extern classes
+- [x] Generate named typedefs in d.ts
 - [ ] Most `Type` reflection (resolveClass/resolveEnum/...)
 - [ ] Improve `$hxEnums` declaration
 - [ ] Performance

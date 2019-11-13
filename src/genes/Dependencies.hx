@@ -79,7 +79,7 @@ class Dependencies {
   public function add(type: ModuleType) {
     switch type {
       case TClassDecl(_.get() => {isInterface: true}) if (runtime):
-      case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base):
+      case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base) | TTypeDecl((_.get() : BaseType) => base):
         // check meta
         var path = base.module;
         var dependency: Dependency = {

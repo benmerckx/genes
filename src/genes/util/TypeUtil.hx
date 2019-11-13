@@ -12,11 +12,15 @@ class TypeUtil {
       case TInst(r, _): TClassDecl(r);
       case TType(r, _): TTypeDecl(r);
       case TAbstract(r, _): TAbstract(r);
-      case _: throw 'assert';
+      case _: null;
     }
 
   public static function getModuleType(module: String)
     return typeToModuleType(haxe.macro.Context.getType(module));
+
+  public static function baseTypeName(type: BaseType) {
+    return type.module + '.' + type.name;
+  }
 
   public static function block(e: TypedExpr): TypedExpr
     return switch e.expr {
@@ -78,6 +82,7 @@ class TypeUtil {
     return switch module {
       case TClassDecl(_.get() => {module: module}): module;
       case TEnumDecl(_.get() => {module: module}): module;
+      case TTypeDecl(_.get() => {module: module}): module;
       default: '';
     }
   }

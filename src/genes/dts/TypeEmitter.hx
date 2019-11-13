@@ -99,9 +99,14 @@ class TypeEmitter {
             // TODO: generate `| null` union unless it comes from an optional field?
             emitType(writer, realT);
           default:
-            emitType(writer, dt.type.applyTypeParameters(dt.params, params));
+            switch dt.type {
+              case TInst(_.get() => {isExtern: true}, _):
+                emitType(writer, dt.type);
+              default:
+                includeType(type);
+                emitBaseType(writer, dt, params);
+            }
         }
-
       case TFun(args, ret):
         write('((');
         emitArgs(writer, args);

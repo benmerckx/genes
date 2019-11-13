@@ -9,6 +9,7 @@ import haxe.io.Path;
 import genes.es.ModuleEmitter;
 import genes.dts.DefinitionEmitter;
 import genes.util.Timer.timer;
+import genes.util.TypeUtil;
 
 using Lambda;
 using StringTools;
@@ -18,9 +19,20 @@ class Generator {
     final toGenerate = typesPerModule(api.types);
     final output = Path.withoutExtension(Path.withoutDirectory(api.outputFile));
     final modules = new Map();
+    final concrete = [];
+    for (type in api.types)
+      switch type {
+        case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
+          concrete.push(TypeUtil.baseTypeName(t));
+        default:
+      }
+    final context = {
+      concrete: concrete,
+      modules: modules
+    }
     function addModule(module: String, types: Array<Type>,
         ?main: Null<TypedExpr>)
-      modules.set(module, new Module(modules, module, types, main));
+      modules.set(module, new Module(context, module, types, main));
     switch api.main {
       case null:
       case v:
@@ -47,10 +59,9 @@ class Generator {
         }, _) | TEnum(_.get() => {
             module: module,
             isExtern: false
-          }, _) /*| TType(_.get() => {
-            module: module,
-            isExtern: false
-          }, _)*/:
+          }, _) | TType(_.get() => {
+            module: module
+          }, _):
           if (modules.exists(module))
             modules.get(module).push(type);
           else

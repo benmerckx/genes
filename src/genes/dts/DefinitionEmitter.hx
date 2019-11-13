@@ -23,11 +23,20 @@ class DefinitionEmitter extends ModuleEmitter {
           emitClassDefinition(cl, params, fields);
         case MEnum(et, params):
           emitEnumDefinition(et, params);
-        /*case MType(def, params):
-          emitTypeDefinition(def, params); */
+        case MType(def, params):
+          emitTypeDefinition(def, params);
         default:
       }
     endTimer();
+  }
+
+  function emitTypeDefinition(def: DefType, params: Array<Type>) {
+    writeNewline();
+    write('export type ');
+    emitBaseType(def, params);
+    write(' = ');
+    emitType(def.type);
+    writeNewline();
   }
 
   function emitEnumDefinition(et: EnumType, params: Array<Type>) {

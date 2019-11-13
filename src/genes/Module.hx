@@ -37,35 +37,44 @@ enum Member {
   MMain(expr: TypedExpr);
 }
 
+typedef ModuleContext = {
+  modules: Map<String, Module>,
+  concrete: Array<String>
+}
+
 class Module {
   public final module: String;
   public final path: String;
-  public final members: Array<Member>;
+  public final members: Array<Member> = [];
   public var typeDependencies(get, null): Dependencies;
   public var codeDependencies(get, null): Dependencies;
 
-  final modules: Map<String, Module>;
+  final context: ModuleContext;
   final cycleCache = new Map<String, Bool>();
 
-  public function new(modules: Map<String, Module>, module,
-      types: Array<Type>, ?main: TypedExpr) {
-    this.modules = modules;
+  public function new(context: ModuleContext, module, types: Array<Type>,
+      ?main: TypedExpr) {
+    this.context = context;
     this.module = module;
     path = module.split('.').join('/');
     final endTimer = timer('members');
-    members = [
-      for (type in types)
-        switch type {
-          case TEnum(_.get() => et, params):
-            MEnum(et, params);
-          case TInst(_.get() => cl, params):
-            MClass(cl, params, fieldsOf(cl), hasExternSuper(cl));
-          case TType(_.get() => tt, params):
-            MType(tt, params);
-          default:
-            throw 'assert';
-        }
-    ];
+    for (type in types)
+      switch type {
+        case TEnum(_.get() => et, params):
+          members.push(MEnum(et, params));
+        case TInst(_.get() => cl, params):
+          members.push(MClass(cl, params, fieldsOf(cl), hasExternSuper(cl)));
+        case TType(_.get() => tt, params):
+          switch Context.followWithAbstracts(tt.type) {
+            case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
+              final name = TypeUtil.baseTypeName(t);
+              if (context.concrete.indexOf(name) > -1)
+                members.push(MType(tt, params));
+            default: members.push(MType(tt, params));
+          }
+        default:
+          throw 'assert';
+      }
     if (main != null)
       members.push(MMain(main));
     endTimer();
@@ -86,7 +95,7 @@ class Module {
 
   function testCycles(test: String, seen: Array<String>) {
     seen = seen.concat([test]);
-    final dependencies = switch modules[test] {
+    final dependencies = switch context.modules[test] {
       case null: [];
       case v: [for (k in v.codeDependencies.imports.keys()) k];
     }
@@ -113,7 +122,14 @@ class Module {
       write: function(code: String) {},
       emitPos: function(pos) {},
       includeType: function(type: Type) {
-        dependencies.add(TypeUtil.typeToModuleType(type));
+        switch Context.followWithAbstracts(type) {
+          case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
+            final name = TypeUtil.baseTypeName(t);
+            if (context.concrete.indexOf(name) > -1)
+              dependencies.add(TypeUtil.typeToModuleType(type));
+          default:
+            dependencies.add(TypeUtil.typeToModuleType(type));
+        }
       }
     }
     function addBaseType(type: BaseType, params: Array<Type>)
@@ -148,6 +164,8 @@ class Module {
           }
         case MMain(expr):
           addType(expr.t);
+        case MType(def, _):
+          addType(def.type);
         default:
       }
     }
