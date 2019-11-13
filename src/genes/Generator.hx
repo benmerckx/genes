@@ -78,14 +78,14 @@ class Generator {
     final path = [Path.join([outputDir, module.path]), extension].join('.');
     final definition = [Path.join([outputDir, module.path]), 'd.ts'].join('.');
     final ctx = module.createContext(api);
-    final moduleEmitter = new ModuleEmitter(ctx, Writer.fileWriter(path));
+    final moduleEmitter = new ModuleEmitter(ctx, Writer.bufferedFileWriter(path));
     moduleEmitter.emitModule(module);
     #if (debug || js_source_map)
     moduleEmitter.emitSourceMap(path + '.map', true);
     #end
     moduleEmitter.finish();
     #if dts
-    final definitionEmitter = new DefinitionEmitter(ctx, Writer.fileWriter(definition));
+    final definitionEmitter = new DefinitionEmitter(ctx, Writer.bufferedFileWriter(definition));
     definitionEmitter.emitDefinition(module);
     #if (debug || js_source_map)
     definitionEmitter.emitSourceMap(definition + '.map');

@@ -48,4 +48,16 @@ class Writer {
       input.writeString(data, Encoding.UTF8);
     }, () -> if (input != null) input.close());
   }
+
+  public static function bufferedFileWriter(file: String) {
+    var buffer = new StringBuf();
+    return new Writer((data : String) -> {
+      buffer.add(data);
+    }, () -> {
+        final dir = Path.directory(file);
+        if (!FileSystem.exists(dir))
+          FileSystem.createDirectory(dir);
+        File.saveContent(file, buffer.toString());
+      });
+  }
 }
