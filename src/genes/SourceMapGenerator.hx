@@ -7,6 +7,7 @@ import haxe.display.Position.Location;
 import haxe.macro.PositionTools.toLocation;
 import haxe.io.Path;
 import sys.io.File;
+import sys.FileSystem;
 import haxe.Json;
 import genes.util.PathUtil;
 
@@ -128,6 +129,9 @@ class SourceMapGenerator {
   }
 
   public function write(path: String, withSources: Bool) {
+    final dir = Path.directory(path);
+    if (!FileSystem.exists(dir))
+      FileSystem.createDirectory(dir);
     File.saveContent(path, Json.stringify(toJSON(path, withSources)));
   }
 }

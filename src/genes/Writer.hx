@@ -54,6 +54,8 @@ class Writer {
     return new Writer((data : String) -> {
       buffer.add(data);
     }, () -> {
+        if (buffer.length == 0)
+          return;
         final dir = Path.directory(file);
         if (!FileSystem.exists(dir))
           FileSystem.createDirectory(dir);
