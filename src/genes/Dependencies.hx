@@ -2,6 +2,7 @@ package genes;
 
 import haxe.macro.Type;
 import genes.Module;
+import genes.TypeAccessor;
 import genes.SourceMapGenerator;
 
 enum DependencyType {
@@ -33,12 +34,15 @@ class Dependencies {
     this.runtime = runtime;
     this.names = [
       for (member in module.members)
-        if (member.match(MClass(_, _, _) | MEnum(_, _)))
+        if (member.match(MType(_, _) | MClass(_, _, _) | MEnum(_, _)))
           switch member {
             case MClass({
               name: name,
               module: module
-            }, _, _) | MEnum({name: name, module: module}, _):
+            }, _, _) | MEnum({
+                name: name,
+                module: module
+              }, _) | MType({name: name, module: module}, _):
               {name: name, module: module}
             default:
               throw 'assert';
@@ -109,25 +113,15 @@ class Dependencies {
     }
   }
 
-  public function typeAccessor(type: ModuleType)
-    switch type {
-      case TAbstract(_.get() => cl = {meta: meta, name: name}):
-        return switch meta.has(':coreType') {
-          case true: '"$$hxCoreType__$name"';
-          case false: throw 'assert';
-        }
-      case TClassDecl(_.get() => {
-        module: path,
-        name: name
-      }) | TEnumDecl(_.get() => {module: path, name: name}):
-        // check alias in this module
-        final deps = imports.get(path);
+  public function typeAccessor(type: TypeAccessor)
+    return switch type {
+      case Abstract(name): name;
+      case Concrete(module, name):
+        final deps = imports.get(module);
         if (deps != null)
           for (i in deps)
             if (i.name == name)
               return if (i.alias != null) i.alias else i.name;
         return name;
-      case TTypeDecl(_.get() => {name: name}):
-        return name; // Todo: does this even happen?
     }
 }

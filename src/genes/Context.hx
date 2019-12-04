@@ -7,5 +7,5 @@ typedef Context = {
   value: (expr: TypedExpr) -> String,
   hasFeature: (feature: String) -> Bool,
   addFeature: (feature: String) -> Void,
-  typeAccessor: (type: ModuleType) -> String
+  typeAccessor: (type: TypeAccessor) -> String
 }

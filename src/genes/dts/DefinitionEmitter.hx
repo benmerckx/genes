@@ -231,6 +231,9 @@ class DefinitionEmitter extends ModuleEmitter {
 
   public function includeType(type: Type) {}
 
+  public function typeAccessor(type: TypeAccessor)
+    return ctx.typeAccessor(type);
+
   function emitBaseType(type: BaseType, params: Array<Type>) {
     TypeEmitter.emitBaseType(this, type, params);
   }

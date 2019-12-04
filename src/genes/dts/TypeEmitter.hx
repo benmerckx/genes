@@ -3,6 +3,7 @@ package genes.dts;
 import genes.SourceMapGenerator;
 import haxe.macro.Type;
 import genes.util.IteratorUtil.*;
+import genes.util.TypeUtil;
 
 using haxe.macro.Tools;
 
@@ -12,6 +13,7 @@ typedef TypeWriter = {
   function write(code: String): Void;
   function emitPos(pos: SourcePosition): Void;
   function includeType(type: Type): Void;
+  function typeAccessor(type: TypeAccessor): String;
 }
 
 class TypeEmitter {
@@ -19,7 +21,7 @@ class TypeEmitter {
       params: Array<Type>) {
     final write = writer.write, emitPos = writer.emitPos;
     emitPos(type.pos);
-    write(type.name);
+    write(writer.typeAccessor(type));
     emitParams(writer, params);
   }
 

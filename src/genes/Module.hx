@@ -8,6 +8,7 @@ import genes.Dependencies;
 import genes.util.TypeUtil;
 import genes.dts.TypeEmitter;
 import genes.util.Timer.timer;
+import genes.TypeAccessor;
 
 using StringTools;
 using haxe.macro.TypedExprTools;
@@ -130,7 +131,8 @@ class Module {
           default:
             dependencies.add(TypeUtil.typeToModuleType(type));
         }
-      }
+      },
+      typeAccessor: dependencies.typeAccessor
     }
     function addBaseType(type: BaseType, params: Array<Type>)
       TypeEmitter.emitBaseType(writer, type, params);
@@ -285,10 +287,8 @@ class Module {
       value: api.generateValue,
       hasFeature: api.hasFeature,
       addFeature: api.addFeature,
-      typeAccessor: (type: ModuleType) -> switch type {
-        case TAbstract(_.get() => {name: name}) | TClassDecl(_.get() =>
-          {name: name}) | TEnumDecl(_.get() =>
-            {name: name}) | TTypeDecl(_.get() => {name: name}): return name;
+      typeAccessor: (type: TypeAccessor) -> switch type {
+        case Abstract(name) | Concrete(_, name): name;
       }
     }
 }
