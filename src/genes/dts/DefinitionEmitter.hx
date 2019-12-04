@@ -179,7 +179,7 @@ class DefinitionEmitter extends ModuleEmitter {
               if (field.isStatic)
                 write('static ');
               emitPos(field.pos);
-              write(field.name);
+              write(if (field.kind.equals(Constructor)) 'constructor' else field.name);
               if (field.params.length > 0) {
                 write('<');
                 for (param in join(field.params, write.bind(', ')))
