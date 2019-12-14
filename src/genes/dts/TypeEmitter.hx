@@ -67,8 +67,9 @@ class TypeEmitter {
             emitPos(ab.pos);
             write('void');
           case [{pack: [], name: "Null"}, [realT]]: // Haxe 4.x
-            // TODO: generate `| null` union unless it comes from an optional field?
+            // TODO: do not generate `null |` union if it comes from an optional field?
             emitPos(ab.pos);
+            write('null | ');
             emitType(writer, realT);
           case [{pack: ["haxe", "extern"], name: "EitherType"}, [aT, bT]]:
             emitType(writer, aT);
@@ -98,7 +99,8 @@ class TypeEmitter {
       case TType(_.get() => dt, params):
         switch [dt, params] {
           case [{pack: [], name: "Null"}, [realT]]: // Haxe 3.x
-            // TODO: generate `| null` union unless it comes from an optional field?
+            // TODO: do not generate `null |` union if it comes from an optional field?
+            write('null | ');
             emitType(writer, realT);
           default:
             switch dt.type {
