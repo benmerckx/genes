@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "lib": ["ES2015"]
+  },
+  "include": ["./bin/**/*.d.ts"]
+}

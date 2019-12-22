@@ -66,13 +66,9 @@ class Module {
         case TInst(_.get() => cl, params):
           members.push(MClass(cl, params, fieldsOf(cl), hasExternSuper(cl)));
         case TType(_.get() => tt, params):
-          switch Context.followWithAbstracts(tt.type) {
-            case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
-              final name = TypeUtil.baseTypeName(t);
-              if (context.concrete.indexOf(name) > -1)
-                members.push(MType(tt, params));
-            default: members.push(MType(tt, params));
-          }
+          // get dependencies - continue if any of those is not found (it means the type is unused)
+          if (!typeIsUnused(tt.type))
+            members.push(MType(tt, params));
         default:
           throw 'assert';
       }
@@ -114,6 +110,30 @@ class Module {
     return [];
   }
 
+  function typeIsUnused(type: Type) {
+    final writer = {
+      write: function(code: String) {},
+      emitPos: function(pos) {},
+      includeType: function(type: Type) {
+        switch Context.followWithAbstracts(type) {
+          case TInst(_.get() => t, _) if (!t.kind.match(KNormal | KAbstractImpl(_))):
+          case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
+            final name = TypeUtil.baseTypeName(t);
+            if (context.concrete.indexOf(name) == -1)
+              throw true;
+          default:
+        }
+      },
+      typeAccessor: (type: TypeAccessor) -> ''
+    }
+    return try {
+      TypeEmitter.emitType(writer, type);
+      false;
+    } catch (unused:Bool) {
+      unused;
+    }
+  }
+
   function get_typeDependencies() {
     if (typeDependencies != null)
       return typeDependencies;
@@ -123,14 +143,8 @@ class Module {
       write: function(code: String) {},
       emitPos: function(pos) {},
       includeType: function(type: Type) {
-        switch Context.followWithAbstracts(type) {
-          case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
-            final name = TypeUtil.baseTypeName(t);
-            if (context.concrete.indexOf(name) > -1)
-              dependencies.add(TypeUtil.typeToModuleType(type));
-          default:
-            dependencies.add(TypeUtil.typeToModuleType(type));
-        }
+        // if (!typeIsUnused(type))
+        dependencies.add(TypeUtil.typeToModuleType(type));
       },
       typeAccessor: dependencies.typeAccessor
     }
@@ -288,7 +302,7 @@ class Module {
       hasFeature: api.hasFeature,
       addFeature: api.addFeature,
       typeAccessor: (type: TypeAccessor) -> switch type {
-        case Abstract(name) | Concrete(_, name): name;
+        case Generic(name) | Abstract(name) | Concrete(_, name): name;
       }
     }
 }

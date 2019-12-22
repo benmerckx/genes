@@ -3,6 +3,7 @@ package genes.dts;
 import haxe.io.Path;
 import genes.es.ModuleEmitter;
 import haxe.macro.Type;
+import genes.TypeAccessor;
 import genes.Module;
 import genes.util.TypeUtil;
 import genes.util.IteratorUtil.*;
@@ -45,18 +46,36 @@ class DefinitionEmitter extends ModuleEmitter {
       case TInst(_.get().name => name, _): name;
       default: throw 'assert';
     });
+    final anyParamWriter: TypeWriter = {
+      write: this.write,
+      emitPos: this.emitPos,
+      includeType: this.includeType,
+      typeAccessor: (type: TypeAccessor) -> switch type {
+        case Generic(name): 'any';
+        default: this.typeAccessor(type);
+      }
+    }
     writeNewline();
     write('export declare namespace ');
     emitPos(et.pos);
     write(et.name);
     write(' {');
     increaseIndent();
+    function unique(values: Array<String>) {
+      return [for (v in [for (v in values) v => true].keys()) v];
+    }
     for (name => c in et.constructs) {
+      final params = unique(paramNames.concat(c.params.map(p -> p.name)));
       writeNewline();
       write('export type ');
       emitPos(c.pos);
       write(name);
-      emitParams(params);
+      if (params.length > 0) {
+        write('<');
+        for (param in join(params, write.bind(', ')))
+          write('${param} = any');
+        write('>');
+      }
       write(' = ');
       write('{_hx_index: ${c.index}');
       switch c.type {
@@ -82,11 +101,10 @@ class DefinitionEmitter extends ModuleEmitter {
       write(': ');
       switch c.type {
         case TFun(args, ret):
-          final params = paramNames.concat(c.params.map(p -> p.name));
           if (params.length > 0) {
             write('<');
             for (param in join(params, write.bind(', ')))
-              write(param);
+              write('${param} = any');
             write('>');
           }
           write('(');
@@ -109,7 +127,7 @@ class DefinitionEmitter extends ModuleEmitter {
                 }, []):
                   write('any');
                 default:
-                  emitType(param);
+                  TypeEmitter.emitType(anyParamWriter, param);
               }
             write('>');
           }

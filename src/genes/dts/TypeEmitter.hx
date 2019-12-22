@@ -46,11 +46,9 @@ class TypeEmitter {
             write('string');
           case [{pack: [], name: "Array"}, [elemT]]:
             emitPos(cl.pos);
+            write('Array<');
             emitType(writer, elemT);
-            write('[]');
-          case [{name: name, kind: KTypeParameter(_)}, _]:
-            emitPos(cl.pos);
-            write(name);
+            write('>');
           default:
             includeType(TInst(ref, params));
             emitBaseType(writer, cl, params);

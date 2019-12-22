@@ -4,6 +4,7 @@ import haxe.macro.Type;
 
 enum TypeAccessorImpl {
   Concrete(module: String, path: String);
+  Generic(name: String);
   Abstract(name: String);
 }
 
@@ -28,6 +29,13 @@ abstract TypeAccessor(TypeAccessorImpl) from TypeAccessorImpl {
   }
 
   @:from public static function fromBaseType(type: BaseType): TypeAccessor {
-    return Concrete(type.module, type.name);
+    return switch (cast type : ClassType) {
+      case {kind: null}:
+        Concrete(type.module, type.name);
+      case {kind: KTypeParameter([])}:
+        Generic(type.name);
+      default:
+        Concrete(type.module, type.name);
+    }
   }
 }

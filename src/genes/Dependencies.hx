@@ -115,7 +115,7 @@ class Dependencies {
 
   public function typeAccessor(type: TypeAccessor)
     return switch type {
-      case Abstract(name): name;
+      case Generic(name) | Abstract(name): name;
       case Concrete(module, name):
         final deps = imports.get(module);
         if (deps != null)
