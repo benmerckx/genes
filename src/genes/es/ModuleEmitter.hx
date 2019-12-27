@@ -219,12 +219,8 @@ class ModuleEmitter extends ExprEmitter {
               for (arg in join(f.args, write.bind(', '))) {
                 emitIdent(arg.v.name);
                 if (arg.value != null) {
-                  switch arg.value.expr {
-                    case TConst(_):
-                      write(' = ');
-                      emitExpr(arg.value);
-                    case _:
-                  }
+                  write(' = ');
+                  emitValue(arg.value);
                 }
               }
               write(') ');
