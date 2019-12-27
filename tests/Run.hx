@@ -10,6 +10,7 @@ class Run {
       new TestIterators(), new TestComments(), new TestCycle(),
       new TestCycle2(), new TestTypedef(), new TestEnum(),
       new TestImportModule(), new TestRegisterAlias(),
-      new TestRecursiveTypedef(), new TestExtendExtern()])).handle(Runner.exit);
+      new TestRecursiveTypedef(), new TestExtendExtern(), new TestFunction()]))
+      .handle(Runner.exit);
   }
 }

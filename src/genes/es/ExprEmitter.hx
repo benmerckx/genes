@@ -175,8 +175,13 @@ class ExprEmitter extends Emitter {
         this.inValue = 0;
         this.inLoop = false;
         write('function (');
-        for (arg in join(f.args, write.bind(', ')))
+        for (arg in join(f.args, write.bind(', '))) {
           emitIdent(arg.v.name);
+          if (arg.value != null) {
+            write(' = ');
+            emitValue(arg.value);
+          }
+        }
         write(') ');
         emitExpr(f.expr);
         this.inValue = inValue;
