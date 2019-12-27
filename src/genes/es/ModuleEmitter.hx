@@ -216,8 +216,17 @@ class ModuleEmitter extends ExprEmitter {
                 write('static ');
               write(field.name);
               write('(');
-              for (arg in join(f.args, write.bind(', ')))
+              for (arg in join(f.args, write.bind(', '))) {
                 emitIdent(arg.v.name);
+                if (arg.value != null) {
+                  switch arg.value.expr {
+                    case TConst(_):
+                      write(' = ');
+                      emitExpr(arg.value);
+                    case _:
+                  }
+                }
+              }
               write(') ');
               emitExpr(f.expr);
             default:
