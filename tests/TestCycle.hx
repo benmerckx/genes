@@ -8,6 +8,8 @@ class TestCycle extends TestBase {
 
   var toTest = TestCycle2.testValue;
 
-  public function test()
+  public function test() {
+    TestCycle2.make();
     return assert(toTest == 2);
+  }
 }
