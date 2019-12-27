@@ -4,6 +4,7 @@ import haxe.macro.Type;
 import genes.Module;
 import genes.TypeAccessor;
 import genes.SourceMapGenerator;
+import genes.util.TypeUtil;
 
 enum DependencyType {
   DName;
@@ -22,6 +23,7 @@ private typedef ModuleName = String;
 
 class Dependencies {
   public final imports: Map<ModuleName, Array<Dependency>> = [];
+  public final references: Set<String> = new Set();
 
   final module: Module;
   final runtime: Bool;
@@ -108,6 +110,7 @@ class Dependencies {
         } else if (base.module == module.module) {
           return;
         }
+        references.add(TypeUtil.baseTypeName(base));
         push(path, dependency);
       default:
     }

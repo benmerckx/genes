@@ -50,12 +50,12 @@ class Module {
   public var typeDependencies(get, null): Dependencies;
   public var codeDependencies(get, null): Dependencies;
 
-  final context: ModuleContext;
+  final generation: Generation;
   final cycleCache = new Map<String, Bool>();
 
-  public function new(context: ModuleContext, module, types: Array<Type>,
+  public function new(generation: Generation, module, types: Array<Type>,
       ?main: TypedExpr) {
-    this.context = context;
+    this.generation = generation;
     this.module = module;
     path = module.split('.').join('/');
     final endTimer = timer('members');
@@ -67,7 +67,7 @@ class Module {
           members.push(MClass(cl, params, fieldsOf(cl), hasExternSuper(cl)));
         case TType(_.get() => tt, params):
           // get dependencies - continue if any of those is not found (it means the type is unused)
-          if (!typeIsUnused(tt.type))
+          if (typeIsUsed(tt.type))
             members.push(MType(tt, params));
         default:
           throw 'assert';
@@ -92,7 +92,7 @@ class Module {
 
   function testCycles(test: String, seen: Array<String>) {
     seen = seen.concat([test]);
-    final dependencies = switch context.modules[test] {
+    final dependencies = switch generation.modules[test] {
       case null: [];
       case v: [for (k in v.codeDependencies.imports.keys()) k];
     }
@@ -110,28 +110,29 @@ class Module {
     return [];
   }
 
-  function typeIsUnused(type: Type) {
-    final writer = {
-      write: function(code: String) {},
-      emitPos: function(pos) {},
-      includeType: function(type: Type) {
-        switch Context.followWithAbstracts(type) {
-          case TInst(_.get() => t, _) if (!t.kind.match(KNormal | KAbstractImpl(_))):
-          case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
-            final name = TypeUtil.baseTypeName(t);
-            if (context.concrete.indexOf(name) == -1)
-              throw true;
-          default:
-        }
-      },
-      typeAccessor: (type: TypeAccessor) -> ''
-    }
-    return try {
-      TypeEmitter.emitType(writer, type);
-      false;
-    } catch (unused:Bool) {
-      unused;
-    }
+  function typeIsUsed(type: Type) {
+    return generation.typeIsUsed(type);
+    /*final writer = {
+        write: function(code: String) {},
+        emitPos: function(pos) {},
+        includeType: function(type: Type) {
+          switch Context.followWithAbstracts(type) {
+            case TInst(_.get() => t, _) if (!t.kind.match(KNormal | KAbstractImpl(_))):
+            case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
+              final name = TypeUtil.baseTypeName(t);
+              if (context.concrete.indexOf(name) == -1)
+                throw true;
+            default:
+          }
+        },
+        typeAccessor: (type: TypeAccessor) -> ''
+      }
+      return try {
+        TypeEmitter.emitType(writer, type);
+        false;
+      } catch (unused:Bool) {
+        unused;
+    }*/
   }
 
   function get_typeDependencies() {
@@ -143,8 +144,8 @@ class Module {
       write: function(code: String) {},
       emitPos: function(pos) {},
       includeType: function(type: Type) {
-        // if (!typeIsUnused(type))
-        dependencies.add(TypeUtil.typeToModuleType(type));
+        if (typeIsUsed(type))
+          dependencies.add(TypeUtil.typeToModuleType(type));
       },
       typeAccessor: dependencies.typeAccessor
     }

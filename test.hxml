@@ -1,4 +1,5 @@
 -lib genes
+-lib set
 -lib hxnodejs
 -lib tink_unittest
 

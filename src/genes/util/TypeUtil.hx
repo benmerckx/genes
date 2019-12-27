@@ -2,6 +2,7 @@ package genes.util;
 
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import haxe.macro.Context;
 
 using haxe.macro.TypedExprTools;
 
@@ -14,6 +15,16 @@ class TypeUtil {
       case TAbstract(r, _): TAbstract(r);
       case _: null;
     }
+
+  public static function toBaseType(type: Type) {
+    return switch type {
+      case TEnum((_.get() : BaseType) => base,
+        _) | TInst((_.get() : BaseType) => base, _) | TType((_.get() : BaseType) => base, _) | TAbstract((_.get() : BaseType) => base, _):
+        base;
+      default:
+        throw 'Could not convert $type to BaseType';
+    }
+  }
 
   public static function getModuleType(module: String)
     return typeToModuleType(haxe.macro.Context.getType(module));
@@ -118,6 +129,36 @@ class TypeUtil {
           res = res.concat(typesInExpr(e));
         });
         res;
+    }
+  }
+
+  public static function iterType(type: Type, it: (type: Type) -> Void) {
+    it(type);
+    switch type {
+      case TAnonymous(_.get() => a):
+        for (field in a.fields)
+          if (field.type != type)
+            iterType(field.type, it);
+      case TEnum(_, params) | TInst(_, params):
+        for (t in params)
+          if (t != type)
+            iterType(t, it);
+      case TType(_, params) | TAbstract(_, params):
+        final next = Context.followWithAbstracts(type);
+        if (!Context.unify(next, type))
+          iterType(next, it);
+        else
+          it(next);
+        for (t in params)
+          if (t != type)
+            iterType(t, it);
+      case TFun(args, ret):
+        for (arg in args)
+          if (arg.t != type)
+            iterType(arg.t, it);
+        if (ret != type)
+          iterType(ret, it);
+      default:
     }
   }
 }
