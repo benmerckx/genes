@@ -3,6 +3,8 @@ package tests;
 import tink.unit.Assert.*;
 
 class TestBase {
+  public var random = Math.ceil(Math.random() * 100);
+
   public function new() {}
 }
 
@@ -11,7 +13,6 @@ class TestCycle2 extends TestBase {
   public static var testValue = TestCycle.testValue + 1;
   public static var testValue2 = 2;
 
-  public var random = Math.ceil(Math.random() * 100);
 
   var toTest = TestCycle.testValue;
 

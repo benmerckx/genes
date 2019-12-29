@@ -191,11 +191,8 @@ class ModuleEmitter extends ExprEmitter {
         write(' {');
         increaseIndent();
       case {t: TClassDecl(_) => t}:
-        write(' extends (');
+        write(' extends ');
         write(ctx.typeAccessor(t));
-        write('.class || ');
-        write(ctx.typeAccessor(t));
-        write(')');
         write(' {');
         increaseIndent();
     }
