@@ -2,8 +2,17 @@ package genes;
 
 import js.lib.Object;
 import js.Syntax;
+import haxe.DynamicAccess;
 
 class Register {
+  static final globals: DynamicAccess<Any> = {}
+
+  @:keep public static function global(name) {
+    if (!globals.exists(name))
+      globals[name] = {}
+    return globals[name];
+  }
+
   @:keep public static function createStatic<T>(obj: {}, name: String,
       get: () -> T) {
     var value: T;
@@ -34,5 +43,9 @@ class Register {
         this.new.apply(this, arguments)
       }
     ');
+  }
+
+  @:keep public static function __cast(a, b) {
+    return @:privateAccess js.Boot.__cast(a, b);
   }
 }

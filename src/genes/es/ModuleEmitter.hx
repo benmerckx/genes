@@ -12,8 +12,6 @@ using genes.util.TypeUtil;
 using Lambda;
 
 class ModuleEmitter extends ExprEmitter {
-  final register = Context.getType('genes.Register').typeToModuleType();
-
   public function emitModule(module: Module) {
     final dependencies = module.codeDependencies;
     final endTimer = timer('emitModule');
@@ -152,6 +150,7 @@ class ModuleEmitter extends ExprEmitter {
 
   function emitInit(cl: ClassType) {
     if (cl.init != null) {
+      writeNewline();
       emitPos(cl.pos);
       emitExpr(cl.init);
       writeNewline();
@@ -239,7 +238,7 @@ class ModuleEmitter extends ExprEmitter {
     write(et.name);
     write(' = ');
     writeNewline();
-    writehxEnums();
+    writeGlobalVar("$hxEnums");
     write('[');
     emitString(id);
     write(']');
@@ -277,6 +276,16 @@ class ModuleEmitter extends ExprEmitter {
     decreaseIndent();
     writeNewline();
     write('}');
+    writeNewline();
+    write(et.name);
+    write('.__empty_constructs__ = [');
+    for (c in join(et.constructs.filter(e -> !e.type.match(TFun(_, _))), write.bind(', '))) {
+      write(et.name);
+      write('[');
+      emitString(c.name);
+      write(']');
+    }
+    write(']');
     writeNewline();
   }
 }

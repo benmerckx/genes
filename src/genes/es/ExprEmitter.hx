@@ -26,6 +26,7 @@ class ExprEmitter extends Emitter {
     'while', 'with', 'yield'
   ];
 
+  final register = typeToModuleType(haxe.macro.Context.getType('genes.Register'));
   var indent: Int = 0;
   var inValue: Int = 0;
   var idCounter: Int = 0;
@@ -311,15 +312,17 @@ class ExprEmitter extends Emitter {
         emitSwitch(cond, cases, def, e -> emitBlockElement(e));
       case TCast(e, null):
         emitExpr(e);
-      /*      case TCast(e1, t):
-        print(ctx, '${ctx.type_accessor(TClassDecl(core.Type.null_class.with({cl_path:{a:["js"], b:"Boot"}})))}.__cast(');
-        gen_emitExpr(ctx, e1);
-        spr(ctx, " , ");
-        spr(ctx, ctx.type_accessor(t));
-        spr(ctx, ")");
-       */
+      case TCast(e1, t):
+        write(ctx.typeAccessor(register));
+        write('.__cast(');
+        emitValue(e1);
+        write(', ');
+        write(ctx.typeAccessor(t));
+        write(')');
       case TIdent("$hxEnums"):
-        writehxEnums();
+        writeGlobalVar("$hxEnums");
+      case TIdent("$hxClasses"):
+        writeGlobalVar("$hxClasses");
       case TIdent(s):
         write(s);
       default:
@@ -353,6 +356,8 @@ class ExprEmitter extends Emitter {
         args
       ]:
         emitSyntax(name, args);
+      case [TIdent("__resources__"), args]:
+        write(ctx.value({expr: TCall(e, params), pos: e.pos, t: e.t}));
       case [TIdent("__new__"), args]:
         emitSyntax("new_", args);
       case [TIdent("__instanceof__"), args]:
@@ -735,10 +740,11 @@ class ExprEmitter extends Emitter {
   function writeKeyword(keyword: String)
     write(keyword);
 
-  function writehxEnums() {
-    final key = "$hxEnums";
-    final global = '(typeof window!=="undefined"?window:global)';
-    write('((g,k)=>g[k]||(g[k]={}))($global,"$key")');
+  function writeGlobalVar(name) {
+    write(ctx.typeAccessor(register));
+    write('.global(');
+    emitString(name);
+    write(')');
   }
 
   // Utilities
