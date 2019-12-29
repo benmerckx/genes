@@ -110,6 +110,11 @@ class ModuleEmitter extends ExprEmitter {
 
   function emitStatics(checkCycles: (module: String) -> Bool, cl: ClassType,
       fields: Array<Field>) {
+    writeNewline();
+    emitIdent(cl.name);
+    emitField('__name__');
+    write(' = ');
+    emitString(cl.pack.concat([cl.name]).join('.'));
     for (field in fields)
       switch field {
         case {kind: Property, isStatic: true, expr: expr}
@@ -179,7 +184,12 @@ class ModuleEmitter extends ExprEmitter {
         write('constructor() {');
         increaseIndent();
         writeNewline();
+        write('this.__class__');
+        write(' = ');
+        emitIdent(cl.name);
+        writeNewline();
         write('this.new.apply(this, arguments)');
+        writeNewline();
         decreaseIndent();
         writeNewline();
         write('}');
