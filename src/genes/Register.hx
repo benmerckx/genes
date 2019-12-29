@@ -27,41 +27,12 @@ class Register {
     });
   }
 
-  @:keep public static function createClass(create, assign) {
+  @:keep public static function createClass(create) {
     Syntax.code('
-      var res = Object.defineProperties(
-        function() {
-          if (this.constructor === res.class)
-            return new (Function.prototype.bind.apply(
-              res.class,
-              [null].concat(arguments)
-            ))()
-          Object.setPrototypeOf(this.constructor.prototype, res.class.prototype)
-          this.new.apply(this, arguments)
-        },
-        {
-          class: {
-            get() {
-              var created = create()
-              return assign(Object.assign(created, res, {class: created}))
-            }
-          }
-        }
-      )
-      return res
-    ');
-  }
-
-  @:keep public static function external(cl) {
-    Syntax.code('
-      const wrapper = 
-        function() {
-          Object.setPrototypeOf(this.constructor.prototype, cl.prototype)
-          this.constructor.prototype.new = cl.prototype.constructor
-          this.new.apply(this, arguments)
-        }
-      wrapper.prototype.new = () => 123 // cl.prototype.constructor
-      return wrapper
+      return function() {
+        Object.setPrototypeOf(this.constructor.prototype, create().prototype)
+        this.new.apply(this, arguments)
+      }
     ');
   }
 }

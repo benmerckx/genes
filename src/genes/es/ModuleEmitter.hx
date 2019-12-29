@@ -81,9 +81,6 @@ class ModuleEmitter extends ExprEmitter {
     write('.createClass(() =>');
     increaseIndent();
     emitClass(cl, fields, false);
-    write(', ');
-    writeNewline();
-    write('res => ${cl.name} = res');
     decreaseIndent();
     writeNewline();
     write(')');
