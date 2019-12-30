@@ -109,6 +109,10 @@ class TypeUtil {
         for (e in el)
           res = res.concat(typesInExpr(e));
         res;
+      case {expr: TCast(e, null)}:
+        typesInExpr(e);
+      case {expr: TCast(e, t)}:
+        typesInExpr(e).concat([t]);
       case {expr: TField(x, f)}
         if (fieldName(f) == "iterator"): // Todo: conditions here could be refined
         [getModuleType('HxOverrides')].concat(typesInExpr(x));
