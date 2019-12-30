@@ -9,8 +9,9 @@ class TestCycle extends TestBase {
 
   var toTest = TestCycle2.testValue;
 
-  @:include public function test() {
+  public function test() {
     var cl: Class<TestCycle2> = TestCycle2;
+    asserts.assert(new ExternalClass().test() == 'ok');
     var inst = TestCycle2.make();
     var inst2 = TestCycle2.make();
     var inst3 = TestCycle2.inst;
@@ -21,3 +22,9 @@ class TestCycle extends TestBase {
     return asserts.done();
   }
 }
+
+class TestCycleSub extends TestBase {
+  public var cycle = true;
+}
+
+class TestBase0 {}

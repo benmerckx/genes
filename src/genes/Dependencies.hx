@@ -102,6 +102,9 @@ class Dependencies {
             case [{params: [{expr: EConst(CString(m))}]}]:
               path = m;
               dependency = {type: DDefault, name: name, external: true}
+            case [{params: [{expr: EConst(CString(m))}, {expr: EConst(CString(name))}]}]:
+              path = m;
+              dependency = {type: DName, name: name, external: true}
             default:
               return;
           }
