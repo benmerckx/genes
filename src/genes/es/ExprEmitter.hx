@@ -25,6 +25,12 @@ class ExprEmitter extends Emitter {
     'switch', 'this', 'throw', 'true', 'try', 'typeof', 'var', 'void',
     'while', 'with', 'yield'
   ];
+  static final keywordsLocal = [
+    "Infinity", "NaN", "decodeURI", "decodeURIComponent", "encodeURI",
+    "encodeURIComponent", "escape", "eval", "isFinite", "isNaN", "parseFloat",
+    "parseInt", "undefined", "unescape", "JSON", "Number", "Object",
+    "console", "window", "require"
+  ];
 
   final register = typeToModuleType(haxe.macro.Context.getType('genes.Register'));
   var indent: Int = 0;
@@ -39,7 +45,7 @@ class ExprEmitter extends Emitter {
       case TConst(c):
         emitConstant(c);
       case TLocal(v):
-        emitIdent(v.name);
+        emitLocalIdent(v.name);
       case TArray(e1, e2):
         emitValue(addObjectdeclParens(e1));
         write('[');
@@ -177,7 +183,7 @@ class ExprEmitter extends Emitter {
         this.inLoop = false;
         write('function (');
         for (arg in join(f.args, write.bind(', '))) {
-          emitIdent(arg.v.name);
+          emitLocalIdent(arg.v.name);
           if (arg.value != null) {
             write(' = ');
             emitValue(arg.value);
@@ -202,7 +208,7 @@ class ExprEmitter extends Emitter {
         emitValue(e);
       case TVar(v, eo):
         write('var ');
-        emitIdent(v.name);
+        emitLocalIdent(v.name);
         switch (eo) {
           case null:
           case e:
@@ -284,14 +290,14 @@ class ExprEmitter extends Emitter {
             name;
         }
         write('while (');
-        emitIdent(it);
+        emitLocalIdent(it);
         write('.hasNext()) {');
         increaseIndent();
         writeNewline();
         write('var ');
-        emitIdent(v.name);
+        emitLocalIdent(v.name);
         write(' = ');
-        emitIdent(it);
+        emitLocalIdent(it);
         write('.next()');
         writeNewline();
         emitBlockElement(e);
@@ -303,7 +309,7 @@ class ExprEmitter extends Emitter {
         write('try ');
         emitExpr(etry);
         write('catch (');
-        emitIdent(v.name);
+        emitLocalIdent(v.name);
         write(') ');
         emitExpr(ecatch);
       case TTry(_):
@@ -527,7 +533,7 @@ class ExprEmitter extends Emitter {
           write('try {');
           assign(block(etry));
           write('} catch (');
-          emitIdent(v.name);
+          emitLocalIdent(v.name);
           write(') {');
           assign(block(ecatch));
           write(') {');
@@ -654,6 +660,12 @@ class ExprEmitter extends Emitter {
 
   function emitIdent(name: String) {
     if (keywords.indexOf(name) > -1)
+      write("$");
+    write(name);
+  }
+
+  function emitLocalIdent(name: String) {
+    if (keywords.indexOf(name) > -1 || keywordsLocal.indexOf(name) > -1)
       write("$");
     write(name);
   }

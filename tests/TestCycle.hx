@@ -9,10 +9,12 @@ class TestCycle extends TestBase {
 
   var toTest = TestCycle2.testValue;
 
-  public function test() {
+  @:include public function test() {
+    var cl: Class<TestCycle2> = TestCycle2;
     var inst = TestCycle2.make();
     var inst2 = TestCycle2.make();
     var inst3 = TestCycle2.inst;
+    asserts.assert(Std.is(inst, cl));
     asserts.assert(inst.random == inst2.random);
     asserts.assert(inst2.random == inst3.random);
     asserts.assert(toTest == 2);
