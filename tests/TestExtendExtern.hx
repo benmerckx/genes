@@ -8,6 +8,13 @@ extern class ExternClass {
   public function new();
 }
 
+@:jsRequire('../../tests/extern.js', 'ExtendHaxeClass')
+extern class ExtendHaxeClass {
+  public function new();
+  public function test(): String;
+  public var random: Int;
+}
+
 class HaxeClass extends ExternClass {
   public function new() {
     super();
@@ -22,6 +29,13 @@ class TestExtendExtern {
   public function testExtendExtern() {
     asserts.assert(new HaxeClass().test == 2);
     asserts.assert(new ExternClass().test == 1);
+    return asserts.done();
+  }
+
+  public function testExtendDeferrredHaxeClass() {
+    var extendDeferredHaxeClass = new ExtendHaxeClass();
+    asserts.assert(extendDeferredHaxeClass.test() == 'ok!');
+    asserts.assert(extendDeferredHaxeClass.random > 0);
     return asserts.done();
   }
 }

@@ -29,10 +29,18 @@ class Register {
 
   @:keep public static function createClass(create) {
     Syntax.code('
-      return function() {
-        Object.setPrototypeOf(this.constructor.prototype, create().prototype)
+      function res() {
+        if (res.__init__) res.__init__()
         this.new.apply(this, arguments)
       }
+      res.__init__ = () => {
+        var proto = create()
+        Object.setPrototypeOf(res.prototype, proto.prototype)
+        const superClass = Object.getPrototypeOf(proto)
+        if (superClass.__init__) superClass.__init__()
+        res.__init__ = undefined
+      }
+      return res
     ');
   }
 }
