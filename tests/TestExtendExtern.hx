@@ -2,7 +2,7 @@ package tests;
 
 import tink.unit.Assert.*;
 
-@:jsRequire('../../tests/extern.js')
+@:jsRequire('../../tests/extern.js', 'default')
 extern class ExternClass {
   public var test: Int;
   public function new();

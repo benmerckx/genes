@@ -99,7 +99,7 @@ class Dependencies {
             default: base.name;
           }
           switch base.meta.extract(':jsRequire') {
-            case [{params: [{expr: EConst(CString(m))}]}]:
+            case [{params: [{expr: EConst(CString(m))}]}] | [{params: [{expr: EConst(CString(m))}, {expr: EConst(CString('default'))}]}]:
               path = m;
               dependency = {type: DDefault, name: name, external: true}
             case [{params: [{expr: EConst(CString(m))}, {expr: EConst(CString(name))}]}]:
