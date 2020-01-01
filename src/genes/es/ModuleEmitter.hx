@@ -115,6 +115,10 @@ class ModuleEmitter extends ExprEmitter {
     emitField('__name__');
     write(' = ');
     emitString(cl.pack.concat([cl.name]).join('.'));
+    writeNewline();
+    emitIdent(cl.name);
+    write('.prototype.__class__ = ');
+    emitIdent(cl.name);
     for (field in fields)
       switch field {
         case {kind: Property, isStatic: true, expr: expr}
@@ -183,10 +187,6 @@ class ModuleEmitter extends ExprEmitter {
         writeNewline();
         write('constructor() {');
         increaseIndent();
-        writeNewline();
-        write('this.__class__');
-        write(' = ');
-        emitIdent(cl.name);
         writeNewline();
         write('this.new.apply(this, arguments)');
         writeNewline();
