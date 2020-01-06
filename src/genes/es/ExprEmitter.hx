@@ -4,6 +4,7 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import genes.util.TypeUtil.*;
 import genes.util.IteratorUtil.*;
+import haxe.ds.Option;
 
 using haxe.macro.TypedExprTools;
 
@@ -37,7 +38,7 @@ class ExprEmitter extends Emitter {
   var inValue: Int = 0;
   var idCounter: Int = 0;
   var inLoop: Bool = false;
-  var extendsExtern: Bool = false;
+  var extendsExtern: Option<TypeAccessor> = None;
 
   public function emitExpr(e: TypedExpr) {
     emitPos(e.pos);
@@ -390,11 +391,12 @@ class ExprEmitter extends Emitter {
         emitValue(x);
         write(')');
       case [TConst(TSuper), args]:
-        if (extendsExtern)
-          write('super');
-        else
-          write('super.new');
-        write('(');
+        switch extendsExtern {
+          case Some(t):
+            write(ctx.typeAccessor(t));
+            write('.call(this, ');
+          case None: write('super.new(');
+        }
         for (param in join(args, write.bind(', ')))
           emitValue(param);
         write(')');

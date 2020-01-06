@@ -5,7 +5,7 @@ import tink.unit.Assert.*;
 @:jsRequire('../../tests/extern.js', 'default')
 extern class ExternClass {
   public var test: Int;
-  public function new();
+  public function new(num: Int);
 }
 
 @:jsRequire('../../tests/extern.js', 'ExtendHaxeClass')
@@ -17,7 +17,8 @@ extern class ExtendHaxeClass {
 
 class HaxeClass extends ExternClass {
   public function new() {
-    super();
+    test = 1;
+    super(2);
     test++;
   }
 }
@@ -27,8 +28,8 @@ class TestExtendExtern {
   public function new() {}
 
   public function testExtendExtern() {
-    asserts.assert(new HaxeClass().test == 2);
-    asserts.assert(new ExternClass().test == 1);
+    asserts.assert(new HaxeClass().test == 3);
+    asserts.assert(new ExternClass(1).test == 1);
     return asserts.done();
   }
 

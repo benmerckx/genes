@@ -16,21 +16,15 @@ class ModuleEmitter extends ExprEmitter {
     final dependencies = module.codeDependencies;
     final endTimer = timer('emitModule');
     ctx.typeAccessor = dependencies.typeAccessor;
-    final typed = module.members.filter(m -> m.match(MType(_, _) | MClass({isInterface: true}, _, _, _)));
+    final typed = module.members.filter(m -> m.match(MType(_, _) | MClass({isInterface: true}, _, _)));
     if (typed.length == module.members.length)
       return endTimer();
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path), imports);
     for (member in module.members)
       switch member {
-        case MClass(cl, _, fields, extendsExtern) if (!cl.isInterface):
-          final isCyclic = cl.superClass != null && module.isCyclic(cl.superClass.t.get().module);
-          this.extendsExtern = extendsExtern;
-          if (isCyclic) {
-            emitDeferredClass(cl, fields);
-          } else {
-            emitClass(cl, fields);
-          }
+        case MClass(cl, _, fields) if (!cl.isInterface):
+          emitClass(cl, fields);
           emitStatics(module.isCyclic, cl, fields);
           emitInit(cl);
         case MEnum(et, _):
@@ -72,53 +66,9 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
   }
 
-  function emitDeferredClass(cl: ClassType, fields: Array<Field>) {
-    writeNewline();
-    write('export let ${cl.name} = ');
-    write(ctx.typeAccessor(register));
-    write('.createClass(() =>');
-    increaseIndent();
-    emitClass(cl, fields, false);
-    decreaseIndent();
-    writeNewline();
-    write(')');
-    writeNewline();
-    for (field in fields)
-      switch field.kind {
-        case Constructor | Method:
-          switch field.expr.expr {
-            case TFunction(f) if (field.isStatic):
-              writeNewline();
-              emitPos(field.pos);
-              if (field.doc != null)
-                writeNewline();
-              emitComment(field.doc);
-              emitIdent(cl.name);
-              emitField(field.name);
-              write(' = function');
-              write('(');
-              for (arg in join(f.args, write.bind(', ')))
-                emitIdent(arg.v.name);
-              write(') ');
-              emitExpr(f.expr);
-              writeNewline();
-            default:
-          }
-        default:
-      }
-  }
-
   function emitStatics(checkCycles: (module: String) -> Bool, cl: ClassType,
       fields: Array<Field>) {
     writeNewline();
-    emitIdent(cl.name);
-    emitField('__name__');
-    write(' = ');
-    emitString(cl.pack.concat([cl.name]).join('.'));
-    writeNewline();
-    emitIdent(cl.name);
-    write('.prototype.__class__ = ');
-    emitIdent(cl.name);
     for (field in fields)
       switch field {
         case {kind: Property, isStatic: true, expr: expr}
@@ -172,6 +122,13 @@ class ModuleEmitter extends ExprEmitter {
       case {t: _.get() => v}: hasExternSuper(v);
     }
 
+  static function hasConstructor(fields: Array<Field>) {
+    for (field in fields)
+      if (field.kind.equals(Constructor))
+        return true;
+    return false;
+  }
+
   function emitClass(cl: ClassType, fields: Array<Field>, export = true) {
     emitPos(cl.pos);
     writeNewline();
@@ -180,31 +137,26 @@ class ModuleEmitter extends ExprEmitter {
       write('export ');
     write('class ');
     write(cl.name);
-    switch cl.superClass {
-      case null:
-        write(' {');
-        increaseIndent();
-        writeNewline();
-        write('constructor() {');
-        increaseIndent();
-        writeNewline();
-        write('this.new.apply(this, arguments)');
-        writeNewline();
-        decreaseIndent();
-        writeNewline();
-        write('}');
-      case {t: t}
-        if (extendsExtern):
-        write(' extends ');
-        write(ctx.typeAccessor(TClassDecl(t)));
-        write(' {');
-        increaseIndent();
-      case {t: TClassDecl(_) => t}:
-        write(' extends ');
-        write(ctx.typeAccessor(t));
-        write(' {');
-        increaseIndent();
+    if (cl.superClass != null || hasConstructor(fields)) {
+      write(' extends ');
+      write(ctx.typeAccessor(register));
+      write('.inherits(');
+      switch cl.superClass {
+        case null:
+        case {t: TClassDecl(_) => t}:
+          write('() => ');
+          write(ctx.typeAccessor(t));
+      }
+      write(')');
     }
+    extendsExtern = switch cl.superClass {
+      case null: None;
+      case {t: t = _.get() => {isExtern: true}}:
+        Some(cl.superClass.t.get());
+      default: None;
+    }
+    write(' {');
+    increaseIndent();
     for (field in fields)
       switch field.kind {
         case Constructor | Method:
@@ -232,6 +184,28 @@ class ModuleEmitter extends ExprEmitter {
           }
         default:
       }
+
+    writeNewline();
+    write('static get __name__() {');
+    increaseIndent();
+    writeNewline();
+    write('return ');
+    emitString(cl.pack.concat([cl.name]).join('.'));
+    decreaseIndent();
+    writeNewline();
+    write('}');
+    writeNewline();
+
+    write('get __class__() {');
+    increaseIndent();
+    writeNewline();
+    write('return ');
+    emitIdent(cl.name);
+    decreaseIndent();
+    writeNewline();
+    write('}');
+    writeNewline();
+
     decreaseIndent();
     writeNewline();
     write('}');

@@ -19,7 +19,7 @@ class DefinitionEmitter extends ModuleEmitter {
       emitImports(if (imports[0].external) path else module.toPath(path), imports);
     for (member in module.members)
       switch member {
-        case MClass(cl, params, fields, _):
+        case MClass(cl, params, fields):
           emitClassDefinition(cl, params, fields);
         case MEnum(et, params):
           emitEnumDefinition(et, params);

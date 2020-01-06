@@ -1,7 +1,7 @@
 import {ExternalClass} from '../bin/tests/ExternalClass'
 
-export default class {
-  constructor() {this.test = 1}
+export default function (num) {
+  this.test = num
 }
 
 export class ExtendHaxeClass extends ExternalClass {
