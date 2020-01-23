@@ -33,7 +33,6 @@ class ExprEmitter extends Emitter {
     "console", "window", "require"
   ];
 
-  final register = typeToModuleType(haxe.macro.Context.getType('genes.Register'));
   var indent: Int = 0;
   var inValue: Int = 0;
   var idCounter: Int = 0;
@@ -320,7 +319,7 @@ class ExprEmitter extends Emitter {
       case TCast(e, null):
         emitExpr(e);
       case TCast(e1, t):
-        write(ctx.typeAccessor(register));
+        write(ctx.typeAccessor(bootType));
         write('.__cast(');
         emitValue(e1);
         write(', ');
@@ -755,7 +754,7 @@ class ExprEmitter extends Emitter {
     write(keyword);
 
   function writeGlobalVar(name) {
-    write(ctx.typeAccessor(register));
+    write(ctx.typeAccessor(registerType));
     write('.global(');
     emitString(name);
     write(')');

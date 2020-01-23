@@ -6,6 +6,9 @@ import haxe.macro.Type;
 using haxe.macro.TypedExprTools;
 
 class TypeUtil {
+  public static final registerType = getModuleType('genes.Register');
+  public static final bootType = getModuleType('js.Boot');
+
   public static function typeToModuleType(type: Type): ModuleType
     return switch type {
       case TEnum(r, _): TEnumDecl(r);
@@ -112,7 +115,8 @@ class TypeUtil {
       case {expr: TCast(e, null)}:
         typesInExpr(e);
       case {expr: TCast(e, t)}:
-        typesInExpr(e).concat([t]);
+        typesInExpr(e)
+          .concat([t, bootType]); // include js.Boot for js.Boot.__cast()
       case {expr: TField(x, f)}
         if (fieldName(f) == "iterator"): // Todo: conditions here could be refined
         [getModuleType('HxOverrides')].concat(typesInExpr(x));

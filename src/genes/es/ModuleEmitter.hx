@@ -5,6 +5,7 @@ import genes.Dependencies;
 import genes.Module;
 import haxe.macro.Type;
 import genes.util.IteratorUtil.*;
+import genes.util.TypeUtil.*;
 import haxe.macro.Context;
 import genes.util.Timer.timer;
 
@@ -97,7 +98,7 @@ class ModuleEmitter extends ExprEmitter {
   function emitDeferredStatic(cl: ClassType, field: Field) {
     writeNewline();
     emitPos(field.pos);
-    write(ctx.typeAccessor(register));
+    write(ctx.typeAccessor(registerType));
     write('.createStatic(');
     emitIdent(cl.name);
     write(', ');
@@ -139,7 +140,7 @@ class ModuleEmitter extends ExprEmitter {
     write(cl.name);
     if (cl.superClass != null || hasConstructor(fields)) {
       write(' extends ');
-      write(ctx.typeAccessor(register));
+      write(ctx.typeAccessor(registerType));
       write('.inherits(');
       switch cl.superClass {
         case null:
@@ -172,7 +173,7 @@ class ModuleEmitter extends ExprEmitter {
               write(field.name);
               write('(');
               for (arg in join(f.args, write.bind(', '))) {
-                emitIdent(arg.v.name);
+                emitLocalIdent(arg.v.name);
                 if (arg.value != null) {
                   write(' = ');
                   emitValue(arg.value);
@@ -240,10 +241,11 @@ class ModuleEmitter extends ExprEmitter {
       emitString(c);
     write('],');
     writeNewline();
-    for (name => c in joinIt(et.constructs.keyValueIterator(), () -> {
+    for (name in join(et.names, () -> {
       write(',');
       writeNewline();
     })) {
+      final c = et.constructs.get(name);
       emitPos(c.pos);
       emitComment(c.doc);
       write(name);
@@ -263,7 +265,12 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     write(et.name);
     write('.__empty_constructs__ = [');
-    for (c in join(et.constructs.filter(e -> !e.type.match(TFun(_, _))), write.bind(', '))) {
+    final empty = [
+      for (name in et.names)
+        if (!et.constructs[name].type.match(TFun(_, _)))
+          et.constructs[name]
+    ];
+    for (c in join(empty, write.bind(', '))) {
       write(et.name);
       write('[');
       emitString(c.name);

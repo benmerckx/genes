@@ -52,7 +52,4 @@ class Register {
       return res
     ');
   }
-  /*@:keep public static function __cast(a, b) {
-    return @:privateAccess js.Boot.__cast(a, b);
-  }*/
 }

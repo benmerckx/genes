@@ -52,18 +52,25 @@ class Dependencies {
 
   public function push(module: String, dependency: Dependency) {
     final key = module + '.' + dependency.name;
+    inline function alias(key: String, name: String) {
+      return aliases[key] = name + '__' +
+        (aliasCount[name] = switch aliasCount[name] {
+        case null: 1;
+        case v: v + 1;
+      });
+    }
     switch aliases[key] {
       case null:
-        for (named in names)
-          if (named.module != module && named.name == dependency.name) {
-            aliases[key] = named.name + '__' +
-              (aliasCount[named.name] = switch aliasCount[named.name] {
-              case null: 1;
-              case v: v + 1;
-            });
-            dependency.alias = aliases[key];
-            break;
-          }
+        switch dependency.name {
+          case 'Object':
+            dependency.alias = alias(key, dependency.name);
+          default:
+            for (named in names)
+              if (named.module != module && named.name == dependency.name) {
+                dependency.alias = alias(key, named.name);
+                break;
+              }
+        }
       case v:
         dependency.alias = v;
     }
