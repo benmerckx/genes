@@ -36,10 +36,6 @@ class MyComponent extends ViewBase {
   @:keep public function render() {
     return test;
   }
-
-  @:keep function isReactComponent() {
-    return true;
-  }
 }
 
 @:asserts
@@ -48,7 +44,7 @@ class TestReactComponent {
 
   public function testCreateComponent() {
     var vdom = React.createElement(MyComponent);
-    trace(ReactDOMServer.renderToString(vdom));
+    asserts.assert(ReactDOMServer.renderToString(vdom) == '2');
     return asserts.done();
   }
 }

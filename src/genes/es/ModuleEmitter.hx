@@ -25,7 +25,7 @@ class ModuleEmitter extends ExprEmitter {
     for (member in module.members)
       switch member {
         case MClass(cl, _, fields) if (!cl.isInterface):
-          emitClass(cl, fields);
+          emitClass(module.isCyclic, cl, fields);
           emitStatics(module.isCyclic, cl, fields);
           emitInit(cl);
         case MEnum(et, _):
@@ -130,7 +130,8 @@ class ModuleEmitter extends ExprEmitter {
     return false;
   }
 
-  function emitClass(cl: ClassType, fields: Array<Field>, export = true) {
+  function emitClass(checkCycles: (module: String) -> Bool, cl: ClassType,
+      fields: Array<Field>, export = true) {
     emitPos(cl.pos);
     writeNewline();
     emitComment(cl.doc);
@@ -145,8 +146,12 @@ class ModuleEmitter extends ExprEmitter {
       switch cl.superClass {
         case null:
         case {t: TClassDecl(_) => t}:
-          write('() => ');
+          final isCyclic = checkCycles(TypeUtil.moduleTypeName(t));
+          if (isCyclic)
+            write('() => ');
           write(ctx.typeAccessor(t));
+          if (isCyclic)
+            write(', true');
       }
       write(')');
     }
