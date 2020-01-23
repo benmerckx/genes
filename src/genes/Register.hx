@@ -52,15 +52,24 @@ class Register {
         if (defer && resolve && res.__init__) res.__init__()
         this.new.apply(this, arguments)
       }
-      if (defer) {
+      if (!defer) {
+        if (resolve && resolve.__init__) {
+          defer = true
+          res.__init__ = () => {
+            resolve.__init__()
+            Object.setPrototypeOf(res.prototype, resolve.prototype)
+            res.__init__ = undefined
+          } 
+        } else if (resolve) {
+          Object.setPrototypeOf(res.prototype, resolve.prototype)
+        }
+      } else {
         res.__init__ = () => {
           const superClass = resolve()
           if (superClass.__init__) superClass.__init__()
           Object.setPrototypeOf(res.prototype, superClass.prototype)
           res.__init__ = undefined
         } 
-      } else if (resolve) {
-        Object.setPrototypeOf(res.prototype, resolve.prototype)
       }
       return res
     ');
