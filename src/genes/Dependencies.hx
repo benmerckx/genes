@@ -109,9 +109,14 @@ class Dependencies {
             case [{params: [{expr: EConst(CString(m))}]}] | [{params: [{expr: EConst(CString(m))}, {expr: EConst(CString('default'))}]}]:
               path = m;
               dependency = {type: DDefault, name: name, external: true}
-            case [{params: [{expr: EConst(CString(m))}, {expr: EConst(CString(name))}]}]:
+            case [{params: [{expr: EConst(CString(m))}, {expr: EConst(CString(sub))}]}]:
               path = m;
-              dependency = {type: DName, name: name, external: true}
+              dependency = {
+                type: DName,
+                name: sub,
+                alias: name,
+                external: true
+              }
             default:
               return;
           }
@@ -126,12 +131,12 @@ class Dependencies {
   public function typeAccessor(type: TypeAccessor)
     return switch type {
       case Abstract(name): name;
-      case Concrete(module, name):
+      case Concrete(module, name, native):
         final deps = imports.get(module);
         if (deps != null)
           for (i in deps)
             if (i.name == name)
               return if (i.alias != null) i.alias else i.name;
-        return name;
+        return if (native != null) native else name;
     }
 }

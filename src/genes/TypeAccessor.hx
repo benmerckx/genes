@@ -3,7 +3,7 @@ package genes;
 import haxe.macro.Type;
 
 enum TypeAccessorImpl {
-  Concrete(module: String, path: String);
+  Concrete(module: String, path: String, native: Null<String>);
   Abstract(name: String);
 }
 
@@ -18,16 +18,28 @@ abstract TypeAccessor(TypeAccessorImpl) from TypeAccessorImpl {
         }
       case TClassDecl(_.get() => {
         module: module,
-        name: name
+        name: name,
+        meta: meta
       }) | TEnumDecl(_.get() => {
           module: module,
-          name: name
-        }) | TTypeDecl(_.get() => {module: module, name: name}):
-        Concrete(module, name);
+          name: name,
+          meta: meta
+        }) | TTypeDecl(_.get() => {module: module, name: name, meta: meta}):
+        final native = switch meta.extract(':native') {
+          case [{params: [{expr: EConst(CString(name))}]}]:
+            name;
+          default: null;
+        }
+        Concrete(module, name, native);
     }
   }
 
   @:from public static function fromBaseType(type: BaseType): TypeAccessor {
-    return Concrete(type.module, type.name);
+    final native = switch type.meta.extract(':native') {
+      case [{params: [{expr: EConst(CString(name))}]}]:
+        name;
+      default: null;
+    }
+    return Concrete(type.module, type.name, native);
   }
 }

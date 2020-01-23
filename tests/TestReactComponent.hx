@@ -1,0 +1,54 @@
+package tests;
+
+// See benmerckx/genes#6
+
+@:jsRequire("react")
+private extern class React {
+  public static function createElement(type: Dynamic, ?attrs: Dynamic,
+    children: haxe.extern.Rest<Dynamic>): Dynamic;
+}
+
+@:jsRequire("react-dom/server")
+private extern class ReactDOMServer {
+  public static function renderToString(element: Dynamic): String;
+}
+
+@:native("React.Component")
+private extern class NativeComponent<State, Props> {
+  var props(default, null): Props;
+  var state(default, null): State;
+  function setState(state: State): Void;
+  function new(): Void;
+  @:native('forceUpdate') function forceRerender(): Void;
+}
+
+class ViewBase extends NativeComponent<{}, {}> {
+  var test = 0;
+
+  public function new() {
+    test++;
+    super();
+    test++;
+  }
+}
+
+class MyComponent extends ViewBase {
+  @:keep public function render() {
+    return test;
+  }
+
+  @:keep function isReactComponent() {
+    return true;
+  }
+}
+
+@:asserts
+class TestReactComponent {
+  public function new() {}
+
+  public function testCreateComponent() {
+    var vdom = React.createElement(MyComponent);
+    trace(ReactDOMServer.renderToString(vdom));
+    return asserts.done();
+  }
+}

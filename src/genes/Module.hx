@@ -287,7 +287,7 @@ class Module {
       hasFeature: api.hasFeature,
       addFeature: api.addFeature,
       typeAccessor: (type: TypeAccessor) -> switch type {
-        case Abstract(name) | Concrete(_, name): name;
+        case Abstract(name) | Concrete(_, name, _): name;
       }
     }
 }

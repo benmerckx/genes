@@ -2,6 +2,7 @@ package genes.util;
 
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import haxe.macro.Context;
 
 using haxe.macro.TypedExprTools;
 
@@ -19,7 +20,7 @@ class TypeUtil {
     }
 
   public static function getModuleType(module: String)
-    return typeToModuleType(haxe.macro.Context.getType(module));
+    return typeToModuleType(Context.getType(module));
 
   public static function baseTypeName(type: BaseType) {
     return type.module + '.' + type.name;
@@ -53,7 +54,7 @@ class TypeUtil {
       e: TypedExpr): Bool
     return switch e.expr {
       case TField(x, f) if (fieldName(f) == "iterator" && ctx.hasFeature('HxOverrides.iter')):
-        switch haxe.macro.Context.followWithAbstracts(x.t) {
+        switch Context.followWithAbstracts(x.t) {
           case TInst(_.get() => {name: 'Array'}, _) | TInst(_.get() => {kind: KTypeParameter(_)}, _) | TAnonymous(_) | TDynamic(_) | TMono(_):
             true;
           case _:
