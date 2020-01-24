@@ -9,7 +9,7 @@ import haxe.ds.Option;
 using haxe.macro.TypedExprTools;
 
 class ExprEmitter extends Emitter {
-  static final keywords = [
+  static final keywords = new Set([
     'abstract', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'class',
     'const', 'continue', 'debugger', 'default', 'delete', 'do', 'double',
     'else', 'enum', 'export', 'extends', 'false', 'final', 'finally', 'float',
@@ -18,20 +18,14 @@ class ExprEmitter extends Emitter {
     'package', 'private', 'protected', 'public', 'return', 'short', 'static',
     'super', 'switch', 'synchronized', 'this', 'throw', 'throws', 'transient',
     'true', 'try', 'typeof', 'var', 'void', 'volatile', 'while', 'with',
-    'arguments', 'break', 'case', 'catch', 'class', 'const', 'continue',
-    'debugger', 'default', 'delete', 'do', 'else', 'enum', 'eval', 'export',
-    'extends', 'false', 'finally', 'for', 'function', 'if', 'implements',
-    'import', 'in', 'instanceof', 'interface', 'let', 'new', 'null',
-    'package', 'private', 'protected', 'public', 'return', 'static', 'super',
-    'switch', 'this', 'throw', 'true', 'try', 'typeof', 'var', 'void',
-    'while', 'with', 'yield'
-  ];
-  static final keywordsLocal = [
+    'arguments', 'eval', 'let', 'yield'
+  ]);
+  static final keywordsLocal = new Set([
     "Infinity", "NaN", "decodeURI", "decodeURIComponent", "encodeURI",
     "encodeURIComponent", "escape", "eval", "isFinite", "isNaN", "parseFloat",
     "parseInt", "undefined", "unescape", "JSON", "Number", "Object",
     "console", "window", "require"
-  ];
+  ]);
 
   var indent: Int = 0;
   var inValue: Int = 0;
@@ -660,13 +654,13 @@ class ExprEmitter extends Emitter {
   }
 
   function emitIdent(name: String) {
-    if (keywords.indexOf(name) > -1)
+    if (keywords.exists(name))
       write("$");
     write(name);
   }
 
   function emitLocalIdent(name: String) {
-    if (keywords.indexOf(name) > -1 || keywordsLocal.indexOf(name) > -1)
+    if (keywords.exists(name) || keywordsLocal.exists(name))
       write("$");
     write(name);
   }
@@ -679,7 +673,7 @@ class ExprEmitter extends Emitter {
     }
 
   function emitField(name: String) {
-    if (keywords.indexOf(name) > -1)
+    if (keywords.exists(name))
       write('["${name}"]')
     else
       write('.${name}');
