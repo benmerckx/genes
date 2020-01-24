@@ -13,7 +13,8 @@ private extern class ReactDOMServer {
   public static function renderToString(element: Dynamic): String;
 }
 
-@:native("React.Component")
+@:jsRequire("react", "Component")
+@:native('React.Component')
 private extern class NativeComponent<State, Props> {
   var props(default, null): Props;
   var state(default, null): State;
