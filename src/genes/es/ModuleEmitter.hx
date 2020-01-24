@@ -20,16 +20,24 @@ class ModuleEmitter extends ExprEmitter {
     final typed = module.members.filter(m -> m.match(MType(_, _) | MClass({isInterface: true}, _, _)));
     if (typed.length == module.members.length)
       return endTimer();
+    var endImportTimer = timer('emitImports');
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path), imports);
+    endImportTimer();
     for (member in module.members)
       switch member {
         case MClass(cl, _, fields) if (!cl.isInterface):
+          final endClassTimer = timer('emitClass');
           emitClass(module.isCyclic, cl, fields);
+          endClassTimer();
+          var endStaticsTimer = timer('emitStatics');
           emitStatics(module.isCyclic, cl, fields);
+          endStaticsTimer();
           emitInit(cl);
         case MEnum(et, _):
+          var endEnumTimer = timer('emitEnums');
           emitEnum(et);
+          endEnumTimer();
         case MMain(e):
           emitExpr(e);
         default:
@@ -38,9 +46,14 @@ class ModuleEmitter extends ExprEmitter {
   }
 
   function emitImports(module: String, imports: Array<Dependency>) {
-    for (def in imports.filter(d -> d.type.equals(DDefault)))
-      emitImport([def], module);
-    final named = imports.filter(d -> d.type.equals(DName));
+    final named = [];
+    for (def in imports)
+      switch def.type {
+        case DDefault:
+          emitImport([def], module);
+        default:
+          named.push(def);
+      }
     if (named.length > 0)
       emitImport(named, module);
   }
@@ -56,8 +69,7 @@ class ModuleEmitter extends ExprEmitter {
         write('{');
         for (def in join(defs, write.bind(', '))) {
           emitPos(def.pos);
-          write(def.name + if (def.alias != null && def.alias != def.name)
-            ' as ${def.alias}' else '');
+          write(def.name + if (def.alias != null && def.alias != def.name) ' as ${def.alias}' else '');
         }
         write('}');
     }
@@ -191,7 +203,6 @@ class ModuleEmitter extends ExprEmitter {
           }
         default:
       }
-
     writeNewline();
     write('static get __name__() {');
     increaseIndent();
