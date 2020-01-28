@@ -53,18 +53,25 @@ class Dependencies {
 
   public function push(module: String, dependency: Dependency) {
     final key = module + '.' + dependency.name;
+    inline function alias(key: String, name: String) {
+      return aliases[key] = name + '__' +
+        (aliasCount[name] = switch aliasCount[name] {
+        case null: 1;
+        case v: v + 1;
+      });
+    }
     switch aliases[key] {
       case null:
-        for (named in names)
-          if (named.module != module && named.name == dependency.name) {
-            aliases[key] = named.name + '__' +
-              (aliasCount[named.name] = switch aliasCount[named.name] {
-              case null: 1;
-              case v: v + 1;
-            });
-            dependency.alias = aliases[key];
-            break;
-          }
+        switch dependency.name {
+          case 'Object':
+            dependency.alias = alias(key, dependency.name);
+          default:
+            for (named in names)
+              if (named.module != module && named.name == dependency.name) {
+                dependency.alias = alias(key, named.name);
+                break;
+              }
+        }
       case v:
         dependency.alias = v;
     }
@@ -83,21 +90,31 @@ class Dependencies {
 
   public static function makeDependency(base: BaseType): Dependency {
     if (base.isExtern) {
-      final name = switch base.meta.extract(':native') {
-        case [{params: [{expr: EConst(CString(name))}]}]:
-          name;
-        default: base.name;
-      }
       switch base.meta.extract(':jsRequire') {
         case [{params: [{expr: EConst(CString(path))}]}] | [{params: [{expr: EConst(CString(path))}, {expr: EConst(CString('default'))}]}]:
           return {
             type: DDefault,
-            name: name,
+            name: base.name,
             path: path,
             external: true,
             pos: base.pos
           }
         case [{params: [{expr: EConst(CString(path))}, {expr: EConst(CString(name))}]}]:
+          final native = switch base.meta.extract(':native') {
+            case [{params: [{expr: EConst(CString(native))}]}]:
+              native;
+            default: null;
+          }
+          // If we have a native name with a dot path we need a default import
+          if (native != null && native.indexOf('.') > -1) {
+            return {
+              type: DDefault,
+              name: native.split('.')[0],
+              path: path,
+              external: true,
+              pos: base.pos
+            }
+          }
           return {
             type: DName,
             name: name,
@@ -132,14 +149,9 @@ class Dependencies {
   public function typeAccessor(type: TypeAccessor)
     return switch type {
       case Abstract(name): name;
-      case Concrete(module, name):
+      case Concrete(module, name, native):
+        if (native != null && native.indexOf('.') > -1) return native;
         final deps = imports.get(module);
-        if (name == 'Buffer') {
-          trace(module);
-          trace(name);
-          trace(deps);
-          trace(imports);
-        }
         if (deps != null)
           for (i in deps)
             if (i.name == name)

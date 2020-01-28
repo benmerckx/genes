@@ -11,6 +11,7 @@ class Run {
       new TestCycle2(), new TestTypedef(), new TestEnum(),
       new TestImportModule(), new TestRegisterAlias(),
       new TestRecursiveTypedef(), new TestExtendExtern(), new TestFunction(),
-      new TestType()])).handle(Runner.exit);
+      new TestType(), new TestBoot(), new TestReservedClassNames(),
+      new TestReactComponent()])).handle(Runner.exit);
   }
 }

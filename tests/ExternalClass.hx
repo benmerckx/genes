@@ -23,3 +23,7 @@ class ExternalClass extends TestBase {
     return 'success';
   }
 }
+
+class Object {
+  public function new() {}
+}

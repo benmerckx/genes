@@ -5,6 +5,7 @@ import genes.Dependencies;
 import genes.Module;
 import haxe.macro.Type;
 import genes.util.IteratorUtil.*;
+import genes.util.TypeUtil.*;
 import haxe.macro.Context;
 import genes.util.Timer.timer;
 
@@ -19,16 +20,24 @@ class ModuleEmitter extends ExprEmitter {
     final typed = module.members.filter(m -> m.match(MType(_, _) | MClass({isInterface: true}, _, _)));
     if (typed.length == module.members.length)
       return endTimer();
+    var endImportTimer = timer('emitImports');
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path), imports);
+    endImportTimer();
     for (member in module.members)
       switch member {
         case MClass(cl, _, fields) if (!cl.isInterface):
-          emitClass(cl, fields);
+          final endClassTimer = timer('emitClass');
+          emitClass(module.isCyclic, cl, fields);
+          endClassTimer();
+          var endStaticsTimer = timer('emitStatics');
           emitStatics(module.isCyclic, cl, fields);
+          endStaticsTimer();
           emitInit(cl);
         case MEnum(et, _):
+          var endEnumTimer = timer('emitEnums');
           emitEnum(et);
+          endEnumTimer();
         case MMain(e):
           emitExpr(e);
         default:
@@ -37,9 +46,14 @@ class ModuleEmitter extends ExprEmitter {
   }
 
   function emitImports(module: String, imports: Array<Dependency>) {
-    for (def in imports.filter(d -> d.type.equals(DDefault)))
-      emitImport([def], module);
-    final named = imports.filter(d -> d.type.equals(DName));
+    final named = [];
+    for (def in imports)
+      switch def.type {
+        case DDefault:
+          emitImport([def], module);
+        default:
+          named.push(def);
+      }
     if (named.length > 0)
       emitImport(named, module);
   }
@@ -55,7 +69,7 @@ class ModuleEmitter extends ExprEmitter {
         write('{');
         for (def in join(defs, write.bind(', '))) {
           emitPos(def.pos);
-          write(def.name + if (def.alias != null) ' as ${def.alias}' else '');
+          write(def.name + if (def.alias != null && def.alias != def.name) ' as ${def.alias}' else '');
         }
         write('}');
     }
@@ -97,7 +111,7 @@ class ModuleEmitter extends ExprEmitter {
   function emitDeferredStatic(cl: ClassType, field: Field) {
     writeNewline();
     emitPos(field.pos);
-    write(ctx.typeAccessor(register));
+    write(ctx.typeAccessor(registerType));
     write('.createStatic(');
     emitIdent(cl.name);
     write(', ');
@@ -129,7 +143,8 @@ class ModuleEmitter extends ExprEmitter {
     return false;
   }
 
-  function emitClass(cl: ClassType, fields: Array<Field>, export = true) {
+  function emitClass(checkCycles: (module: String) -> Bool, cl: ClassType,
+      fields: Array<Field>, export = true) {
     emitPos(cl.pos);
     writeNewline();
     emitComment(cl.doc);
@@ -139,13 +154,17 @@ class ModuleEmitter extends ExprEmitter {
     write(cl.name);
     if (cl.superClass != null || hasConstructor(fields)) {
       write(' extends ');
-      write(ctx.typeAccessor(register));
+      write(ctx.typeAccessor(registerType));
       write('.inherits(');
       switch cl.superClass {
         case null:
         case {t: TClassDecl(_) => t}:
-          write('() => ');
+          final isCyclic = checkCycles(TypeUtil.moduleTypeName(t));
+          if (isCyclic)
+            write('() => ');
           write(ctx.typeAccessor(t));
+          if (isCyclic)
+            write(', true');
       }
       write(')');
     }
@@ -172,7 +191,7 @@ class ModuleEmitter extends ExprEmitter {
               write(field.name);
               write('(');
               for (arg in join(f.args, write.bind(', '))) {
-                emitIdent(arg.v.name);
+                emitLocalIdent(arg.v.name);
                 if (arg.value != null) {
                   write(' = ');
                   emitValue(arg.value);
@@ -184,7 +203,6 @@ class ModuleEmitter extends ExprEmitter {
           }
         default:
       }
-
     writeNewline();
     write('static get __name__() {');
     increaseIndent();
@@ -240,10 +258,11 @@ class ModuleEmitter extends ExprEmitter {
       emitString(c);
     write('],');
     writeNewline();
-    for (name => c in joinIt(et.constructs.keyValueIterator(), () -> {
+    for (name in join(et.names, () -> {
       write(',');
       writeNewline();
     })) {
+      final c = et.constructs.get(name);
       emitPos(c.pos);
       emitComment(c.doc);
       write(name);
@@ -263,7 +282,12 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     write(et.name);
     write('.__empty_constructs__ = [');
-    for (c in join(et.constructs.filter(e -> !e.type.match(TFun(_, _))), write.bind(', '))) {
+    final empty = [
+      for (name in et.names)
+        if (!et.constructs[name].type.match(TFun(_, _)))
+          et.constructs[name]
+    ];
+    for (c in join(empty, write.bind(', '))) {
       write(et.name);
       write('[');
       emitString(c.name);

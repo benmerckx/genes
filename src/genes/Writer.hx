@@ -4,6 +4,7 @@ import haxe.io.Encoding;
 import sys.io.File;
 import sys.FileSystem;
 import haxe.io.Path;
+import genes.util.Timer.timer;
 
 using StringTools;
 
@@ -59,7 +60,9 @@ class Writer {
         final dir = Path.directory(file);
         if (!FileSystem.exists(dir))
           FileSystem.createDirectory(dir);
+        final endTimer = timer('writeToFile');
         File.saveContent(file, buffer.toString());
+        endTimer();
       });
   }
 }

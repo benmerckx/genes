@@ -36,23 +36,42 @@ class Register {
     });
   }
 
-  @:keep public static function inherits(resolve) {
+  @:keep public static function extend(superClass) {
     Syntax.code('
       function res() {
-        if (resolve && res.__init__) res.__init__()
         this.new.apply(this, arguments)
       }
-      if (resolve)
+      Object.setPrototypeOf(res.prototype, superClass.prototype)
+      return res
+    ');
+  }
+
+  @:keep public static function inherits(resolve, defer = false) {
+    Syntax.code('
+      function res() {
+        if (defer && resolve && res.__init__) res.__init__()
+        this.new.apply(this, arguments)
+      }
+      if (!defer) {
+        if (resolve && resolve.__init__) {
+          defer = true
+          res.__init__ = () => {
+            resolve.__init__()
+            Object.setPrototypeOf(res.prototype, resolve.prototype)
+            res.__init__ = undefined
+          } 
+        } else if (resolve) {
+          Object.setPrototypeOf(res.prototype, resolve.prototype)
+        }
+      } else {
         res.__init__ = () => {
           const superClass = resolve()
           if (superClass.__init__) superClass.__init__()
           Object.setPrototypeOf(res.prototype, superClass.prototype)
           res.__init__ = undefined
-        }
+        } 
+      }
       return res
     ');
   }
-  /*@:keep public static function __cast(a, b) {
-    return @:privateAccess js.Boot.__cast(a, b);
-  }*/
 }

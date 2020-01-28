@@ -2,10 +2,14 @@ package genes.util;
 
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import haxe.macro.Context;
 
 using haxe.macro.TypedExprTools;
 
 class TypeUtil {
+  public static final registerType = getModuleType('genes.Register');
+  public static final bootType = getModuleType('js.Boot');
+
   public static function typeToModuleType(type: Type): ModuleType
     return switch type {
       case TEnum(r, _): TEnumDecl(r);
@@ -16,7 +20,7 @@ class TypeUtil {
     }
 
   public static function getModuleType(module: String)
-    return typeToModuleType(haxe.macro.Context.getType(module));
+    return typeToModuleType(Context.getType(module));
 
   public static function baseTypeName(type: BaseType) {
     return type.module + '.' + type.name;
@@ -50,7 +54,7 @@ class TypeUtil {
       e: TypedExpr): Bool
     return switch e.expr {
       case TField(x, f) if (fieldName(f) == "iterator" && ctx.hasFeature('HxOverrides.iter')):
-        switch haxe.macro.Context.followWithAbstracts(x.t) {
+        switch Context.followWithAbstracts(x.t) {
           case TInst(_.get() => {name: 'Array'}, _) | TInst(_.get() => {kind: KTypeParameter(_)}, _) | TAnonymous(_) | TDynamic(_) | TMono(_):
             true;
           case _:
@@ -112,7 +116,8 @@ class TypeUtil {
       case {expr: TCast(e, null)}:
         typesInExpr(e);
       case {expr: TCast(e, t)}:
-        typesInExpr(e).concat([t]);
+        typesInExpr(e)
+          .concat([t, bootType]); // include js.Boot for js.Boot.__cast()
       case {expr: TField(x, f)}
         if (fieldName(f) == "iterator"): // Todo: conditions here could be refined
         [getModuleType('HxOverrides')].concat(typesInExpr(x));

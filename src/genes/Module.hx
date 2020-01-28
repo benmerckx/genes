@@ -87,30 +87,34 @@ class Module {
   public function isCyclic(test: String)
     return switch cycleCache.get(test) {
       case null:
-        final res = testCycles(test, [module]).length > 0;
+        final endTimer = timer('isCyclic');
+        final seen = new Set();
+        seen.add(module);
+        final res = testCycles(test, seen);
         cycleCache.set(test, res);
+        endTimer();
         res;
       case v: v;
     }
 
-  function testCycles(test: String, seen: Array<String>) {
-    seen = seen.concat([test]);
-    final dependencies = switch context.modules[test] {
-      case null: [];
-      case v: [for (k in v.codeDependencies.imports.keys()) k];
+  function testCycles(test: String, seen: Set<String>) {
+    seen.add(test);
+    switch context.modules[test] {
+      case null:
+        return false;
+      case v:
+        for (dependency in v.codeDependencies.imports.keys()) {
+          if (seen.exists(dependency)) {
+            if (dependency == module)
+              return true;
+            else
+              continue;
+          }
+          if (testCycles(dependency, seen))
+            return true;
+        }
+        return false;
     }
-    for (dependency in dependencies) {
-      if (seen.indexOf(dependency) > -1) {
-        if (dependency == module)
-          return [test, dependency];
-        else
-          continue;
-      }
-      final cycles = testCycles(dependency, seen);
-      if (cycles.length > 0)
-        return cycles;
-    }
-    return [];
   }
 
   function get_typeDependencies() {
@@ -288,7 +292,7 @@ class Module {
       hasFeature: api.hasFeature,
       addFeature: api.addFeature,
       typeAccessor: (type: TypeAccessor) -> switch type {
-        case Abstract(name) | Concrete(_, name): name;
+        case Abstract(name) | Concrete(_, name, _): name;
       }
     }
 }

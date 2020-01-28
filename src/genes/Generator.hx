@@ -4,6 +4,7 @@ import haxe.macro.Type;
 import haxe.macro.Expr;
 import haxe.macro.JSGenApi;
 import haxe.macro.Compiler;
+import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.io.Path;
 import genes.es.ModuleEmitter;
@@ -15,6 +16,8 @@ using Lambda;
 using StringTools;
 
 class Generator {
+  @:persistent static var generation = 0;
+
   static function generate(api: JSGenApi) {
     final toGenerate = typesPerModule(api.types);
     final output = Path.withoutExtension(Path.withoutDirectory(api.outputFile));
@@ -44,8 +47,26 @@ class Generator {
     for (module => types in toGenerate)
       if (module != output)
         addModule(module, types);
-    for (module in modules)
-      generateModule(api, module);
+    for (module in modules) {
+      if (needsGen(module))
+        generateModule(api, module);
+    }
+  }
+
+  static function needsGen(module: Module) {
+    for (member in module.members) {
+      switch member {
+        case MClass({meta: meta}, _, _) | MEnum({meta: meta}, _) | MType({meta: meta}, _):
+          switch meta.extract(':genes.generate') {
+            case [{params: [{expr: EConst(CInt(gen))}]}]:
+              return true;
+            default:
+          }
+        case MMain(_):
+          return true;
+      }
+    }
+    return false;
   }
 
   static function typesPerModule(types: Array<Type>) {
@@ -96,6 +117,22 @@ class Generator {
 
   #if macro
   public static function use() {
+    Context.onGenerate(types -> {
+      generation++;
+      final pos = Context.currentPos();
+      for (type in types) {
+        switch type {
+          case TEnum((_.get() : BaseType) => base, _) | TInst((_.get() : BaseType) => base, _) | TType((_.get() : BaseType) => base, _):
+            base.meta.add(':genes.generate', [
+              {
+                expr: ExprDef.EConst(CInt(Std.string(generation))),
+                pos: pos
+              }
+            ], pos);
+          default:
+        }
+      }
+    });
     Compiler.setCustomJSGenerator(Generator.generate);
   }
   #end
