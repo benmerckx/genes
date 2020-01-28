@@ -14,6 +14,7 @@ typedef Dependency = {
   type: DependencyType,
   name: String,
   external: Bool,
+  path: String,
   ?alias: String,
   ?pos: SourcePosition
 }
@@ -80,38 +81,50 @@ class Dependencies {
     }
   }
 
+  public static function makeDependency(base: BaseType): Dependency {
+    if (base.isExtern) {
+      final name = switch base.meta.extract(':native') {
+        case [{params: [{expr: EConst(CString(name))}]}]:
+          name;
+        default: base.name;
+      }
+      switch base.meta.extract(':jsRequire') {
+        case [{params: [{expr: EConst(CString(path))}]}] | [{params: [{expr: EConst(CString(path))}, {expr: EConst(CString('default'))}]}]:
+          return {
+            type: DDefault,
+            name: name,
+            path: path,
+            external: true,
+            pos: base.pos
+          }
+        case [{params: [{expr: EConst(CString(path))}, {expr: EConst(CString(name))}]}]:
+          return {
+            type: DName,
+            name: name,
+            path: path,
+            external: true,
+            pos: base.pos
+          }
+        default:
+          return null;
+      }
+    }
+    return {
+      type: DName,
+      name: base.name,
+      external: false,
+      path: base.module,
+      pos: base.pos
+    }
+  }
+
   public function add(type: ModuleType) {
     switch type {
       case TClassDecl(_.get() => {isInterface: true}) if (runtime):
       case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base) | TTypeDecl((_.get() : BaseType) => base):
-        // check meta
-        var path = base.module;
-        var dependency: Dependency = {
-          type: DName,
-          name: base.name,
-          external: false,
-          pos: base.pos
-        }
-        if (base.isExtern) {
-          final name = switch base.meta.extract(':native') {
-            case [{params: [{expr: EConst(CString(name))}]}]:
-              name;
-            default: base.name;
-          }
-          switch base.meta.extract(':jsRequire') {
-            case [{params: [{expr: EConst(CString(m))}]}] | [{params: [{expr: EConst(CString(m))}, {expr: EConst(CString('default'))}]}]:
-              path = m;
-              dependency = {type: DDefault, name: name, external: true}
-            case [{params: [{expr: EConst(CString(m))}, {expr: EConst(CString(name))}]}]:
-              path = m;
-              dependency = {type: DName, name: name, external: true}
-            default:
-              return;
-          }
-        } else if (base.module == module.module) {
-          return;
-        }
-        push(path, dependency);
+        final dependency = makeDependency(base);
+        if (dependency != null && dependency.path != module.module)
+          push(dependency.path, dependency);
       default:
     }
   }
@@ -121,6 +134,12 @@ class Dependencies {
       case Abstract(name): name;
       case Concrete(module, name):
         final deps = imports.get(module);
+        if (name == 'Buffer') {
+          trace(module);
+          trace(name);
+          trace(deps);
+          trace(imports);
+        }
         if (deps != null)
           for (i in deps)
             if (i.name == name)

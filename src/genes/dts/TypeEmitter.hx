@@ -35,7 +35,8 @@ class TypeEmitter {
     }
   }
 
-  public static function emitType(writer: TypeWriter, type: Type) {
+  public static function emitType(writer: TypeWriter, type: Type,
+      wrap = true) {
     final write = writer.write, emitPos = writer.emitPos,
     includeType = writer.includeType;
     switch type {
@@ -93,7 +94,13 @@ class TypeEmitter {
           if (field.meta.has(':optional'))
             write('?');
           write(': ');
-          emitType(writer, field.type);
+          if (field.params.length > 0) {
+            write('<');
+            for (param in join(field.params, write.bind(', ')))
+              emitType(writer, param.t);
+            write('>');
+          }
+          emitType(writer, field.type, false);
         }
         write('}');
       case TType(_.get() => dt, params):
@@ -112,11 +119,14 @@ class TypeEmitter {
             }
         }
       case TFun(args, ret):
-        write('((');
+        if (wrap)
+          write('(');
+        write('(');
         emitArgs(writer, args);
         write(') => ');
         emitType(writer, ret);
-        write(')');
+        if (wrap)
+          write(')');
       case TDynamic(null):
         write('any');
       case TDynamic(elemT):

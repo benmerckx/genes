@@ -16,18 +16,15 @@ abstract TypeAccessor(TypeAccessorImpl) from TypeAccessorImpl {
           case true: Abstract('"$$hxCoreType__$name"');
           case false: throw 'assert';
         }
-      case TClassDecl(_.get() => {
-        module: module,
-        name: name
-      }) | TEnumDecl(_.get() => {
-          module: module,
-          name: name
-        }) | TTypeDecl(_.get() => {module: module, name: name}):
-        Concrete(module, name);
+      case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base) | TTypeDecl((_.get() : BaseType) => base):
+        fromBaseType(base);
     }
   }
 
   @:from public static function fromBaseType(type: BaseType): TypeAccessor {
-    return Concrete(type.module, type.name);
+    final dependency = Dependencies.makeDependency(type);
+    if (dependency == null)
+      return Concrete(type.module, type.name);
+    return Concrete(dependency.path, dependency.name);
   }
 }

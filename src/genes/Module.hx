@@ -208,6 +208,7 @@ class Module {
       dependencies.push('genes.Register', {
         type: DName,
         name: 'Register',
+        path: 'genes.Register',
         external: false
       });
     endTimer();
