@@ -1,15 +1,17 @@
 {
-	"type": "module",
-	"license": "MIT",
-	"scripts": {
-		"test": "haxe test.hxml && node --no-warnings --experimental-modules --es-module-specifier-resolution=node bin/test.js",
-		"postinstall": "lix download"
-	},
-	"devDependencies": {
-		"@types/node": "^12.7.2",
-		"lix": "^15.4.2",
-		"react": "^16.12.0",
-		"react-dom": "^16.12.0",
-		"rimraf": "^2.7.0"
-	}
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "submit": "bestzip submit.zip src/* haxelib.json readme.md && haxelib submit submit.zip && rm submit.zip",
+    "test": "haxe test.hxml && node --no-warnings --experimental-modules --es-module-specifier-resolution=node bin/test.js",
+    "postinstall": "lix download"
+  },
+  "devDependencies": {
+    "@types/node": "^12.7.2",
+    "bestzip": "^2.1.5",
+    "lix": "^15.4.2",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "rimraf": "^2.7.0"
+  }
 }
