@@ -150,6 +150,20 @@ class ModuleEmitter extends ExprEmitter {
     emitComment(cl.doc);
     if (export)
       write('export ');
+
+    final id = cl.pack.concat([cl.name]).join('.');
+    if (id != 'genes.Register') {
+      write('const ');
+      write(cl.name);
+      write(' = ');
+      writeGlobalVar("$hxClasses");
+      write('[');
+      emitString(id);
+      write(']');
+      write(' = ');
+      writeNewline();
+    }
+
     write('class ');
     write(cl.name);
     if (cl.superClass != null || hasConstructor(fields)) {
@@ -213,6 +227,20 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     write('}');
     writeNewline();
+
+    switch cl.superClass {
+      case null:
+      case {t: TClassDecl(_) => t}:
+        write('static get __super__() {');
+        increaseIndent();
+        writeNewline();
+        write('return ');
+        write(ctx.typeAccessor(t));
+        decreaseIndent();
+        writeNewline();
+        write('}');
+        writeNewline();
+    }
 
     write('get __class__() {');
     increaseIndent();

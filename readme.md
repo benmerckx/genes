@@ -2,11 +2,15 @@
 
 [![Build Status](https://travis-ci.com/benmerckx/genes.svg?branch=master)](https://travis-ci.com/benmerckx/genes)
 
-Generates ES6 modules and Typescript definitions from Haxe modules.
+Generates split ES6 modules and Typescript definitions from Haxe modules.
 
 Requires Haxe 4, status: experimental
 
 ## Usage
+
+````
+lix +lib genes
+````
 
 Install the library and add `-lib genes` to your hxml.
 
@@ -31,15 +35,6 @@ import('./my/module/MyClass')
   .then(({MyClass}) => new MyClass())
   .then(console.log)
 ```
-
-
-## Todo
-
-- [x] Extending extern classes
-- [x] Generate named typedefs in d.ts
-- [ ] Most `Type` reflection (resolveClass/resolveEnum/...)
-- [ ] Improve `$hxEnums` declaration
-- [ ] Performance
 
 ## Alternatives
 
