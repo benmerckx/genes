@@ -69,7 +69,8 @@ class ModuleEmitter extends ExprEmitter {
         write('{');
         for (def in join(defs, write.bind(', '))) {
           emitPos(def.pos);
-          write(def.name + if (def.alias != null && def.alias != def.name) ' as ${def.alias}' else '');
+          write(def.name + if (def.alias != null && def.alias != def.name)
+            ' as ${def.alias}' else '');
         }
         write('}');
     }

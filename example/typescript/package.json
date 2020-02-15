@@ -2,7 +2,7 @@
   "license": "MIT",
   "scripts": {
     "postinstall": "symlink-dir dist/interop node_modules/interop",
-    "build": "run-s build:haxe build:ts bundle run",
+    "build": "run-s postinstall build:haxe build:ts bundle run",
     "build:haxe": "haxe -cp src -lib genes -debug -D dts -js dist/index.js interop",
     "build:ts": "tsc",
     "bundle": "rollup -c && sorcery -i dist/bundle.js",

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "target": "es6",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "paths": {
+      "openfl/*": ["dist/openfl/*"]
+    }
+  },
+  "include": ["./src/app.ts"]
+}

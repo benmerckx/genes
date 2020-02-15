@@ -2,15 +2,12 @@ package genes;
 
 import js.lib.Object;
 import js.Syntax;
-import haxe.DynamicAccess;
 
 class Register {
-  static final globals: DynamicAccess<Any> = {}
+  static final globals = {}
 
   @:keep public static function global(name) {
-    if (!globals.exists(name))
-      globals[name] = {}
-    return globals[name];
+    return untyped globals[name] ? globals[name] : globals[name] = {};
   }
 
   @:keep public static function createStatic<T>(obj: {}, name: String,

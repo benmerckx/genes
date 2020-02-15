@@ -4,7 +4,10 @@
 		"moduleResolution": "node",
 		"baseUrl": ".",
 		"outDir": "./dist/",
-    "sourceMap": true
+    "sourceMap": true,
+    "paths": {
+      "interop/*": ["dist/interop/*"]
+    }
 	},
 	"files": ["./src/index.ts"]
 }
