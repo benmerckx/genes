@@ -3,7 +3,7 @@
   "license": "MIT",
   "scripts": {
     "submit": "bestzip submit.zip src/* haxelib.json readme.md && haxelib submit submit.zip && rm submit.zip",
-    "test": "haxe test.hxml && node --no-warnings --experimental-modules --es-module-specifier-resolution=node bin/test.js",
+    "test": "haxe test.hxml && tsc && node --no-warnings --experimental-modules --es-module-specifier-resolution=node bin/test.js",
     "postinstall": "lix download"
   },
   "devDependencies": {
@@ -12,6 +12,7 @@
     "lix": "^15.4.2",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
-    "rimraf": "^2.7.0"
+    "rimraf": "^2.7.0",
+    "typescript": "^3.7.5"
   }
 }
