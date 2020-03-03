@@ -3,10 +3,10 @@
 	"license": "MIT",
 	"tags": ["js"],
 	"classPath": "src",
-	"description": "",
+	"description": "Generates split ES6 modules and Typescript definitions from Haxe modules.",
 	"contributors": ["benmerckx"],
-	"releasenote": "Prevent Reflect loading in Register.",
-	"version": "0.0.1",
+	"releasenote": "Actually include extraParams.hxml in haxelib release",
+	"version": "0.1.0",
 	"url": "https://github.com/benmerckx/genes",
 	"dependencies": {
 		"set": "0.1.0"
