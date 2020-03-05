@@ -58,7 +58,7 @@ class TestExtendExtern {
   }
 
   // benmerckx/genes#7
-  @:include public function testFieldAccess() {
+  public function testFieldAccess() {
     var d = new Dropdown();
     var d1 = new DropdownMenu(1);
     var d2 = new DropdownHeader(2);
