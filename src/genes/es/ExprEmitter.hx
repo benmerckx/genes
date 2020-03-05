@@ -503,6 +503,7 @@ class ExprEmitter extends Emitter {
         asValue(assign -> {
           for (e in el.slice(0, el.length - 1)) {
             emitExpr(e);
+            write(';');
             writeNewline();
           }
           writeNewline();

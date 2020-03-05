@@ -12,6 +12,6 @@ class Run {
       new TestImportModule(), new TestRegisterAlias(),
       new TestRecursiveTypedef(), new TestExtendExtern(), new TestFunction(),
       new TestType(), new TestBoot(), new TestReservedClassNames(),
-      new TestReactComponent()])).handle(Runner.exit);
+      new TestSemicolons(), new TestReactComponent()])).handle(Runner.exit);
   }
 }
