@@ -25,7 +25,12 @@ abstract TypeAccessor(TypeAccessorImpl) from TypeAccessorImpl {
     final native = switch type.meta.extract(':native') {
       case [{params: [{expr: EConst(CString(name))}]}]:
         name;
-      default: null;
+      default:
+        switch type.meta.extract(':jsRequire') {
+          case [{params: [_, {expr: EConst(CString(name))}]}] if (name != 'default'):
+            name;
+          default: null;
+        }
     }
     final dependency = Dependencies.makeDependency(type);
     if (dependency == null)

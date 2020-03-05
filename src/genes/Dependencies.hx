@@ -115,6 +115,16 @@ class Dependencies {
               pos: base.pos
             }
           }
+          // benmerckx/genes#7
+          if (name.indexOf('.') > -1) {
+            return {
+              type: DDefault,
+              name: name.split('.')[0],
+              path: path,
+              external: true,
+              pos: base.pos
+            }
+          }
           return {
             type: DName,
             name: name,

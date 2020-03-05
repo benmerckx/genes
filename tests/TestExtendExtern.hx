@@ -23,6 +23,23 @@ class HaxeClass extends ExternClass {
   }
 }
 
+@:jsRequire('../../tests/extern.js', 'Dropdown')
+extern class Dropdown {
+  public function new();
+}
+
+@:jsRequire('../../tests/extern.js', 'Dropdown.Header')
+extern class DropdownHeader {
+  public var test: Int;
+  public function new(num: Int);
+}
+
+@:jsRequire('../../tests/extern.js', 'Dropdown.Menu')
+extern class DropdownMenu {
+  public var test: Int;
+  public function new(num: Int);
+}
+
 @:asserts
 class TestExtendExtern {
   public function new() {}
@@ -37,6 +54,17 @@ class TestExtendExtern {
     var extendDeferredHaxeClass = new ExtendHaxeClass();
     asserts.assert(extendDeferredHaxeClass.test() == 'ok!');
     asserts.assert(extendDeferredHaxeClass.random > 0);
+    return asserts.done();
+  }
+
+  // benmerckx/genes#7
+  @:include public function testFieldAccess() {
+    var d = new Dropdown();
+    var d1 = new DropdownMenu(1);
+    var d2 = new DropdownHeader(2);
+    asserts.assert(Std.is(d, Dropdown));
+    asserts.assert(d1.test == 1);
+    asserts.assert(d2.test == 2);
     return asserts.done();
   }
 }
