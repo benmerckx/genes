@@ -8,6 +8,7 @@ import genes.SourceMapGenerator;
 enum DependencyType {
   DName;
   DDefault;
+  DAsterisk;
 }
 
 typedef Dependency = {
@@ -91,7 +92,25 @@ class Dependencies {
   public static function makeDependency(base: BaseType): Dependency {
     if (base.isExtern) {
       switch base.meta.extract(':jsRequire') {
-        case [{params: [{expr: EConst(CString(path))}]}] | [{params: [{expr: EConst(CString(path))}, {expr: EConst(CString('default'))}]}]:
+        case [{params: [{expr: EConst(CString(path))}]}]:
+          final cl:ClassType = cast base;
+          final isWildcard = switch [cl.fields.get(), cl.statics.get()] {
+            case [fields, statics]:
+              cl.kind.equals(KNormal)
+              && !cl.isInterface
+              && cl.superClass == null
+              && cl.constructor == null
+              && fields.length == 0
+              && statics.filter(st -> st.meta.has(':selfCall')).length == 0;
+          }
+          return {
+            type: if (isWildcard) DAsterisk else DDefault,
+            name: base.name,
+            path: path,
+            external: true,
+            pos: base.pos
+          }
+        case [{params: [{expr: EConst(CString(path))}, {expr: EConst(CString('default'))}]}]:
           return {
             type: DDefault,
             name: base.name,

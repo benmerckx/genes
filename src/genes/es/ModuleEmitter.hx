@@ -49,7 +49,7 @@ class ModuleEmitter extends ExprEmitter {
     final named = [];
     for (def in imports)
       switch def.type {
-        case DDefault:
+        case DAsterisk | DDefault:
           emitImport([def], module);
         default:
           named.push(def);
@@ -62,6 +62,9 @@ class ModuleEmitter extends ExprEmitter {
     write('import');
     writeSpace();
     switch what {
+      case [def = {type: DependencyType.DAsterisk}]:
+        emitPos(def.pos);
+        write('* as ' + if (def.alias != null) def.alias else def.name);
       case [def = {type: DependencyType.DDefault}]:
         emitPos(def.pos);
         write(if (def.alias != null) def.alias else def.name);
@@ -69,8 +72,7 @@ class ModuleEmitter extends ExprEmitter {
         write('{');
         for (def in join(defs, write.bind(', '))) {
           emitPos(def.pos);
-          write(def.name + if (def.alias != null && def.alias != def.name)
-            ' as ${def.alias}' else '');
+          write(def.name + if (def.alias != null && def.alias != def.name) ' as ${def.alias}' else '');
         }
         write('}');
     }
