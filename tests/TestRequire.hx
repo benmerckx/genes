@@ -1,6 +1,7 @@
 package tests;
 
 import js.node.Assert;
+import js.node.Path;
 import tink.unit.Assert.*;
 
 class TestRequire {
@@ -9,6 +10,10 @@ class TestRequire {
   public function testMethod() {
     Assert.ok(true);
     return assert(true);
+  }
+
+  public function testWildcardMethod() {
+    return assert(Path.join('a', 'b') == 'a/b');
   }
 
   public function testSelfcall() {
