@@ -99,7 +99,7 @@ class ExprEmitter extends Emitter {
             write(ctx.typeAccessor(registerType));
             write('.bind(o, o');
             emitField(name);
-            write(')(');
+            write('))(');
             emitValue(x);
             write(')');
         }

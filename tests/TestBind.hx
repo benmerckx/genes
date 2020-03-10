@@ -10,15 +10,33 @@ class TestBind {
   dynamic function foo(): String
     return 'foo';
 
-  static function log(f: () -> String)
+  static function notNull(f: () -> String)
     return f != null;
+
+  static function run(f: () -> String)
+    return if (f != null) f() else 'null';
 
   // benmerckx/genes#10
   public function testInstanceMethodBind() {
-    asserts.assert(log(foo));
+    asserts.assert(notNull(foo));
+    asserts.assert(run(foo) == 'foo');
     foo = null;
-    asserts.assert(!log(foo));
+    asserts.assert(!notNull(foo));
+    asserts.assert(run(foo) == 'null');
     return asserts.done();
+  }
+
+  public function testInstanceMethodBindFromFieldAccess() {
+    function exec(o: {test: TestBind}) {
+      asserts.assert(notNull(o.test.foo));
+      asserts.assert(run(o.test.foo) == 'foo');
+      o.test.foo = null;
+      asserts.assert(!notNull(o.test.foo));
+      asserts.assert(run(o.test.foo) == 'null');
+      return asserts.done();
+    }
+
+    return exec({test: this});
   }
 
   public function testBind() {
