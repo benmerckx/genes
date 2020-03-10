@@ -23,6 +23,7 @@ class TestBind {
     foo = null;
     asserts.assert(!notNull(foo));
     asserts.assert(run(foo) == 'null');
+    foo = () -> 'foo';
     return asserts.done();
   }
 
