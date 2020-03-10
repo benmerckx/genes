@@ -8,7 +8,7 @@ private extern class React {
     children: haxe.extern.Rest<Dynamic>): Dynamic;
 }
 
-@:jsRequire("react-dom/server")
+@:jsRequire("react-dom/server", "default")
 private extern class ReactDOMServer {
   public static function renderToString(element: Dynamic): String;
 }
