@@ -71,4 +71,23 @@ class Register {
       return res
     ');
   }
+
+  static var fid = 0;
+
+  @:keep public static function bind(o: Dynamic, m: Dynamic) {
+    if (m == null)
+      return null;
+    if (m.__id__ == null)
+      m.__id__ = fid++;
+    var f = null;
+    if (o.hx__closures__ == null)
+      o.hx__closures__ = {}
+    else
+      f = o.hx__closures__[m.__id__];
+    if (f == null) {
+      f = m.bind(o);
+      o.hx__closures__[m.__id__] = f;
+    }
+    return f;
+  }
 }

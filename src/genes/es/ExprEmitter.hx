@@ -86,16 +86,20 @@ class ExprEmitter extends Emitter {
       case TField(x, FClosure(_, _.get() => {name: name})):
         switch (x.expr) {
           case TConst(_) | TLocal(_):
-            emitValue(x);
-            emitField(name);
+            write(ctx.typeAccessor(registerType));
             write('.bind(');
             emitValue(x);
+            write(', ');
+            emitValue(x);
+            emitField(name);
             write(')');
           case _:
             // Todo: figure out this mess, also take care of selfCall
-            write('(o=>o');
+            write('(o=>');
+            write(ctx.typeAccessor(registerType));
+            write('.bind(o, o');
             emitField(name);
-            write('.bind(o))(');
+            write(')(');
             emitValue(x);
             write(')');
         }

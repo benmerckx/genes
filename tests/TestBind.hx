@@ -7,6 +7,20 @@ class TestBind {
   function test(a, b)
     return a + b;
 
+  dynamic function foo(): String
+    return 'foo';
+
+  static function log(f: () -> String)
+    return f != null;
+
+  // benmerckx/genes#10
+  public function testInstanceMethodBind() {
+    asserts.assert(log(foo));
+    foo = null;
+    asserts.assert(!log(foo));
+    return asserts.done();
+  }
+
   public function testBind() {
     function test(a, b)
       return a + b;
