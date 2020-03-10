@@ -137,7 +137,7 @@ class Dependencies {
           // benmerckx/genes#7
           if (name.indexOf('.') > -1) {
             return {
-              type: DDefault,
+              type: DName,
               name: name.split('.')[0],
               path: path,
               external: true,
