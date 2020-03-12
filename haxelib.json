@@ -5,8 +5,8 @@
 	"classPath": "src",
 	"description": "Generates split ES6 modules and Typescript definitions from Haxe modules.",
 	"contributors": ["benmerckx"],
-	"releasenote": "Actually include extraParams.hxml in haxelib release",
-	"version": "0.1.0",
+	"releasenote": "See repository",
+	"version": "0.2.0",
 	"url": "https://github.com/benmerckx/genes",
 	"dependencies": {
 		"set": "0.1.0"
