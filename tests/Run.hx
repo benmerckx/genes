@@ -6,12 +6,27 @@ import tink.testrunner.Runner;
 class Run {
   static function main() {
     Runner.run(TestBatch.make([
-      new TestBind(), new TestRequire(), new TestImportAlias(), new TestMap(),
-      new TestIterators(), new TestComments(), new TestCycle(),
-      new TestCycle2(), new TestTypedef(), new TestEnum(),
-      new TestImportModule(), new TestRegisterAlias(),
-      new TestRecursiveTypedef(), new TestExtendExtern(), new TestFunction(),
-      new TestType(), new TestBoot(), new TestReservedClassNames(),
-      new TestSemicolons(), new TestReactComponent()])).handle(Runner.exit);
+      // These test specific genes features that make no sense in default
+      // haxe generated js
+      #if !genes_disable
+      new TestRequire(), new TestExtendExtern(), new TestReactComponent(),
+      new TestImportModule(), new TestCycle(), new TestCycle2(),
+      #end
+      new TestBind(),
+      new TestImportAlias(),
+      new TestMap(),
+      new TestIterators(),
+      new TestComments(),
+      new TestTypedef(),
+      new TestEnum(),
+      new TestRegisterAlias(),
+      new TestRecursiveTypedef(),
+      new TestFunction(),
+      new TestType(),
+      new TestBoot(),
+      new TestReservedClassNames(),
+      new TestSemicolons(),
+      new TestTypesAsValues()
+    ])).handle(Runner.exit);
   }
 }

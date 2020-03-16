@@ -117,6 +117,7 @@ class Generator {
 
   #if macro
   public static function use() {
+    #if !genes_disable
     Context.onGenerate(types -> {
       generation++;
       final pos = Context.currentPos();
@@ -134,6 +135,7 @@ class Generator {
       }
     });
     Compiler.setCustomJSGenerator(Generator.generate);
+    #end
   }
   #end
 }
