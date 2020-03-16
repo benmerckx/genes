@@ -17,7 +17,7 @@ class ModuleEmitter extends ExprEmitter {
     final dependencies = module.codeDependencies;
     final endTimer = timer('emitModule');
     ctx.typeAccessor = dependencies.typeAccessor;
-    final typed = module.members.filter(m -> m.match(MType(_, _) | MClass({isInterface: true}, _, _)));
+    final typed = module.members.filter(m -> m.match(MType(_, _)));
     if (typed.length == module.members.length)
       return endTimer();
     var endImportTimer = timer('emitImports');
@@ -26,7 +26,9 @@ class ModuleEmitter extends ExprEmitter {
     endImportTimer();
     for (member in module.members)
       switch member {
-        case MClass(cl, _, fields) if (!cl.isInterface):
+        case MClass(cl, _, fields) if (cl.isInterface):
+          emitInterface(cl);
+        case MClass(cl, _, fields):
           final endClassTimer = timer('emitClass');
           emitClass(module.isCyclic, cl, fields);
           endClassTimer();
@@ -146,6 +148,14 @@ class ModuleEmitter extends ExprEmitter {
     return false;
   }
 
+  function emitInterface(cl: ClassType) {
+    writeNewline();
+    write('export const ');
+    write(cl.name);
+    write(' = {}');
+    writeNewline();
+  }
+
   function emitClass(checkCycles: (module: String) -> Bool, cl: ClassType,
       fields: Array<Field>, export = true) {
     emitPos(cl.pos);
@@ -230,6 +240,22 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     write('}');
     writeNewline();
+
+    switch cl.interfaces {
+      case []:
+      case v:
+        write('static get __interfaces__() {');
+        increaseIndent();
+        writeNewline();
+        write('return [');
+        for (i in join(v, write.bind(', ')))
+          write(ctx.typeAccessor(i.t.get()));
+        write(']');
+        decreaseIndent();
+        writeNewline();
+        write('}');
+        writeNewline();
+    }
 
     switch cl.superClass {
       case null:

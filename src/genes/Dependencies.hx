@@ -166,7 +166,6 @@ class Dependencies {
 
   public function add(type: ModuleType) {
     switch type {
-      case TClassDecl(_.get() => {isInterface: true}) if (runtime):
       case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base) | TTypeDecl((_.get() : BaseType) => base):
         final dependency = makeDependency(base);
         if (dependency != null && dependency.path != module.module)
