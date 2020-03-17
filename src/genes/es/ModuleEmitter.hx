@@ -41,6 +41,9 @@ class ModuleEmitter extends ExprEmitter {
           emitEnum(et);
           endEnumTimer();
         case MMain(e):
+          writeNewline();
+          write('// genes');
+          writeNewline();
           emitExpr(e);
         default:
       }
@@ -74,7 +77,8 @@ class ModuleEmitter extends ExprEmitter {
         write('{');
         for (def in join(defs, write.bind(', '))) {
           emitPos(def.pos);
-          write(def.name + if (def.alias != null && def.alias != def.name) ' as ${def.alias}' else '');
+          write(def.name + if (def.alias != null && def.alias != def.name)
+            ' as ${def.alias}' else '');
         }
         write('}');
     }
@@ -228,6 +232,41 @@ class ModuleEmitter extends ExprEmitter {
               emitExpr(f.expr);
             default:
           }
+        case Property:
+          if (field.getter) {
+            writeNewline();
+            emitPos(field.pos);
+            if (field.isStatic)
+              write('static ');
+            write('get ');
+            write(field.name);
+            write('() {');
+            increaseIndent();
+            writeNewline();
+            write('return this.get_');
+            write(field.name);
+            write('()');
+            decreaseIndent();
+            writeNewline();
+            write('}');
+          }
+          if (field.setter) {
+            writeNewline();
+            emitPos(field.pos);
+            if (field.isStatic)
+              write('static ');
+            write('set ');
+            write(field.name);
+            write('(v) {');
+            increaseIndent();
+            writeNewline();
+            write('this.set_');
+            write(field.name);
+            write('(v)');
+            decreaseIndent();
+            writeNewline();
+            write('}');
+          }
         default:
       }
     writeNewline();
@@ -239,11 +278,11 @@ class ModuleEmitter extends ExprEmitter {
     decreaseIndent();
     writeNewline();
     write('}');
-    writeNewline();
 
     switch cl.interfaces {
       case []:
       case v:
+        writeNewline();
         write('static get __interfaces__() {');
         increaseIndent();
         writeNewline();
@@ -254,12 +293,12 @@ class ModuleEmitter extends ExprEmitter {
         decreaseIndent();
         writeNewline();
         write('}');
-        writeNewline();
     }
 
     switch cl.superClass {
       case null:
       case {t: TClassDecl(_) => t}:
+        writeNewline();
         write('static get __super__() {');
         increaseIndent();
         writeNewline();
@@ -268,9 +307,9 @@ class ModuleEmitter extends ExprEmitter {
         decreaseIndent();
         writeNewline();
         write('}');
-        writeNewline();
     }
 
+    writeNewline();
     write('get __class__() {');
     increaseIndent();
     writeNewline();
@@ -279,11 +318,11 @@ class ModuleEmitter extends ExprEmitter {
     decreaseIndent();
     writeNewline();
     write('}');
-    writeNewline();
 
     decreaseIndent();
     writeNewline();
     write('}');
+
     if (export)
       writeNewline();
   }

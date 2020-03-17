@@ -169,59 +169,62 @@ class DefinitionEmitter extends ModuleEmitter {
     write(' {');
     increaseIndent();
     for (field in fields) {
-      switch field.kind {
-        case Constructor | Method:
-          switch field.type {
-            case TFun(args, ret):
-              writeNewline();
-              if (field.doc != null) writeNewline();
-              emitComment(field.doc);
-              if (field.isStatic)
-                write('static ');
-              emitPos(field.pos);
-              write(if (field.kind.equals(Constructor)) 'constructor' else field.name);
-              if (field.params.length > 0) {
-                write('<');
-                for (param in join(field.params, write.bind(', ')))
-                  write(param.name);
-                write('>');
-              }
-              write('(');
-              var optionalPos = args.length;
-              for (i in 0...args.length) {
-                final fromEnd = args.length - 1 - i;
-                if (args[fromEnd].opt)
-                  optionalPos = fromEnd;
-                else
-                  break;
-              }
-              for (i in joinIt(0...args.length, write.bind(', '))) {
-                final arg = args[i];
-                emitIdent(arg.name);
-                if (arg.opt && i >= optionalPos)
-                  write('?');
-                write(': ');
-                emitType(arg.t);
-              }
-              write(')');
-              if (!field.kind.match(Constructor)) {
-                write(': ');
-                emitType(ret);
-              }
-            default: throw 'assert';
-          }
-        case Property:
-          writeNewline();
-          emitPos(field.pos);
-          if (field.doc != null)
+      if (field.isPublic)
+        switch field.kind {
+          case Constructor | Method:
+            switch field.type {
+              case TFun(args, ret):
+                writeNewline();
+                if (field.doc != null) writeNewline();
+                emitComment(field.doc);
+                if (field.isStatic)
+                  write('static ');
+                emitPos(field.pos);
+                write(if (field.kind.equals(Constructor)) 'constructor' else field.name);
+                if (field.params.length > 0) {
+                  write('<');
+                  for (param in join(field.params, write.bind(', ')))
+                    write(param.name);
+                  write('>');
+                }
+                write('(');
+                var optionalPos = args.length;
+                for (i in 0...args.length) {
+                  final fromEnd = args.length - 1 - i;
+                  if (args[fromEnd].opt)
+                    optionalPos = fromEnd;
+                  else
+                    break;
+                }
+                for (i in joinIt(0...args.length, write.bind(', '))) {
+                  final arg = args[i];
+                  emitIdent(arg.name);
+                  if (arg.opt && i >= optionalPos)
+                    write('?');
+                  write(': ');
+                  emitType(arg.t);
+                }
+                write(')');
+                if (!field.kind.match(Constructor)) {
+                  write(': ');
+                  emitType(ret);
+                }
+              default: throw 'assert';
+            }
+          case Property:
             writeNewline();
-          emitComment(field.doc);
-          if (field.isStatic)
-            write('static ');
-          write(field.name);
-          write(': ');
-          emitType(field.type);
-      }
+            emitPos(field.pos);
+            if (field.doc != null)
+              writeNewline();
+            emitComment(field.doc);
+            if (field.isStatic)
+              write('static ');
+            if (field.getter && !field.setter)
+              write('readonly ');
+            write(field.name);
+            write(': ');
+            emitType(field.type);
+        }
     }
     decreaseIndent();
     writeNewline();

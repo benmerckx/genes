@@ -26,7 +26,8 @@ class Run {
       new TestBoot(),
       new TestReservedClassNames(),
       new TestSemicolons(),
-      new TestTypesAsValues()
+      new TestTypesAsValues(),
+      new TestGetterSetter()
     ])).handle(Runner.exit);
   }
 }

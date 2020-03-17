@@ -26,8 +26,11 @@ typedef Field = {
   final expr: TypedExpr;
   final pos: Position;
   final isStatic: Bool;
+  final isPublic: Bool;
   final params: Array<TypeParameter>;
   final doc: Null<String>;
+  final setter: Bool;
+  final getter: Bool;
 }
 
 enum Member {
@@ -226,7 +229,7 @@ class Module {
     }
 
   static function fieldsOf(cl: ClassType) {
-    final fields = [];
+    final fields: Array<Field> = [];
     switch cl.constructor {
       case null:
       case ctor:
@@ -238,11 +241,15 @@ class Module {
           pos: e.pos,
           name: 'new',
           isStatic: false,
+          isPublic: ctor.get().isPublic,
           params: [],
-          doc: null
+          doc: null,
+          getter: false,
+          setter: false
         });
     }
     for (field in cl.fields.get()) {
+      final isVar = field.meta.has(':isVar');
       fields.push({
         kind: switch field.kind {
           case FVar(_, _): Property;
@@ -253,11 +260,17 @@ class Module {
         expr: field.expr(),
         pos: field.pos,
         isStatic: false,
+        isPublic: field.isPublic,
         params: field.params,
-        doc: field.doc
+        doc: field.doc,
+        getter: !isVar
+        && field.kind.match(FVar(AccCall, _)),
+        setter: !isVar
+        && field.kind.match(FVar(_, AccCall))
       });
     }
-    for (field in cl.statics.get())
+    for (field in cl.statics.get()) {
+      final isVar = field.meta.has(':isVar');
       fields.push({
         kind: switch field.kind {
           case FVar(_, _): Property;
@@ -268,6 +281,7 @@ class Module {
         expr: field.expr(),
         pos: field.pos,
         isStatic: true,
+        isPublic: field.isPublic,
         params: {
           final params = switch cl.kind {
             case KAbstractImpl(_.get().params => params): params;
@@ -280,8 +294,13 @@ class Module {
           }
           params;
         },
-        doc: field.doc
+        doc: field.doc,
+        getter: !isVar
+        && field.kind.match(FVar(AccCall, _)),
+        setter: !isVar
+        && field.kind.match(FVar(_, AccCall))
       });
+    }
     return fields;
   }
 
