@@ -28,7 +28,6 @@ class Register {
       set: v -> {
         init();
         value = v;
-        return value;
       }
     });
   }
