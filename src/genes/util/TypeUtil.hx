@@ -50,10 +50,9 @@ class TypeUtil {
       case FDynamic(n): n;
     }
 
-  public static function isDynamicIterator(ctx: genes.Context,
-      e: TypedExpr): Bool
+  public static function isDynamicIterator(e: TypedExpr): Bool
     return switch e.expr {
-      case TField(x, f) if (fieldName(f) == "iterator" && ctx.hasFeature('HxOverrides.iter')):
+      case TField(x, f) if (fieldName(f) == "iterator"):
         switch Context.followWithAbstracts(x.t) {
           case TInst(_.get() => {name: 'Array'}, _) | TInst(_.get() => {kind: KTypeParameter(_)}, _) | TAnonymous(_) | TDynamic(_) | TMono(_):
             true;
@@ -118,9 +117,6 @@ class TypeUtil {
       case {expr: TCast(e, t)}:
         typesInExpr(e)
           .concat([t, bootType]); // include js.Boot for js.Boot.__cast()
-      case {expr: TField(x, f)}
-        if (fieldName(f) == "iterator"): // Todo: conditions here could be refined
-        [getModuleType('HxOverrides')].concat(typesInExpr(x));
       case e:
         var res = [];
         e.iter(e -> {

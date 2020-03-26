@@ -12,7 +12,7 @@ class Register {
 
   @:keep public static function createStatic<T>(obj: {}, name: String,
       get: () -> T) {
-    var value: T;
+    var value: T = null;
     inline function init() {
       if (get != null) {
         value = get();
@@ -30,6 +30,21 @@ class Register {
         value = v;
       }
     });
+  }
+
+  @:keep public static function iter<T>(a: Array<T>): Iterator<T> {
+    return untyped if (!Array.isArray(a))
+      js.Syntax.code('a.iterator()')
+    else untyped {
+      cur: 0,
+      arr: a,
+      hasNext: function() {
+        return __this__.cur < __this__.arr.length;
+      },
+      next: function() {
+        return __this__.arr[__this__.cur++];
+      }
+    }
   }
 
   @:keep public static function extend(superClass) {

@@ -2,7 +2,6 @@ package tests;
 
 import tink.unit.Assert.*;
 
-// benmerckx/genes#8
 class TestSemicolons {
   public function new() {}
 
@@ -12,7 +11,13 @@ class TestSemicolons {
     correct;
   }
 
+  // benmerckx/genes#8
   public function testSemicolons() {
     return assert(href);
+  }
+
+  // benmerckx/genes#16
+  public function testHxOverridesInit() {
+    return assert(@:privateAccess HxOverrides.now() > 0);
   }
 }

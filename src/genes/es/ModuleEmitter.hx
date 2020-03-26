@@ -42,8 +42,6 @@ class ModuleEmitter extends ExprEmitter {
           endEnumTimer();
         case MMain(e):
           writeNewline();
-          write('// genes');
-          writeNewline();
           emitExpr(e);
         default:
       }
@@ -133,6 +131,7 @@ class ModuleEmitter extends ExprEmitter {
   function emitInit(cl: ClassType) {
     if (cl.init != null) {
       writeNewline();
+      write(';');
       emitPos(cl.pos);
       emitExpr(cl.init);
       writeNewline();
