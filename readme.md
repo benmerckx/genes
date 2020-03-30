@@ -1,6 +1,6 @@
 # genes
 
-[![Build Status](https://travis-ci.com/benmerckx/genes.svg?branch=master)](https://travis-ci.com/benmerckx/genes)
+[![CI](https://github.com/benmerckx/genes/workflows/CI/badge.svg)](https://github.com/benmerckx/genes/actions)
 
 Generates split ES6 modules and Typescript definitions from Haxe modules.
 
