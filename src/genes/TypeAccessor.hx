@@ -1,5 +1,6 @@
 package genes;
 
+import genes.util.TypeUtil;
 import haxe.macro.Type;
 
 enum TypeAccessorImpl {
@@ -19,6 +20,10 @@ abstract TypeAccessor(TypeAccessorImpl) from TypeAccessorImpl {
       case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base) | TTypeDecl((_.get() : BaseType) => base):
         fromBaseType(base);
     }
+  }
+
+  @:from public static function fromType(type: Type): TypeAccessor {
+    return fromModuleType(TypeUtil.typeToModuleType(type));
   }
 
   @:from public static function fromBaseType(type: BaseType): TypeAccessor {

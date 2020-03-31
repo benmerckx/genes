@@ -304,14 +304,17 @@ class Module {
     return fields;
   }
 
-  public function createContext(api: haxe.macro.JSGenApi): genes.Context
+  public function createContext(api: haxe.macro.JSGenApi): genes.Context {
+    final typeAccessor = (type: TypeAccessor) -> switch type {
+      case Abstract(name) | Concrete(_, name, _): name;
+    }
+    api.setTypeAccessor(type -> typeAccessor(type));
     return {
       expr: api.generateStatement,
       value: api.generateValue,
       hasFeature: api.hasFeature,
       addFeature: api.addFeature,
-      typeAccessor: (type: TypeAccessor) -> switch type {
-        case Abstract(name) | Concrete(_, name, _): name;
-      }
+      typeAccessor: typeAccessor
     }
+  }
 }

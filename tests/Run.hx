@@ -1,5 +1,7 @@
 package tests;
 
+import tink.testrunner.Reporter.AnsiFormatter;
+import tink.testrunner.Reporter.BasicReporter;
 import tink.unit.TestBatch;
 import tink.testrunner.Runner;
 
@@ -27,7 +29,8 @@ class Run {
       new TestReservedClassNames(),
       new TestSemicolons(),
       new TestTypesAsValues(),
-      new TestGetterSetter()
-    ])).handle(Runner.exit);
+      new TestGetterSetter(),
+      new TestSyntax()
+    ]), new BasicReporter(new AnsiFormatter())).handle(Runner.exit);
   }
 }
