@@ -73,7 +73,15 @@ class Generator {
     final modules = new Map<String, Array<Type>>();
     for (type in types) {
       switch type {
-        // Todo: init extern inst
+        case TInst(_.get() => {
+          module: module,
+          isExtern: true,
+          init: init
+        }, _) if (init != null):
+          #if (!genes.no_extern_init_warning)
+          Context.warning('Extern __init__ methods are not supported in genes. See https://github.com/benmerckx/genes/issues/13. Disable this warning with -D genes.no-extern-init-warning',
+            init.pos);
+          #end
         case TInst(_.get() => {
           module: module,
           isExtern: false
