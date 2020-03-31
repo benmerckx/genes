@@ -13,7 +13,7 @@ class TestRequire {
   }
 
   public function testWildcardMethod() {
-    return assert(Path.join('a', 'b') == 'a/b');
+    return assert(Path.posix.join('a', 'b') == 'a/b');
   }
 
   public function testSelfcall() {
