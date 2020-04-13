@@ -6,7 +6,7 @@
 	"description": "Generates split ES6 modules and Typescript definitions from Haxe modules.",
 	"contributors": ["benmerckx"],
 	"releasenote": "See repository",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"url": "https://github.com/benmerckx/genes",
 	"dependencies": {
 		"set": "0.1.0"
