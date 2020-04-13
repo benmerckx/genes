@@ -3,8 +3,8 @@
   "license": "MIT",
   "scripts": {
     "submit": "bestzip submit.zip src/* haxelib.json readme.md extraParams.hxml && haxelib submit submit.zip && rm submit.zip",
-    "test": "haxe test.hxml && cross-env ANSICON=true node --no-warnings --experimental-modules --es-module-specifier-resolution=node bin/test.js",
-    "test:genjs": "haxe -D genes_disable test.hxml && node bin/test.js",
+    "test": "haxe test.hxml && cross-env ANSICON=true node --no-warnings --experimental-modules --es-module-specifier-resolution=node bin/tests.js",
+    "test:genjs": "haxe -D genes.disable test.hxml && node bin/tests.js",
     "postinstall": "lix download"
   },
   "devDependencies": {

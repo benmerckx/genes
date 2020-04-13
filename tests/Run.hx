@@ -10,7 +10,7 @@ class Run {
     Runner.run(TestBatch.make([
       // These test specific genes features that make no sense in default
       // haxe generated js
-      #if !genes_disable
+      #if !genes.disable
       new TestRequire(), new TestExtendExtern(), new TestReactComponent(),
       new TestImportModule(), new TestCycle(), new TestCycle2(),
       #end

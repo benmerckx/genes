@@ -7,6 +7,6 @@
 -D dts
 -dce full
 -main tests.Run
--js bin/test.js
+-js bin/tests.js
 --times 
 -D macro-times

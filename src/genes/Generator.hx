@@ -25,7 +25,8 @@ class Generator {
     final concrete = [];
     for (type in api.types)
       switch type {
-        case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
+        case TEnum((_.get() : BaseType) => t, _) |
+          TInst((_.get() : BaseType) => t, _):
           concrete.push(TypeUtil.baseTypeName(t));
         default:
       }
@@ -56,7 +57,8 @@ class Generator {
   static function needsGen(module: Module) {
     for (member in module.members) {
       switch member {
-        case MClass({meta: meta}, _, _) | MEnum({meta: meta}, _) | MType({meta: meta}, _):
+        case MClass({meta: meta}, _, _) | MEnum({meta: meta}, _) |
+          MType({meta: meta}, _):
           switch meta.extract(':genes.generate') {
             case [{params: [{expr: EConst(CInt(gen))}]}]:
               return true;
@@ -78,7 +80,7 @@ class Generator {
           isExtern: true,
           init: init
         }, _) if (init != null):
-          #if (!genes.no_extern_init_warning)
+          #if (genes.extern_init_warning)
           Context.warning('Extern __init__ methods are not supported in genes. See https://github.com/benmerckx/genes/issues/13. Disable this warning with -D genes.no-extern-init-warning',
             init.pos);
           #end
@@ -107,14 +109,16 @@ class Generator {
     final path = [Path.join([outputDir, module.path]), extension].join('.');
     final definition = [Path.join([outputDir, module.path]), 'd.ts'].join('.');
     final ctx = module.createContext(api);
-    final moduleEmitter = new ModuleEmitter(ctx, Writer.bufferedFileWriter(path));
+    final moduleEmitter = new ModuleEmitter(ctx,
+      Writer.bufferedFileWriter(path));
     moduleEmitter.emitModule(module);
     #if (debug || js_source_map)
     moduleEmitter.emitSourceMap(path + '.map', true);
     #end
     moduleEmitter.finish();
     #if dts
-    final definitionEmitter = new DefinitionEmitter(ctx, Writer.bufferedFileWriter(definition));
+    final definitionEmitter = new DefinitionEmitter(ctx,
+      Writer.bufferedFileWriter(definition));
     definitionEmitter.emitDefinition(module);
     #if (debug || js_source_map)
     definitionEmitter.emitSourceMap(definition + '.map');
@@ -125,13 +129,15 @@ class Generator {
 
   #if macro
   public static function use() {
-    #if !genes_disable
+    #if !genes.disable
     Context.onGenerate(types -> {
       generation++;
       final pos = Context.currentPos();
       for (type in types) {
         switch type {
-          case TEnum((_.get() : BaseType) => base, _) | TInst((_.get() : BaseType) => base, _) | TType((_.get() : BaseType) => base, _):
+          case TEnum((_.get() : BaseType) => base, _) |
+            TInst((_.get() : BaseType) => base, _) |
+            TType((_.get() : BaseType) => base, _):
             base.meta.add(':genes.generate', [
               {
                 expr: ExprDef.EConst(CInt(Std.string(generation))),

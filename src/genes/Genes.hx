@@ -18,13 +18,14 @@ class Genes {
         final type = Context.getType(name);
         final current = Context.getLocalClass().get().module;
         final to = TypeUtil.moduleTypeName(TypeUtil.typeToModuleType(type));
-        final path = PathUtil.relative(current.replace('.', '/'), to.replace('.', '/'));
+        final path = PathUtil.relative(current.replace('.', '/'),
+          to.replace('.', '/'));
         final ret = Context.typeExpr(body).t.toComplexType();
         macro(js.Syntax.code('import({0})', $v{path})
           .then(genes.Genes.ignore($v{name}, function(module) {
-          js.Syntax.code('var $name = module.$name');
-          $body;
-        })) : js.lib.Promise<$ret>);
+            js.Syntax.code('var $name = module.$name');
+            $body;
+          })) : js.lib.Promise<$ret>);
       default:
         Context.error('Cannot import', expr.pos);
     }

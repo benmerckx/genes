@@ -14,10 +14,16 @@ lix +lib genes
 
 Install the library and add `-lib genes` to your hxml.
 
-Options:
 
-- add `-D dts` to generate Typescript definition files
-- use `-debug` or `-D js-source-map` to generate source maps
+### Defines
+
+- `-D dts` to generate Typescript definition files
+- `-debug` or `-D js-source-map` to generate source maps
+- `-D genes.extern_init_warning` genes does not generate extern `__init__`.  
+  Display a warning wherever these are used in current class path.
+- `-D genes.disable` disable genes completely (eg. to compare results to default
+  haxe js generator)
+
 
 ## Dynamic imports
 

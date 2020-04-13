@@ -69,10 +69,11 @@ class Module {
           members.push(MClass(cl, params, fieldsOf(cl)));
         case TType(_.get() => tt, params):
           switch Context.followWithAbstracts(tt.type) {
-            case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
+            case TEnum((_.get() : BaseType) => t, _) |
+              TInst((_.get() : BaseType) => t, _):
               final name = TypeUtil.baseTypeName(t);
-              if (context.concrete.indexOf(name) > -1)
-                members.push(MType(tt, params));
+              if (context.concrete.indexOf(name) > -1) members.push(MType(tt,
+                params));
             default: members.push(MType(tt, params));
           }
         default:
@@ -130,7 +131,8 @@ class Module {
       emitPos: function(pos) {},
       includeType: function(type: Type) {
         switch Context.followWithAbstracts(type) {
-          case TEnum((_.get() : BaseType) => t, _) | TInst((_.get() : BaseType) => t, _):
+          case TEnum((_.get() : BaseType) => t, _) |
+            TInst((_.get() : BaseType) => t, _):
             final name = TypeUtil.baseTypeName(t);
             if (context.concrete.indexOf(name) > -1)
               dependencies.add(TypeUtil.typeToModuleType(type));
@@ -263,10 +265,8 @@ class Module {
         isPublic: field.isPublic,
         params: field.params,
         doc: field.doc,
-        getter: !isVar
-        && field.kind.match(FVar(AccCall, _)),
-        setter: !isVar
-        && field.kind.match(FVar(_, AccCall))
+        getter: !isVar && field.kind.match(FVar(AccCall, _)),
+        setter: !isVar && field.kind.match(FVar(_, AccCall))
       });
     }
     for (field in cl.statics.get()) {
@@ -295,10 +295,8 @@ class Module {
           params;
         },
         doc: field.doc,
-        getter: !isVar
-        && field.kind.match(FVar(AccCall, _)),
-        setter: !isVar
-        && field.kind.match(FVar(_, AccCall))
+        getter: !isVar && field.kind.match(FVar(AccCall, _)),
+        setter: !isVar && field.kind.match(FVar(_, AccCall))
       });
     }
     return fields;
