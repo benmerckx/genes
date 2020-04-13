@@ -9,7 +9,8 @@ class PathUtil {
     to = Path.normalize(FileSystem.absolutePath(to));
     final fromParts = from.split('/').filter(v -> v != '');
     final toParts = to.split('/').filter(v -> v != '');
-    final length: Int = cast Math.min(fromParts.length, toParts.length);
+    // Substract one since don't want to compare the file part
+    final length: Int = cast Math.min(fromParts.length, toParts.length) - 1;
     var samePartsLength = length;
     for (i in 0...length)
       if (fromParts[i] != toParts[i]) {
