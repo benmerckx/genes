@@ -265,8 +265,8 @@ class Module {
         isPublic: field.isPublic,
         params: field.params,
         doc: field.doc,
-        getter: !isVar && field.kind.match(FVar(AccCall, _)),
-        setter: !isVar && field.kind.match(FVar(_, AccCall))
+        getter: !isVar && field.kind.match(FVar(AccCall, AccCall | AccNever)),
+        setter: !isVar && field.kind.match(FVar(AccCall | AccNever, AccCall))
       });
     }
     for (field in cl.statics.get()) {
@@ -295,8 +295,8 @@ class Module {
           params;
         },
         doc: field.doc,
-        getter: !isVar && field.kind.match(FVar(AccCall, _)),
-        setter: !isVar && field.kind.match(FVar(_, AccCall))
+        getter: !isVar && field.kind.match(FVar(AccCall, AccCall | AccNever)),
+        setter: !isVar && field.kind.match(FVar(AccCall | AccNever, AccCall))
       });
     }
     return fields;
