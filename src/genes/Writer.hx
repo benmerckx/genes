@@ -61,7 +61,14 @@ class Writer {
         if (!FileSystem.exists(dir))
           FileSystem.createDirectory(dir);
         final endTimer = timer('writeToFile');
-        File.saveContent(file, buffer.toString());
+        final output = buffer.toString();
+        #if genes.unchanged_no_rewrite
+        try
+          if (FileSystem.exists(file) && output == File.getContent(file))
+            return endTimer()
+        catch (e:Dynamic) {}
+        #end
+        File.saveContent(file, output);
         endTimer();
       });
   }
