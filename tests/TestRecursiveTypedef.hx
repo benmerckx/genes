@@ -15,7 +15,6 @@ class TestRecursiveTypedef {
     return {v: v, next: next}
 
   public function testTypedef() {
-    trace('ok');
     final a = link(1);
     final b = link(2, a);
     asserts.assert(b.next == a);

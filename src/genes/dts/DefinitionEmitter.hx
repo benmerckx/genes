@@ -20,10 +20,8 @@ class DefinitionEmitter extends ModuleEmitter {
         imports);
     for (member in module.members)
       switch member {
-        #if (haxe_ver >= "4.2")
         case MClass(cl = {kind: KModuleFields(_)}, _, fields):
           emitModuleStatics(cl, fields);
-        #end
         case MClass(cl, params, fields):
           emitClassDefinition(cl, params, fields);
         case MEnum(et, params):

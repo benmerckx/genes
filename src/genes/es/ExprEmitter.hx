@@ -33,7 +33,6 @@ class ExprEmitter extends Emitter {
   var idCounter: Int = 0;
   var inLoop: Bool = false;
   var extendsExtern: Option<TypeAccessor> = None;
-  var declare = #if (haxe_ver >= "4.2") 'let' #else 'var' #end;
 
   public function emitExpr(e: TypedExpr) {
     emitPos(e.pos);
@@ -214,7 +213,7 @@ class ExprEmitter extends Emitter {
         write('throw ');
         emitValue(e);
       case TVar(v, eo):
-        write('$declare ');
+        write('let ');
         emitLocalIdent(v.name);
         switch (eo) {
           case null:
@@ -291,7 +290,7 @@ class ExprEmitter extends Emitter {
             final id = idCounter;
             idCounter++;
             final name = "$it" + id;
-            write('$declare ${name} = ');
+            write('let ${name} = ');
             emitValue(it);
             writeNewline();
             name;
@@ -301,7 +300,7 @@ class ExprEmitter extends Emitter {
         write('.hasNext()) {');
         increaseIndent();
         writeNewline();
-        write('$declare ');
+        write('let ');
         emitLocalIdent(v.name);
         write(' = ');
         emitLocalIdent(it);

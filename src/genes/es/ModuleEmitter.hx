@@ -106,7 +106,6 @@ class ModuleEmitter extends ExprEmitter {
         default:
       }
 
-    #if (haxe_ver >= "4.2.0")
     if (!cl.kind.match(KModuleFields(_)))
       return;
     writeNewline();
@@ -121,7 +120,6 @@ class ModuleEmitter extends ExprEmitter {
           writeNewline();
         default:
       }
-    #end
   }
 
   function emitStatic(cl: ClassType, field: Field) {
@@ -366,10 +364,6 @@ class ModuleEmitter extends ExprEmitter {
       write('__ename__: "${id}",');
       writeNewline();
     }
-    write('__constructs__: [');
-    for (c in join(et.names, write.bind(', ')))
-      emitString(c);
-    write('],');
     writeNewline();
     for (name in join(et.names, () -> {
       write(',');
@@ -384,15 +378,25 @@ class ModuleEmitter extends ExprEmitter {
         case TFun(args, ret):
           final params = args.map(param -> param.name).join(', ');
           final paramsQuoted = args.map(param -> '"${param.name}"').join(', ');
-          'Object.assign(($params) => ({_hx_index: ${c.index}, __enum__: "${id}", $params}), {__params__: [$paramsQuoted]})';
+          'Object.assign(($params) => ({_hx_index: ${c.index}, __enum__: "${id}", $params}), {_hx_name: "${name}", __params__: [$paramsQuoted]})';
         default:
-          '{_hx_index: ${c.index}, __enum__: "${id}"}';
+          '{_hx_name: "${name}", _hx_index: ${c.index}, __enum__: "${id}"}';
       });
     }
     decreaseIndent();
     writeNewline();
     write('}');
     writeNewline();
+
+    write(et.name);
+    write('.__constructs__ = [');
+    for (c in join(et.names, write.bind(', '))) {
+      write(et.name);
+      emitField(c);
+    }
+    write(']');
+    writeNewline();
+
     write(et.name);
     write('.__empty_constructs__ = [');
     final empty = [
@@ -401,9 +405,7 @@ class ModuleEmitter extends ExprEmitter {
     ];
     for (c in join(empty, write.bind(', '))) {
       write(et.name);
-      write('[');
-      emitString(c.name);
-      write(']');
+      emitField(c.name);
     }
     write(']');
     writeNewline();

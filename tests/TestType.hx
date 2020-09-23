@@ -55,6 +55,7 @@ class TestType {
 
   public function testGetEnumConstructs() {
     final constructs = Type.getEnumConstructs(TestTypeEnum);
+    trace(constructs);
     asserts.assert(constructs[0] == 'A');
     asserts.assert(constructs[1] == 'B');
     asserts.assert(constructs[2] == 'C');
