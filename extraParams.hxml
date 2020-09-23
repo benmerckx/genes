@@ -1,2 +1,3 @@
+-D js-es=6
 genes.Register
 --macro genes.Generator.use()
