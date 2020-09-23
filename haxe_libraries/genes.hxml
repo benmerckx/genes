@@ -1,2 +1,3 @@
+-lib helder.set
 extraParams.hxml
 -cp src

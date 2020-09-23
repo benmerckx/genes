@@ -21,9 +21,11 @@ class Genes {
         final path = PathUtil.relative(current.replace('.', '/'),
           to.replace('.', '/'));
         final ret = Context.typeExpr(body).t.toComplexType();
+        final setup = {expr: EConst(CString('var $name = module.$name')),
+          pos: Context.currentPos()}
         macro(js.Syntax.code('import({0})', $v{path})
           .then(genes.Genes.ignore($v{name}, function(module) {
-            js.Syntax.code('var $name = module.$name');
+            js.Syntax.code($setup);
             $body;
           })) : js.lib.Promise<$ret>);
       default:

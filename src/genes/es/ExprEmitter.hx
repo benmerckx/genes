@@ -2,9 +2,10 @@ package genes.es;
 
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import haxe.ds.Option;
+import helder.Set;
 import genes.util.TypeUtil.*;
 import genes.util.IteratorUtil.*;
-import haxe.ds.Option;
 
 using haxe.macro.TypedExprTools;
 
@@ -63,7 +64,8 @@ class ExprEmitter extends Emitter {
         write("$iterator(");
         emitValue(x);
         write(")");
-      case TUnop(op, postFix, fe = {expr: TField(x, f)}) if (fieldName(f) == 'iterator' && isDynamicIterator(fe)):
+      case TUnop(op, postFix, fe = {expr: TField(x, f)})
+        if (fieldName(f) == 'iterator' && isDynamicIterator(fe)):
         switch postFix {
           case false:
             writeUnop(op);
@@ -117,13 +119,17 @@ class ExprEmitter extends Emitter {
         name: ''
       }, _.get().name => fname)):
         write(fname);
-      case TField(x, FInstance(_, _, _.get() => f) | FStatic(_, _.get() => f) | FAnon(_.get() => f)) if (f.meta.has(':selfCall')):
+      case TField(x,
+        FInstance(_, _,
+          _.get() => f) | FStatic(_, _.get() => f) | FAnon(_.get() => f))
+        if (f.meta.has(':selfCall')):
         emitValue(x);
       case TField(x, f):
         function skip(e: TypedExpr): TypedExpr
           return switch e.expr {
             case TCast(e1, null) | TMeta(_, e1): skip(e1);
-            case TConst(TInt(_) | TFloat(_)) | TObjectDecl(_): with(e, TParenthesis(e));
+            case TConst(TInt(_) | TFloat(_)) | TObjectDecl(_): with(e,
+                TParenthesis(e));
             case _: e;
           }
         emitValue(skip(x));
@@ -191,8 +197,10 @@ class ExprEmitter extends Emitter {
         emitExpr(f.expr);
         this.inValue = inValue;
         this.inLoop = inLoop;
-      case TCall({expr: TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))},
-        _) | TCall({expr: TIdent('__js__')}, _):
+      case TCall({
+        expr: TField(_,
+          FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))
+      }, _) | TCall({expr: TIdent('__js__')}, _):
         write(ctx.expr(e));
       case TCall(e, params):
         emitCall(e, params, false);
@@ -356,7 +364,8 @@ class ExprEmitter extends Emitter {
           emitValue(e);
         write(')');
       case [
-        TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: name})),
+        TField(_,
+          FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: name})),
         args
       ]:
         emitSyntax(name, args);
@@ -382,7 +391,8 @@ class ExprEmitter extends Emitter {
           emitValue(eif)
         else
           emitValue(eelse);
-      case [TField(x, f), []] if (fieldName(f) == "iterator" && isDynamicIterator(e)):
+      case [TField(x, f), []]
+        if (fieldName(f) == "iterator" && isDynamicIterator(e)):
         ctx.addFeature("use.$getIterator");
         write(ctx.typeAccessor(registerType));
         write('.iter(');
@@ -483,8 +493,10 @@ class ExprEmitter extends Emitter {
     switch e.expr {
       case TMeta(_, e1):
         emitValue(e1);
-      case TCall({expr: TField(_, FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))},
-        _) | TCall({expr: TIdent('__js__')}, _):
+      case TCall({
+        expr: TField(_,
+          FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))
+      }, _) | TCall({expr: TIdent('__js__')}, _):
         write(ctx.value(e));
       case TCall(e, params):
         emitCall(e, params, true);
@@ -616,10 +628,12 @@ class ExprEmitter extends Emitter {
       case TBlock(el):
         for (e in el)
           emitBlockElement(e, after);
-      case TCall({expr: TIdent('__feature__')}, [{expr: TConst(TString(f))}, eif]):
+      case TCall({expr: TIdent('__feature__')},
+        [{expr: TConst(TString(f))}, eif]):
         if (ctx.hasFeature(f))
           emitBlockElement(eif, after);
-      case TCall({expr: TIdent('__feature__')}, [{expr: TConst(TString(f))}, eif, eelse]):
+      case TCall({expr: TIdent('__feature__')},
+        [{expr: TConst(TString(f))}, eif, eelse]):
         if (ctx.hasFeature(f))
           emitBlockElement(eif, after)
         else
@@ -649,8 +663,8 @@ class ExprEmitter extends Emitter {
         case '"'.code: "\\\"";
         case '\\'.code: "\\\\";
         case code:
-          if (code < 32) "\\x" + StringTools.hex(code, 2) else
-            String.fromCharCode(code);
+          if (code < 32) "\\x"
+            + StringTools.hex(code, 2) else String.fromCharCode(code);
       });
     writeQuotes();
   }

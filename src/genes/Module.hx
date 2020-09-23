@@ -3,6 +3,7 @@ package genes;
 import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.macro.Expr.Position;
+import helder.Set;
 import genes.util.TypeUtil;
 import genes.Dependencies;
 import genes.util.TypeUtil;
