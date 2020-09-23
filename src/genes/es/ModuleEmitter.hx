@@ -105,6 +105,8 @@ class ModuleEmitter extends ExprEmitter {
             emitStatic(cl, field);
         default:
       }
+
+    #if (haxe_ver >= "4.2.0")
     if (!cl.kind.match(KModuleFields(_)))
       return;
     writeNewline();
@@ -119,6 +121,7 @@ class ModuleEmitter extends ExprEmitter {
           writeNewline();
         default:
       }
+    #end
   }
 
   function emitStatic(cl: ClassType, field: Field) {
