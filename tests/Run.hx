@@ -30,7 +30,8 @@ class Run {
       new TestSemicolons(),
       new TestTypesAsValues(),
       new TestGetterSetter(),
-      new TestSyntax()
+      new TestSyntax(),
+      new TestModuleStatics()
     ]), new BasicReporter(new AnsiFormatter())).handle(Runner.exit);
   }
 }

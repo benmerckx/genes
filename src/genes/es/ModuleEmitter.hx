@@ -22,7 +22,8 @@ class ModuleEmitter extends ExprEmitter {
       return endTimer();
     var endImportTimer = timer('emitImports');
     for (path => imports in dependencies.imports)
-      emitImports(if (imports[0].external) path else module.toPath(path), imports);
+      emitImports(if (imports[0].external) path else module.toPath(path),
+        imports);
     endImportTimer();
     for (member in module.members)
       switch member {
@@ -75,8 +76,9 @@ class ModuleEmitter extends ExprEmitter {
         write('{');
         for (def in join(defs, write.bind(', '))) {
           emitPos(def.pos);
-          write(def.name + if (def.alias != null && def.alias != def.name)
-            ' as ${def.alias}' else '');
+          write(def.name
+            + if (def.alias != null && def.alias != def.name)
+              ' as ${def.alias}' else '');
         }
         write('}');
     }
@@ -92,8 +94,7 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     for (field in fields)
       switch field {
-        case {kind: Property, isStatic: true, expr: expr}
-          if (expr != null):
+        case {kind: Property, isStatic: true, expr: expr} if (expr != null):
           final types = TypeUtil.typesInExpr(expr);
           final isCyclic = types.fold((type, res) -> {
             return res || checkCycles(TypeUtil.moduleTypeName(type));
@@ -102,6 +103,20 @@ class ModuleEmitter extends ExprEmitter {
             emitDeferredStatic(cl, field);
           else
             emitStatic(cl, field);
+        default:
+      }
+    if (!cl.kind.match(KModuleFields(_)))
+      return;
+    writeNewline();
+    for (field in fields)
+      switch field {
+        case {isStatic: true, isPublic: true}:
+          write('export const ');
+          emitIdent(field.name);
+          write(' = ');
+          emitIdent(cl.name);
+          emitField(field.name);
+          writeNewline();
         default:
       }
   }
@@ -379,8 +394,7 @@ class ModuleEmitter extends ExprEmitter {
     write('.__empty_constructs__ = [');
     final empty = [
       for (name in et.names)
-        if (!et.constructs[name].type.match(TFun(_, _)))
-          et.constructs[name]
+        if (!et.constructs[name].type.match(TFun(_, _))) et.constructs[name]
     ];
     for (c in join(empty, write.bind(', '))) {
       write(et.name);

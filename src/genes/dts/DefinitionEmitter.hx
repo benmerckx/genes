@@ -16,9 +16,12 @@ class DefinitionEmitter extends ModuleEmitter {
     final endTimer = timer('emitDefinition');
     ctx.typeAccessor = dependencies.typeAccessor;
     for (path => imports in dependencies.imports)
-      emitImports(if (imports[0].external) path else module.toPath(path), imports);
+      emitImports(if (imports[0].external) path else module.toPath(path),
+        imports);
     for (member in module.members)
       switch member {
+        case MClass(cl = {kind: KModuleFields(_)}, _, fields):
+          emitModuleStatics(cl, fields);
         case MClass(cl, params, fields):
           emitClassDefinition(cl, params, fields);
         case MEnum(et, params):
@@ -140,6 +143,21 @@ class DefinitionEmitter extends ModuleEmitter {
     writeNewline();
   }
 
+  function emitModuleStatics(cl: ClassType, fields: Array<Field>) {
+    writeNewline();
+    emitPos(cl.pos);
+    for (field in fields)
+      switch field {
+        case {isStatic: true, isPublic: true}:
+          write('export const ');
+          emitIdent(field.name);
+          write(': ');
+          emitType(field.type);
+          writeNewline();
+        default:
+      }
+  }
+
   function emitClassDefinition(cl: ClassType, params: Array<Type>,
       fields: Array<Field>) {
     writeNewline();
@@ -175,12 +193,14 @@ class DefinitionEmitter extends ModuleEmitter {
             switch field.type {
               case TFun(args, ret):
                 writeNewline();
-                if (field.doc != null) writeNewline();
+                if (field.doc != null)
+                  writeNewline();
                 emitComment(field.doc);
                 if (field.isStatic)
                   write('static ');
                 emitPos(field.pos);
-                write(if (field.kind.equals(Constructor)) 'constructor' else field.name);
+                write(if (field.kind.equals(Constructor)) 'constructor' else
+                  field.name);
                 if (field.params.length > 0) {
                   write('<');
                   for (param in join(field.params, write.bind(', ')))
