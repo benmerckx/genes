@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@types/node": "^12.7.2",
-    "bestzip": "^2.1.5",
+    "bestzip": "^2.1.7",
     "cross-env": "^7.0.2",
     "lix": "^15.9.1",
     "react": "^16.12.0",
