@@ -5,10 +5,17 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        haxe-version:
+          - '4.0.5'
+          - '4.1.4'
+          - '5fdb166'
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
       with:
         node-version: '12.x'
     - run: yarn
+    - run: yarn lix use haxe ${{ matrix.haxe-version }}
     - run: yarn test
