@@ -31,7 +31,7 @@ class Run {
       new TestTypesAsValues(),
       new TestGetterSetter(),
       new TestSyntax(),
-      #if (haxe_ver > 4.2) new TestModuleStatics(),
+      #if (haxe_ver >= 4.2) new TestModuleStatics(),
       #end
     ]), new BasicReporter(new AnsiFormatter())).handle(Runner.exit);
   }
