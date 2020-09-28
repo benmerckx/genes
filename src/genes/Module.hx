@@ -307,13 +307,14 @@ class Module {
     final typeAccessor = (type: TypeAccessor) -> switch type {
       case Abstract(name) | Concrete(_, name, _): name;
     }
-    api.setTypeAccessor(type -> typeAccessor(type));
-    return {
+    final context: genes.Context = {
       expr: api.generateStatement,
       value: api.generateValue,
       hasFeature: api.hasFeature,
       addFeature: api.addFeature,
       typeAccessor: typeAccessor
     }
+    api.setTypeAccessor(type -> context.typeAccessor(type));
+    return context;
   }
 }
