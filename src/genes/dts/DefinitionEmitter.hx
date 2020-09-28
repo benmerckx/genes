@@ -38,6 +38,7 @@ class DefinitionEmitter extends ModuleEmitter {
   function emitTypeDefinition(def: DefType, params: Array<Type>) {
     writeNewline();
     write('export type ');
+    emitPos(def.pos);
     emitBaseType(def, params);
     write(' = ');
     emitType(def.type);
@@ -152,6 +153,7 @@ class DefinitionEmitter extends ModuleEmitter {
       switch field {
         case {isStatic: true, isPublic: true}:
           write('export const ');
+          emitPos(field.pos);
           emitIdent(field.name);
           write(': ');
           emitType(field.type);
