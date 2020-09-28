@@ -17,5 +17,6 @@ jobs:
       with:
         node-version: '12.x'
     - run: yarn
+    - run: yarn lix install haxe ${{ matrix.haxe-version }}
     - run: yarn lix use haxe ${{ matrix.haxe-version }}
     - run: yarn test
