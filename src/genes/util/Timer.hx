@@ -2,7 +2,7 @@ package genes.util;
 
 class Timer {
   public static function timer(id: String) {
-    #if (macro && macro_times)
+    #if (haxe_ver >= 4.1)
     return haxe.macro.Context.timer(id);
     #else
     return function() {}

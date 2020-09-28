@@ -106,6 +106,7 @@ class ModuleEmitter extends ExprEmitter {
         default:
       }
 
+    #if (haxe_ver >= 4.2)
     if (!cl.kind.match(KModuleFields(_)))
       return;
     writeNewline();
@@ -120,6 +121,7 @@ class ModuleEmitter extends ExprEmitter {
           writeNewline();
         default:
       }
+    #end
   }
 
   function emitStatic(cl: ClassType, field: Field) {
@@ -391,8 +393,12 @@ class ModuleEmitter extends ExprEmitter {
     write(et.name);
     write('.__constructs__ = [');
     for (c in join(et.names, write.bind(', '))) {
+      #if (haxe_ver >= 4.2)
       write(et.name);
       emitField(c);
+      #else
+      emitString(c);
+      #end
     }
     write(']');
     writeNewline();

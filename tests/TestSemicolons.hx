@@ -18,6 +18,10 @@ class TestSemicolons {
 
   // benmerckx/genes#16
   public function testHxOverridesInit() {
+    #if (haxe_ver >= 4.1)
     return assert(@:privateAccess HxOverrides.now() > 0);
+    #else
+    return assert(true);
+    #end
   }
 }
