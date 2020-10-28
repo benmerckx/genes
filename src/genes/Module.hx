@@ -215,12 +215,7 @@ class Module {
       }
     }
     if (module != 'genes.Register')
-      dependencies.push('genes.Register', {
-        type: DName,
-        name: 'Register',
-        path: 'genes.Register',
-        external: false
-      });
+      dependencies.add(TypeUtil.registerType);
     endTimer();
     return codeDependencies = dependencies;
   }
