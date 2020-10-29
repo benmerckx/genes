@@ -121,7 +121,7 @@ class Generator {
       Writer.bufferedFileWriter(definition));
     definitionEmitter.emitDefinition(module);
     #if (debug || js_source_map)
-    definitionEmitter.emitSourceMap(definition + '.map');
+    definitionEmitter.emitSourceMap(definition + '.map', true);
     #end
     definitionEmitter.finish();
     #end
