@@ -201,6 +201,12 @@ class ExprEmitter extends Emitter {
       case TCall({
         expr: TField(_,
           FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))
+      }, [{expr: TConst(TString("$global"))}]):
+        write(ctx.typeAccessor(registerType));
+        write(".$global");
+      case TCall({
+        expr: TField(_,
+          FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))
       }, _) | TCall({expr: TIdent('__js__')}, _):
         write(ctx.expr(e));
       case TCall(e, params):
