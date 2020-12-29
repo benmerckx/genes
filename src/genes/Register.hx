@@ -4,6 +4,9 @@ import js.lib.Object;
 import js.Syntax;
 
 class Register {
+  @:keep @:native("$global")
+  public static final _global = js.Syntax.code('typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this');
+
   static final globals = {}
 
   @:keep public static function global(name) {
