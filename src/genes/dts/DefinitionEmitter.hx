@@ -37,8 +37,8 @@ class DefinitionEmitter extends ModuleEmitter {
 
   function emitTypeDefinition(def: DefType, params: Array<Type>) {
     writeNewline();
-    write('export type ');
     emitPos(def.pos);
+    write('export type ');
     emitBaseType(def, params);
     write(' = ');
     emitType(def.type);
@@ -52,15 +52,15 @@ class DefinitionEmitter extends ModuleEmitter {
       default: throw 'assert';
     });
     writeNewline();
-    write('export declare namespace ');
     emitPos(et.pos);
+    write('export declare namespace ');
     write(et.name);
     write(' {');
     increaseIndent();
     for (name => c in et.constructs) {
       writeNewline();
-      write('export type ');
       emitPos(c.pos);
+      write('export type ');
       write(name);
       emitParams(params);
       write(' = ');
@@ -152,8 +152,8 @@ class DefinitionEmitter extends ModuleEmitter {
     for (field in fields)
       switch field {
         case {isStatic: true, isPublic: true}:
-          write('export const ');
           emitPos(field.pos);
+          write('export const ');
           emitIdent(field.name);
           write(': ');
           emitType(field.type);
@@ -165,8 +165,8 @@ class DefinitionEmitter extends ModuleEmitter {
   function emitClassDefinition(cl: ClassType, params: Array<Type>,
       fields: Array<Field>) {
     writeNewline();
-    emitPos(cl.pos);
     emitComment(cl.doc);
+    emitPos(cl.pos);
     write('export declare ');
     write(if (cl.isInterface) 'interface' else 'class');
     writeSpace();

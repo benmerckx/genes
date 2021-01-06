@@ -10,6 +10,7 @@ class Emitter {
   final sourceMap: SourceMapGenerator;
 
   var lastPos = SourcePosition.EMPTY;
+  var lastWriterLine = -1;
 
   public function new(ctx: Context, writer: Writer,
       ?sourceMap: SourceMapGenerator) {
@@ -24,13 +25,15 @@ class Emitter {
     switch pos {
       case null | {file: '?'}:
       case {column: column, line: line, file: file}:
-        if (lastPos.column != column || lastPos.line != line)
+        if (lastPos.column != column || lastPos.line != line
+          || lastWriterLine != writer.line)
           sourceMap.addMapping(pos, {
             line: writer.line,
             column: writer.column,
             file: null
           });
         lastPos = pos;
+        lastWriterLine = writer.line;
     }
     #end
   }

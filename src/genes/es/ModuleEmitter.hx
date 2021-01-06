@@ -179,9 +179,9 @@ class ModuleEmitter extends ExprEmitter {
 
   function emitClass(checkCycles: (module: String) -> Bool, cl: ClassType,
       fields: Array<Field>, export = true) {
-    emitPos(cl.pos);
     writeNewline();
     emitComment(cl.doc);
+    emitPos(cl.pos);
     if (export)
       write('export ');
 
@@ -198,6 +198,7 @@ class ModuleEmitter extends ExprEmitter {
       writeNewline();
     }
 
+    emitPos(cl.pos);
     write('class ');
     write(cl.name);
     if (cl.superClass != null || hasConstructor(fields)) {
@@ -230,10 +231,10 @@ class ModuleEmitter extends ExprEmitter {
           switch field.expr.expr {
             case TFunction(f) if (export || !field.isStatic):
               writeNewline();
-              emitPos(field.pos);
               if (field.doc != null)
                 writeNewline();
               emitComment(field.doc);
+              emitPos(field.pos);
               if (field.isStatic)
                 write('static ');
               write(field.name);
@@ -346,9 +347,9 @@ class ModuleEmitter extends ExprEmitter {
 
   function emitEnum(et: EnumType) {
     final id = et.pack.concat([et.name]).join('.');
-    emitPos(et.pos);
     writeNewline();
     emitComment(et.doc);
+    emitPos(et.pos);
     write('export const ');
     write(et.name);
     write(' = ');
@@ -372,8 +373,8 @@ class ModuleEmitter extends ExprEmitter {
       writeNewline();
     })) {
       final c = et.constructs.get(name);
-      emitPos(c.pos);
       emitComment(c.doc);
+      emitPos(c.pos);
       write(name);
       write(': ');
       write(switch c.type {
