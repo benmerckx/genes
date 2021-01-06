@@ -18,8 +18,8 @@ Install the library and add `-lib genes` to your hxml.
 ### Defines
 
 - `-D dts` to generate Typescript definition files
-- `-debug` or `-D js-source-map` to generate source maps
-- `-D source_map_content` to include source map contents
+- [`-debug` or `-D js-source-map`](https://haxe.org/manual/debugging-source-map.html) to generate source maps
+- [`-D source_map_content`](https://haxe.org/manual/debugging-source-map-javascript.html) to include source map contents
 - `-D genes.unchanged_no_rewrite` don't write output files if there's no change 
   (compares output to file on disk)
 - `-D genes.extern_init_warning` display a warning wherever an extern `__init__` 
