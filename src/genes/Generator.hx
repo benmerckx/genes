@@ -81,7 +81,7 @@ class Generator {
           init: init
         }, _) if (init != null):
           #if (genes.extern_init_warning)
-          Context.warning('Extern __init__ methods are not supported in genes. See https://github.com/benmerckx/genes/issues/13. Disable this warning with -D genes.no-extern-init-warning',
+          Context.warning('Extern __init__ methods are not supported in genes. See https://github.com/benmerckx/genes/issues/13.',
             init.pos);
           #end
         case TInst(_.get() => {
@@ -111,7 +111,7 @@ class Generator {
     final ctx = module.createContext(api);
     final moduleEmitter = new ModuleEmitter(ctx,
       Writer.bufferedFileWriter(path));
-    moduleEmitter.emitModule(module);
+    moduleEmitter.emitModule(module, extension);
     #if (debug || js_source_map)
     moduleEmitter.emitSourceMap(path + '.map', true);
     #end

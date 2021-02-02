@@ -5,6 +5,7 @@
 -debug
 -D dts
 -D genes.unchanged_no_rewrite
+-D genes.include_extension
 -D no-deprecation-warnings
 -dce full
 -main tests.Run

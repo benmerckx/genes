@@ -13,7 +13,7 @@ using genes.util.TypeUtil;
 using Lambda;
 
 class ModuleEmitter extends ExprEmitter {
-  public function emitModule(module: Module) {
+  public function emitModule(module: Module, ?extension: String) {
     final dependencies = module.codeDependencies;
     final endTimer = timer('emitModule');
     ctx.typeAccessor = dependencies.typeAccessor;
@@ -23,7 +23,7 @@ class ModuleEmitter extends ExprEmitter {
     var endImportTimer = timer('emitImports');
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path),
-        imports);
+        imports, extension);
     endImportTimer();
     for (member in module.members)
       switch member {
@@ -49,20 +49,22 @@ class ModuleEmitter extends ExprEmitter {
     return endTimer();
   }
 
-  function emitImports(module: String, imports: Array<Dependency>) {
+  function emitImports(module: String, imports: Array<Dependency>,
+      ?extension: String) {
     final named = [];
     for (def in imports)
       switch def.type {
         case DAsterisk | DDefault:
-          emitImport([def], module);
+          emitImport([def], module, extension);
         default:
           named.push(def);
       }
     if (named.length > 0)
-      emitImport(named, module);
+      emitImport(named, module, extension);
   }
 
-  function emitImport(what: Array<Dependency>, where: String) {
+  function emitImport(what: Array<Dependency>, where: String,
+      ?extension: String) {
     write('import');
     writeSpace();
     switch what {
@@ -85,7 +87,18 @@ class ModuleEmitter extends ExprEmitter {
     writeSpace();
     write('from');
     writeSpace();
+    #if genes.include_extension
+    var isExternal = false;
+    for (dependency in what)
+      if (dependency.external) {
+        isExternal = true;
+        break;
+      }
+    emitString(if (!isExternal && extension != null) '$where.$extension' else
+      where);
+    #else
     emitString(where);
+    #end
     writeNewline();
   }
 
