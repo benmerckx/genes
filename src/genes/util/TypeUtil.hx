@@ -105,6 +105,29 @@ class TypeUtil {
             default: true;
           }
         }));
+      case {
+        expr: TCall(call = {
+          expr: TField(_,
+            FStatic(_.get() => {module: 'genes.Genes'},
+              _.get() => {name: 'ignoreMultiple'}))
+        }, [{expr: TArrayDecl(texprs)}, func])
+      }:
+        final names = [
+          for (texpr in texprs)
+            switch texpr {
+              case {expr: TConst(TString(name))}:
+                name;
+              case _:
+                continue; // TODO: should error
+            }
+        ];
+        typesInExpr(call).concat(typesInExpr(func).filter(type -> {
+          return switch type {
+            case TClassDecl(_.get() => {name: typeName}):
+              !names.contains(typeName);
+            default: true;
+          }
+        }));
       case {expr: TTypeExpr(t)}:
         [t];
       case {expr: TNew(c, _, el)}:
