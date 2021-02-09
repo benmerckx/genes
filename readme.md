@@ -46,6 +46,11 @@ import('./my/module/MyClass')
   .then(console.log)
 ```
 
+Genes expects a single-argument function declaration expression (`EFunction`) as the sole argument of `dynamicImport` and it will do 2 things:
+
+1. Get the argument name (e.g. "MyClass") and resolve it as a type in the current context, taking Haxe `import` statements into account. This is for preparing the relative path of the target file (e.g. `'../../MyClass.js'`).
+2. Type the function body in the current context, ignoring the fact that it is a function body. Thus in the example the scope of `MyClass` is not the function argument but in current context i.e. the actual type `class MyClass {...}`. The return type is then applied as the type parameter of `js.lib.Promise`. This is for hinting the return type of the `dynamicImport(...)` call so that the compiler can do its typing job properly.
+
 ## Alternatives
 
 - Split output with require calls: [hxgenjs](https://github.com/kevinresol/hxgenjs)
