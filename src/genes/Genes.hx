@@ -38,7 +38,8 @@ class Genes {
         final setups = [];
         final imports = [];
 
-        for (i => arg in args) {
+        for (i in 0...args.length) {
+          final arg = args[i];
           final name = arg.name;
           final type = Context.getType(name);
           final current = Context.getLocalClass().get().module;

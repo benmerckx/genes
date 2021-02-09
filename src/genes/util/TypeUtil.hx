@@ -124,7 +124,7 @@ class TypeUtil {
         typesInExpr(call).concat(typesInExpr(func).filter(type -> {
           return switch type {
             case TClassDecl(_.get() => {name: typeName}):
-              !names.contains(typeName);
+              names.indexOf(typeName) < 0;
             default: true;
           }
         }));
