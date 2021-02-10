@@ -63,7 +63,8 @@ Genes expects a function declaration expression (`EFunction`) as the sole argume
 
 - Performance could be much improved if we could use the compiler to output code.
   Haxe exposes methods to do so, but without a way to generate source maps for them.
-  HaxeFoundation/haxe#8625
+  
+  [HaxeFoundation/haxe#8625](https://github.com/HaxeFoundation/haxe/issues/8625)
 - Typescript definitions are pretty much complete. In some cases though there will
   be references to non-existing types. Haxe does not pass any types that are 
   removed through DCE to the generation phase. However it does pass every typedef
@@ -71,7 +72,8 @@ Genes expects a function declaration expression (`EFunction`) as the sole argume
   will reference a type that does not exist (removed by DCE).
   Luckily Typescript won't warn about these issues when your definitions are 
   included as a library but ideally we'd be able to output completely valid types.
-  HaxeFoundation/haxe#9252
+  
+  [HaxeFoundation/haxe#9252](https://github.com/HaxeFoundation/haxe/issues/9252)
 
 ## Alternatives
 
