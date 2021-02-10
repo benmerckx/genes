@@ -7,6 +7,13 @@ import genes.util.PathUtil;
 import genes.util.TypeUtil;
 
 using haxe.macro.TypeTools;
+using Lambda;
+
+private typedef ImportedModule = {
+  name: String,
+  importExpr: Expr,
+  types: Array<{name: String, type: haxe.macro.Type}>
+}
 #end
 
 class Genes {
@@ -15,48 +22,81 @@ class Genes {
     final pos = Context.currentPos();
 
     return switch expr.expr {
-      case EFunction(_, {args: [arg], expr: body}):
-        final name = arg.name;
-        final type = Context.getType(name);
-        final current = Context.getLocalClass().get().module;
-        final to = TypeUtil.moduleTypeName(TypeUtil.typeToModuleType(type));
-        final path = PathUtil.relative(current.replace('.', '/'),
-          to.replace('.', '/'));
-        final ret = Context.typeExpr(body).t.toComplexType();
-        final setup = macro @:pos(pos) js.Syntax.code($v{'var $name = module.$name'});
-        macro(js.Syntax.code('import({0})', $v{path})
-          .then(genes.Genes.ignore($v{name}, function(module) {
-            $setup;
-            $body;
-          })) : js.lib.Promise<$ret>);
-
       case EFunction(_, {args: args, expr: body}):
-        // TODO: should be more intelligent not to generate duplicated `import` calls if referring to the same js modules (e.g. when using Haxe module sub-types)
+        final current = Context.getLocalClass().get().module;
         final ret = Context.typeExpr(body).t.toComplexType();
 
-        final names = [];
-        final setups = [];
-        final imports = [];
+        final modules:Array<ImportedModule> = [];
 
-        for (i in 0...args.length) {
-          final arg = args[i];
+        for (arg in args) {
           final name = arg.name;
           final type = Context.getType(name);
-          final current = Context.getLocalClass().get().module;
-          final to = TypeUtil.moduleTypeName(TypeUtil.typeToModuleType(type));
-          final path = PathUtil.relative(current.replace('.', '/'),
-            to.replace('.', '/'));
-          names.push(macro @:pos(pos) $v{name});
-          imports.push(macro @:pos(pos) js.Syntax.code('import({0})',
-            $v{path}));
-          setups.push(macro @:pos(pos) js.Syntax.code($v{'var $name = modules[$i].$name'}));
+          final module = TypeUtil.moduleTypeName(TypeUtil.typeToModuleType(type));
+
+          switch modules.find(m -> m.name == module) {
+            case null:
+              modules.push({
+                name: module,
+                importExpr: {
+                  final path = PathUtil.relative(current.replace('.', '/'),
+                    module.replace('.', '/'));
+                  macro js.Syntax.code('import({0})', $v{path});
+                },
+                types: [
+                  {
+                    name: name,
+                    type: type
+                  }
+                ]
+              });
+            case module:
+              module.types.push({name: name, type: type});
+          }
         }
-        final importExprs = macro @:pos(pos) $a{imports};
-        macro(js.lib.Promise.all($importExprs)
-          .then(genes.Genes.ignoreMultiple($a{names}, function(modules) {
-            @:mergeBlock $b{setups};
-            $body;
-          })) : js.lib.Promise<$ret>);
+
+        final e = switch modules {
+          case [module]:
+            final setup = [
+              for (sub in module.types)
+                macro js.Syntax.code($v{'var ${sub.name} = module.${sub.name}'})
+            ];
+
+            // generate ignore/ignoreMultiple depending on the number of types
+            final ignore = switch module.types {
+              case [sub]:
+                body -> macro genes.Genes.ignore($v{sub.name}, $body);
+              case types:
+                final list = [for (sub in types) macro $v{sub.name}];
+                body -> macro genes.Genes.ignoreMultiple($a{list}, $body);
+            }
+
+            final handler = ignore(macro function(module) {
+              @:mergeBlock $b{setup};
+              $body;
+            });
+
+            macro ${module.importExpr}.then($handler);
+
+          default:
+            final setup = [];
+            final ignores = [];
+
+            for (i in 0...modules.length) {
+              for (sub in modules[i].types) {
+                setup.push(macro js.Syntax.code($v{'var ${sub.name} = modules[$i].${sub.name}'}));
+                ignores.push(macro $v{sub.name});
+              }
+            }
+
+            final imports = macro $a{modules.map(module -> module.importExpr)};
+            macro js.lib.Promise.all($imports)
+              .then(genes.Genes.ignoreMultiple($a{ignores}, function(modules) {
+                @:mergeBlock $b{setup};
+                $body;
+              }));
+        }
+
+        macro($e : js.lib.Promise<$ret>);
 
       default:
         Context.error('Cannot import', expr.pos);
