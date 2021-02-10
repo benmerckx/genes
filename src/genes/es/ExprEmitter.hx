@@ -209,6 +209,12 @@ class ExprEmitter extends Emitter {
           FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))
       }, _) | TCall({expr: TIdent('__js__')}, _):
         write(ctx.expr(e));
+      case TCall({
+        expr: TField(_,
+          FStatic(_.get() => {module: 'genes.Genes'},
+            _.get() => {name: 'ignore'}))
+      }, [_, body]):
+        emitExpr(body);
       case TCall(e, params):
         emitCall(e, params, false);
       case TArrayDecl(el):
@@ -505,6 +511,12 @@ class ExprEmitter extends Emitter {
           FStatic(_.get() => {module: 'js.Syntax'}, _.get() => {name: 'code'}))
       }, _) | TCall({expr: TIdent('__js__')}, _):
         write(ctx.value(e));
+      case TCall({
+        expr: TField(_,
+          FStatic(_.get() => {module: 'genes.Genes'},
+            _.get() => {name: 'ignore'}))
+      }, [_, body]):
+        emitValue(body);
       case TCall(e, params):
         emitCall(e, params, true);
       case TReturn(_) | TBreak | TContinue:
