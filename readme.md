@@ -33,23 +33,31 @@ Install the library and add `-lib genes` to your hxml.
 
 ```haxe
 import genes.Genes.dynamicImport;
-import my.module.MyClass;
+import my.module.A;
+import my.module.B;
+import my.module.C;
 // ...
-dynamicImport(MyClass -> new MyClass()).then(trace);
+dynamicImport(A -> new A()).then(trace);
+
+dynamicImport((B, C) -> [new B(), new C()]).then(trace);
 ```
 
-Translates to:
+Roughly translates to:
 
 ```js
-import('./my/module/MyClass')
-  .then(({MyClass}) => new MyClass())
+import('./my/module/A')
+  .then(({A}) => new A())
+  .then(console.log)
+
+Promise.all([import('./my/module/B'), import('./my/module/C')])
+  .then(modules => [new modules[0].B(), new modules[1].C()])
   .then(console.log)
 ```
 
 Genes expects a function declaration expression (`EFunction`) as the sole argument of `dynamicImport` and it will do 2 things:
 
-1. For each arguments, take the argument name (e.g. "MyClass") and resolve it as a type in the current context, taking Haxe `import` statements into account. This is for preparing the relative path of the target files (e.g. `'../../MyClass.js'`).
-2. Type the function body in the current context, ignoring the fact that it is a function body. Thus in the example the scope of `MyClass` is not the function argument but in current context i.e. the actual type `class MyClass {...}`. The return type is then applied as the type parameter of `js.lib.Promise`. This is for hinting the return type of the `dynamicImport(...)` call so that the compiler can do its typing job properly.
+1. For each argument, take the argument name (e.g. "MyClass") and resolve it as a type in the current context, taking Haxe `import` statements into account. This is for preparing the relative path of the target files (e.g. `'../../MyClass.js'`).
+2. Type the function body in the current context, ignoring the fact that it is a function body. Thus in the example the scope of `A` is not the function argument but in current context i.e. the actual type `class A {...}`. The return type is then applied as the type parameter of `js.lib.Promise`. This is for hinting the return type of the `dynamicImport(...)` call so that the compiler can do its typing job properly.
 
 ## Alternatives
 
