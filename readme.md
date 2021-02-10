@@ -59,7 +59,21 @@ Genes expects a function declaration expression (`EFunction`) as the sole argume
 1. For each argument, take the argument name (e.g. "MyClass") and resolve it as a type in the current context, taking Haxe `import` statements into account. This is for preparing the relative path of the target files (e.g. `'../../MyClass.js'`).
 2. Type the function body in the current context, ignoring the fact that it is a function body. Thus in the example the scope of `A` is not the function argument but in current context i.e. the actual type `class A {...}`. The return type is then applied as the type parameter of `js.lib.Promise`. This is for hinting the return type of the `dynamicImport(...)` call so that the compiler can do its typing job properly.
 
+## Upstream issues
+
+- Performance could be much improved if we could use the compiler to output code.
+  Haxe exposes methods to do so, but without a way to generate source maps for them.
+  HaxeFoundation/haxe#8625
+- Typescript definitions are pretty much complete. In some cases though there will
+  be references to non-existing types. Haxe does not pass any types that are 
+  removed through DCE to the generation phase. However it does pass every typedef
+  used in the project. This means sometimes a type (which it itself is not used)
+  will reference a type that does not exist (removed by DCE).
+  Luckily Typescript won't warn about these issues when your definitions are 
+  included as a library but ideally we'd be able to output completely valid types.
+  HaxeFoundation/haxe#9252
+
 ## Alternatives
 
-- Split output with require calls: [hxgenjs](https://github.com/kevinresol/hxgenjs)
+- Split output with require calls: [hxgenjs](https://github.com/kevinresol/hxgenjs) 
 - Typescript definition generation: [hxtsdgen](https://github.com/nadako/hxtsdgen)
