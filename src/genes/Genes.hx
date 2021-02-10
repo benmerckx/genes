@@ -26,7 +26,7 @@ class Genes {
         final current = Context.getLocalClass().get().module;
         final ret = Context.typeExpr(body).t.toComplexType();
 
-        final modules:Array<ImportedModule> = [];
+        final modules: Array<ImportedModule> = [];
 
         for (arg in args) {
           final name = arg.name;
@@ -61,14 +61,8 @@ class Genes {
                 macro js.Syntax.code($v{'var ${sub.name} = module.${sub.name}'})
             ];
 
-            // generate ignore/ignoreMultiple depending on the number of types
-            final ignore = switch module.types {
-              case [sub]:
-                body -> macro genes.Genes.ignore($v{sub.name}, $body);
-              case types:
-                final list = [for (sub in types) macro $v{sub.name}];
-                body -> macro genes.Genes.ignoreMultiple($a{list}, $body);
-            }
+            final list = [for (sub in module.types) macro $v{sub.name}];
+            final ignore = body -> macro genes.Genes.ignore($a{list}, $body);
 
             final handler = ignore(macro function(module) {
               @:mergeBlock $b{setup};
@@ -90,7 +84,7 @@ class Genes {
 
             final imports = macro $a{modules.map(module -> module.importExpr)};
             macro js.lib.Promise.all($imports)
-              .then(genes.Genes.ignoreMultiple($a{ignores}, function(modules) {
+              .then(genes.Genes.ignore($a{ignores}, function(modules) {
                 @:mergeBlock $b{setup};
                 $body;
               }));
@@ -103,9 +97,6 @@ class Genes {
     }
   }
 
-  public static function ignore<T>(name: String, res: T)
-    return res;
-
-  public static function ignoreMultiple<T>(name: Array<String>, res: T)
+  public static function ignore<T>(names: Array<String>, res: T)
     return res;
 }

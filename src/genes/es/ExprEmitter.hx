@@ -212,7 +212,7 @@ class ExprEmitter extends Emitter {
       case TCall({
         expr: TField(_,
           FStatic(_.get() => {module: 'genes.Genes'},
-            _.get() => {name: 'ignore' | 'ignoreMultiple'}))
+            _.get() => {name: 'ignore'}))
       }, [_, body]):
         emitExpr(body);
       case TCall(e, params):
@@ -514,7 +514,7 @@ class ExprEmitter extends Emitter {
       case TCall({
         expr: TField(_,
           FStatic(_.get() => {module: 'genes.Genes'},
-            _.get() => {name: 'ignore' | 'ignoreMultiple'}))
+            _.get() => {name: 'ignore'}))
       }, [_, body]):
         emitValue(body);
       case TCall(e, params):

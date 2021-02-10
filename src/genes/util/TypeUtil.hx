@@ -54,7 +54,9 @@ class TypeUtil {
     return switch e.expr {
       case TField(x, f) if (fieldName(f) == "iterator"):
         switch Context.followWithAbstracts(x.t) {
-          case TInst(_.get() => {name: 'Array'}, _) | TInst(_.get() => {kind: KTypeParameter(_)}, _) | TAnonymous(_) | TDynamic(_) | TMono(_):
+          case TInst(_.get() => {name: 'Array'}, _) |
+            TInst(_.get() => {kind: KTypeParameter(_)}, _) | TAnonymous(_) |
+            TDynamic(_) | TMono(_):
             true;
           case _:
             false;
@@ -95,7 +97,9 @@ class TypeUtil {
       case null: [];
       case {
         expr: TCall(call = {
-          expr: TField(_, FStatic(_.get() => {module: 'genes.Genes'}, _.get() => {name: 'ignore'}))
+          expr: TField(_,
+            FStatic(_.get() => {module: 'genes.Genes'},
+              _.get() => {name: 'ignore'}))
         }, [{expr: TConst(TString(name))}, func])
       }:
         typesInExpr(call).concat(typesInExpr(func).filter(type -> {
@@ -109,7 +113,7 @@ class TypeUtil {
         expr: TCall(call = {
           expr: TField(_,
             FStatic(_.get() => {module: 'genes.Genes'},
-              _.get() => {name: 'ignoreMultiple'}))
+              _.get() => {name: 'ignore'}))
         }, [{expr: TArrayDecl(texprs)}, func])
       }:
         final names = [
