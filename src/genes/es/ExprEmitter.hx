@@ -739,6 +739,9 @@ class ExprEmitter extends Emitter {
       case OpNot: "!";
       case OpNeg: "-";
       case OpNegBits: "~";
+      #if (haxe_ver >= 4.2)
+      case OpSpread: "...";
+      #end
     });
 
   public function writeBinop(op: Binop)
