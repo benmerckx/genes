@@ -100,20 +100,6 @@ class TypeUtil {
           expr: TField(_,
             FStatic(_.get() => {module: 'genes.Genes'},
               _.get() => {name: 'ignore'}))
-        }, [{expr: TConst(TString(name))}, func])
-      }:
-        typesInExpr(call).concat(typesInExpr(func).filter(type -> {
-          return switch type {
-            case TClassDecl(_.get() => {name: typeName}):
-              typeName != name;
-            default: true;
-          }
-        }));
-      case {
-        expr: TCall(call = {
-          expr: TField(_,
-            FStatic(_.get() => {module: 'genes.Genes'},
-              _.get() => {name: 'ignore'}))
         }, [{expr: TArrayDecl(texprs)}, func])
       }:
         final names = [
