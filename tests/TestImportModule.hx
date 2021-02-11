@@ -65,12 +65,12 @@ class TestImportModule {
         asserts.assert(!staticallyImported(ExternalSubClass));
         asserts.assert(!staticallyImported(ExternalClass2));
         asserts.assert(!staticallyImported(ExternalSubClass2));
-
         return asserts.done();
       })
       .ofJsPromise();
   }
 
+  @:exclude
   public function testImportAliased(): Promise<AssertionBuffer> {
     return genes.Genes.dynamicImport((FooClass, BarClass) -> {
       asserts.assert(new FooClass().toString() == 'foo');
