@@ -84,7 +84,6 @@ class TestImportModule {
   // TODO: this check is quite rough
   function staticallyImported<T>(cls: Class<T>) {
     final name = Type.getClassName(cls).split('.').pop();
-    trace('^import {.*$name.*} from ".*"$$');
     return new EReg('^import {.*$name.*} from ".*"$$', 'm').match(source);
   }
 }
