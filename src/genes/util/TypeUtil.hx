@@ -114,8 +114,9 @@ class TypeUtil {
         ];
         typesInExpr(call).concat(typesInExpr(func).filter(type -> {
           return switch type {
-            case TClassDecl(ref):
-              names.indexOf(TInst(ref, []).toString()) < 0;
+            case TClassDecl(TInst(_, []).toString() => name) |
+              TEnumDecl(TEnum(_, []).toString() => name):
+              names.indexOf(name) < 0;
             default: true;
           }
         }));
