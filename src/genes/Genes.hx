@@ -33,9 +33,9 @@ class Genes {
         final modules: Array<ImportedModule> = [];
 
         for (arg in args) {
-          final name = arg.name;
-          final type = Context.getType(name);
-          final fullname = Context.followWithAbstracts(type).toString();
+          final type = Context.followWithAbstracts(Context.getType(arg.name));
+          final fullname = type.toString();
+          final name = fullname.split('.').pop();
           final module = TypeUtil.moduleTypeName(TypeUtil.typeToModuleType(type));
 
           switch modules.find(m -> m.name == module) {
