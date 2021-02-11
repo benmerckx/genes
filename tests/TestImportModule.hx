@@ -9,7 +9,6 @@ import tests.bar.MyClass as BarClass;
 using StringTools;
 using tink.CoreApi;
 
-// TODO: we should probably also make sure the static import statements are not present in the generated js
 @:asserts
 class TestImportModule {
   var source: String;
