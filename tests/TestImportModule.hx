@@ -93,12 +93,15 @@ class TestImportModule {
 
   // TODO: this check is quite rough
   function classStaticallyImported<T>(cls: Class<T>) {
-    final name = Type.getClassName(cls).split('.').pop();
-    return new EReg('^import {.*$name.*} from ".*"$$', 'm').match(source);
+    return staticallyImported(Type.getClassName(cls));
   }
 
   function enumStaticallyImported<T>(enm: Enum<T>) {
-    final name = Type.getEnumName(enm).split('.').pop();
+    return staticallyImported(Type.getEnumName(enm));
+  }
+
+  function staticallyImported(typeName: String) {
+    final name = typeName.split('.').pop();
     return new EReg('^import {.*$name.*} from ".*"$$', 'm').match(source);
   }
 }
