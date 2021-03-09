@@ -187,13 +187,7 @@ class ExprEmitter extends Emitter {
         this.inValue = 0;
         this.inLoop = false;
         write('function (');
-        for (arg in join(f.args, write.bind(', '))) {
-          emitLocalIdent(arg.v.name);
-          if (arg.value != null) {
-            write(' = ');
-            emitValue(arg.value);
-          }
-        }
+        emitFunctionArguments(f);
         write(') ');
         emitExpr(f.expr);
         this.inValue = inValue;
@@ -351,6 +345,26 @@ class ExprEmitter extends Emitter {
       case TIdent(s):
         write(s);
       default:
+    }
+  }
+
+  function emitFunctionArguments(f: TFunc) {
+    for (arg in join(f.args, write.bind(', '))) {
+      final isRest = switch arg.v.t {
+        case TType(_.get() => {module: 'haxe.extern.Rest', name: 'Rest'}, _) |
+          TAbstract(_.get() => {module: 'haxe.Rest', name: 'Rest'}, _):
+          true;
+        default:
+          false;
+      }
+      if (isRest) {
+        write('...');
+      }
+      emitLocalIdent(arg.v.name);
+      if (arg.value != null) {
+        write(' = ');
+        emitValue(arg.value);
+      }
     }
   }
 
