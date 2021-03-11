@@ -87,7 +87,7 @@ class ModuleEmitter extends ExprEmitter {
     writeSpace();
     write('from');
     writeSpace();
-    #if genes.include_extension
+    #if !genes.no_extension
     var isExternal = false;
     for (dependency in what)
       if (dependency.external) {
