@@ -12,7 +12,11 @@ using Lambda;
 private typedef ImportedModule = {
   name: String,
   importExpr: Expr,
-  types: Array<{name: String, type: haxe.macro.Type}>
+  types: Array<{
+    name: String,
+    fullname: String,
+    type: haxe.macro.Type
+  }>
 }
 #end
 
@@ -29,8 +33,9 @@ class Genes {
         final modules: Array<ImportedModule> = [];
 
         for (arg in args) {
-          final name = arg.name;
-          final type = Context.getType(name);
+          final type = Context.followWithAbstracts(Context.getType(arg.name));
+          final fullname = type.toString();
+          final name = fullname.split('.').pop();
           final module = TypeUtil.moduleTypeName(TypeUtil.typeToModuleType(type));
 
           switch modules.find(m -> m.name == module) {
@@ -45,12 +50,13 @@ class Genes {
                 types: [
                   {
                     name: name,
+                    fullname: fullname,
                     type: type
                   }
                 ]
               });
             case module:
-              module.types.push({name: name, type: type});
+              module.types.push({name: name, fullname: fullname, type: type});
           }
         }
 
@@ -61,13 +67,13 @@ class Genes {
                 macro js.Syntax.code($v{'var ${sub.name} = module.${sub.name}'})
             ];
 
-            final list = [for (sub in module.types) macro $v{sub.name}];
-            final ignore = body -> macro genes.Genes.ignore($a{list}, $body);
+            final list = [for (sub in module.types) macro $v{sub.fullname}];
 
-            final handler = ignore(macro function(module) {
-              @:mergeBlock $b{setup};
-              $body;
-            });
+            final handler = macro genes.Genes.ignore($a{list},
+              function(module) {
+                @:mergeBlock $b{setup};
+                $body;
+              });
 
             macro ${module.importExpr}.then($handler);
 
@@ -78,7 +84,7 @@ class Genes {
             for (i in 0...modules.length) {
               for (sub in modules[i].types) {
                 setup.push(macro js.Syntax.code($v{'var ${sub.name} = modules[$i].${sub.name}'}));
-                ignores.push(macro $v{sub.name});
+                ignores.push(macro $v{sub.fullname});
               }
             }
 

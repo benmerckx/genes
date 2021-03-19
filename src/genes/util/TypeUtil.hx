@@ -4,6 +4,7 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
 
+using haxe.macro.TypeTools;
 using haxe.macro.TypedExprTools;
 
 class TypeUtil {
@@ -113,8 +114,9 @@ class TypeUtil {
         ];
         typesInExpr(call).concat(typesInExpr(func).filter(type -> {
           return switch type {
-            case TClassDecl(_.get() => {name: typeName}):
-              names.indexOf(typeName) < 0;
+            case TClassDecl(TInst(_, []).toString() => name) |
+              TEnumDecl(TEnum(_, []).toString() => name):
+              names.indexOf(name) < 0;
             default: true;
           }
         }));

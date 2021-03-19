@@ -28,6 +28,7 @@ class Run {
       new TestBoot(),
       new TestReservedClassNames(),
       new TestSemicolons(),
+      new TestTypeNameClash(),
       new TestTypesAsValues(),
       new TestGetterSetter(),
       new TestSyntax(),
