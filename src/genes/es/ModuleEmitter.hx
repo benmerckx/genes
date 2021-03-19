@@ -240,7 +240,8 @@ class ModuleEmitter extends ExprEmitter {
     increaseIndent();
     for (field in fields)
       switch field.kind {
-        case Constructor | Method:
+        case Constructor | Method
+          #if (haxe_ver >= 4.2) if (!field.isAbstract) #end:
           switch field.expr.expr {
             case TFunction(f) if (export || !field.isStatic):
               writeNewline();

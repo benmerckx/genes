@@ -27,6 +27,9 @@ typedef Field = {
   final expr: TypedExpr;
   final pos: Position;
   final isStatic: Bool;
+  #if (haxe_ver >= 4.2)
+  final isAbstract: Bool;
+  #end
   final isPublic: Bool;
   final params: Array<TypeParameter>;
   final doc: Null<String>;
@@ -239,6 +242,9 @@ class Module {
           pos: e.pos,
           name: 'new',
           isStatic: false,
+          #if (haxe_ver >= 4.2)
+          isAbstract: false,
+          #end
           isPublic: ctor.get().isPublic,
           params: [],
           doc: null,
@@ -258,6 +264,9 @@ class Module {
         expr: field.expr(),
         pos: field.pos,
         isStatic: false,
+        #if (haxe_ver >= 4.2)
+        isAbstract: field.isAbstract,
+        #end
         isPublic: field.isPublic,
         params: field.params,
         doc: field.doc,
@@ -277,6 +286,9 @@ class Module {
         expr: field.expr(),
         pos: field.pos,
         isStatic: true,
+        #if (haxe_ver >= 4.2)
+        isAbstract: false,
+        #end
         isPublic: field.isPublic,
         params: {
           final params = switch cl.kind {
