@@ -32,6 +32,7 @@ class Run {
       new TestTypesAsValues(),
       new TestGetterSetter(),
       new TestSyntax(),
+      new TestException(),
       #if (haxe_ver >= 4.2) new TestModuleStatics(), new TestRest(),
       new TestAbstractClass(),
       #end

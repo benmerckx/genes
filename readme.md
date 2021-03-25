@@ -27,6 +27,11 @@ Install the library and add `-lib genes` to your hxml.
 - `-D genes.disable` disable genes completely (eg. to compare results to default
   haxe js generator)
 - `-D genes.no_extension` do not use the '.js' extension in import paths
+- `-D genes.disable_native_accessors` do not generate native getter/setters for properties
+
+### Metadata
+
+- `@:genes.disableNativeAccessors` on class level or field level to disable generation of native getter/setters for properties
 
 
 ## Dynamic imports
