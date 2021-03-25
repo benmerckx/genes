@@ -231,6 +231,8 @@ class Module {
 
   static function fieldsOf(cl: ClassType) {
     final fields: Array<Field> = [];
+    final classDisableNativeAccessors = haxe.macro.Context.defined('genes.disable_native_accessors')
+      || cl.meta.has(':genes.disableNativeAccessors');
     switch cl.constructor {
       case null:
       case ctor:
@@ -254,6 +256,8 @@ class Module {
     }
     for (field in cl.fields.get()) {
       final isVar = field.meta.has(':isVar');
+      final disableNativeAccessors = field.meta.has(':genes.disableNativeAccessors')
+        || classDisableNativeAccessors;
       fields.push({
         kind: switch field.kind {
           case FVar(_, _): Property;
@@ -270,12 +274,16 @@ class Module {
         isPublic: field.isPublic,
         params: field.params,
         doc: field.doc,
-        getter: !isVar && field.kind.match(FVar(AccCall, AccCall | AccNever)),
-        setter: !isVar && field.kind.match(FVar(AccCall | AccNever, AccCall))
+        getter: !disableNativeAccessors && !isVar
+        && field.kind.match(FVar(AccCall, AccCall | AccNever)),
+        setter: !disableNativeAccessors && !isVar
+        && field.kind.match(FVar(AccCall | AccNever, AccCall))
       });
     }
     for (field in cl.statics.get()) {
       final isVar = field.meta.has(':isVar');
+      final disableNativeAccessors = field.meta.has(':genes.disableNativeAccessors')
+        || classDisableNativeAccessors;
       fields.push({
         kind: switch field.kind {
           case FVar(_, _): Property;
@@ -303,8 +311,10 @@ class Module {
           params;
         },
         doc: field.doc,
-        getter: !isVar && field.kind.match(FVar(AccCall, AccCall | AccNever)),
-        setter: !isVar && field.kind.match(FVar(AccCall | AccNever, AccCall))
+        getter: !disableNativeAccessors && !isVar
+        && field.kind.match(FVar(AccCall, AccCall | AccNever)),
+        setter: !disableNativeAccessors && !isVar
+        && field.kind.match(FVar(AccCall | AccNever, AccCall))
       });
     }
     return fields;
