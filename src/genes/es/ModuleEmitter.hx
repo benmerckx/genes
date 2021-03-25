@@ -6,7 +6,6 @@ import genes.Module;
 import haxe.macro.Type;
 import genes.util.IteratorUtil.*;
 import genes.util.TypeUtil.*;
-import haxe.macro.Context;
 import genes.util.Timer.timer;
 
 using genes.util.TypeUtil;
@@ -20,6 +19,10 @@ class ModuleEmitter extends ExprEmitter {
     final typed = module.members.filter(m -> m.match(MType(_, _)));
     if (typed.length == module.members.length)
       return endTimer();
+    if (haxe.macro.Context.defined('genes.banner')) {
+      write(haxe.macro.Context.definedValue('genes.banner'));
+      writeNewline();
+    }
     var endImportTimer = timer('emitImports');
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path),

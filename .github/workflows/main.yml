@@ -10,7 +10,7 @@ jobs:
         haxe-version:
           - '4.0.5'
           - '4.1.4'
-          - '4.2.0'
+          - '4.2.1'
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
