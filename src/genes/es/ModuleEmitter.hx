@@ -245,8 +245,9 @@ class ModuleEmitter extends ExprEmitter {
       switch field.kind {
         case Constructor | Method
           #if (haxe_ver >= 4.2) if (!field.isAbstract) #end:
-          switch field.expr.expr {
-            case TFunction(f) if (export || !field.isStatic):
+          switch field.expr {
+            case null:
+            case {expr: TFunction(f)} if (export || !field.isStatic):
               writeNewline();
               if (field.doc != null)
                 writeNewline();
