@@ -1,5 +1,11 @@
 {
-  "[haxe]": {
-    "editor.formatOnSave": true
-  }
+  "haxe.executable": {
+    "path": "node_modules/.bin/haxe",
+    "windows": {
+      "path": "node_modules/.bin/haxe.cmd"
+    }
+  },
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true
 }

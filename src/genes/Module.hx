@@ -134,15 +134,7 @@ class Module {
       write: function(code: String) {},
       emitPos: function(pos) {},
       includeType: function(type: Type) {
-        switch Context.followWithAbstracts(type) {
-          case TEnum((_.get() : BaseType) => t, _) |
-            TInst((_.get() : BaseType) => t, _):
-            final name = TypeUtil.baseTypeName(t);
-            if (context.concrete.indexOf(name) > -1)
-              dependencies.add(TypeUtil.typeToModuleType(type));
-          default:
-            dependencies.add(TypeUtil.typeToModuleType(type));
-        }
+        dependencies.add(TypeUtil.typeToModuleType(type));
       },
       typeAccessor: dependencies.typeAccessor
     }

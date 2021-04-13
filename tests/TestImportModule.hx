@@ -1,5 +1,6 @@
 package tests;
 
+import tests.util.ModuleSource.sourceCode;
 import tink.unit.AssertionBuffer;
 import tests.ExternalEnum;
 import tests.ExternalClass;
@@ -12,24 +13,9 @@ using tink.CoreApi;
 
 @:asserts
 class TestImportModule {
-  var source: String;
+  var source = sourceCode();
 
   public function new() {}
-
-  @:setup
-  public function setup() {
-    final url: String = js.Syntax.code('import.meta.url');
-    return if (url.startsWith('file://')) {
-      // Windows can't deal with a path like /C:/dir so we strip
-      // one more character off the start
-      final isWindows = Sys.systemName().toLowerCase().startsWith('win');
-      source = sys.io.File.getContent(url.substr('file://'.length
-        + (isWindows ? 1 : 0)));
-      Promise.NOISE;
-    } else {
-      Promise.reject(new Error('Unexpected URL: $url'));
-    }
-  }
 
   public function testImportEnum(): Promise<AssertionBuffer> {
     return genes.Genes.dynamicImport(ExternalEnum -> {

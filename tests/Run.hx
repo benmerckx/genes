@@ -32,6 +32,7 @@ class Run {
       new TestTypesAsValues(),
       new TestGetterSetter(),
       new TestSyntax(),
+      new TestEitherAlias(),
       #if (haxe_ver >= 4.1) new TestException(),
       #end
       #if (haxe_ver >= 4.2)
