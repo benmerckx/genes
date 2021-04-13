@@ -215,6 +215,17 @@ class Module {
     return codeDependencies = dependencies;
   }
 
+  public function getMember(name: String) {
+    for (member in members)
+      switch member {
+        case MClass({name: n}, _) | MEnum({name: n}, _) | MType({name: n}, _)
+          if (n == name):
+          return member;
+        default:
+      }
+    return null;
+  }
+
   static function hasExternSuper(s: ClassType)
     return switch s.superClass {
       case null: s.isExtern;

@@ -1,5 +1,6 @@
 package genes;
 
+import genes.util.TypeUtil;
 import haxe.macro.Type;
 import genes.Module;
 import genes.TypeAccessor;
@@ -36,15 +37,15 @@ class Dependencies {
     this.runtime = runtime;
     this.names = [
       for (member in module.members)
-        if (member.match(MType(_, _) | MClass(_, _, _) | MEnum(_, _)))
-          switch member {
+        if (member.match(MType(_,
+          _) | MClass(_, _, _) | MEnum(_, _))) switch member {
             case MClass({
               name: name,
               module: module
             }, _, _) | MEnum({
-                name: name,
-                module: module
-              }, _) | MType({name: name, module: module}, _):
+              name: name,
+              module: module
+            }, _) | MType({name: name, module: module}, _):
               {name: name, module: module}
             default:
               throw 'assert';
@@ -55,11 +56,12 @@ class Dependencies {
   public function push(module: String, dependency: Dependency) {
     final key = module + '.' + dependency.name;
     inline function alias(key: String, name: String) {
-      return aliases[key] = name + '__' +
-        (aliasCount[name] = switch aliasCount[name] {
-        case null: 1;
-        case v: v + 1;
-      });
+      return aliases[key] = name
+        + '__'
+        + (aliasCount[name] = switch aliasCount[name] {
+          case null: 1;
+          case v: v + 1;
+        });
     }
     switch aliases[key] {
       case null:
@@ -93,7 +95,7 @@ class Dependencies {
     if (base.isExtern) {
       switch base.meta.extract(':jsRequire') {
         case [{params: [{expr: EConst(CString(path))}]}]:
-          final cl:ClassType = cast base;
+          final cl: ClassType = cast base;
           final isWildcard = switch [cl.fields.get(), cl.statics.get()] {
             case [fields, statics]:
               cl.kind.equals(KNormal)
@@ -166,10 +168,26 @@ class Dependencies {
 
   public function add(type: ModuleType) {
     switch type {
-      case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base) | TTypeDecl((_.get() : BaseType) => base):
+      case TClassDecl((_.get() : BaseType) => base) |
+        TEnumDecl((_.get() : BaseType) => base) |
+        TTypeDecl((_.get() : BaseType) => base):
         final dependency = makeDependency(base);
-        if (dependency != null && dependency.path != module.module)
+        if (dependency == null)
+          return;
+        if (dependency.path != module.module)
           push(dependency.path, dependency);
+        switch type {
+          case TTypeDecl(_.get() => t)
+            if (module.getMember(dependency.name) == null):
+            // import X in Y;
+            final x = TypeUtil.typeToBaseType(t.type);
+            if (x == null)
+              return;
+            final y = makeDependency(x);
+            y.alias = dependency.name;
+            push(y.path, y);
+          default:
+        }
       default:
     }
   }
@@ -178,7 +196,8 @@ class Dependencies {
     return switch type {
       case Abstract(name): name;
       case Concrete(module, name, native):
-        if (native != null && native.indexOf('.') > -1) return native;
+        if (native != null && native.indexOf('.') > -1)
+          return native;
         final deps = imports.get(module);
         if (deps != null)
           for (i in deps)

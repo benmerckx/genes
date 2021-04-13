@@ -14,6 +14,7 @@ class Run {
       new TestRequire(), new TestExtendExtern(), new TestReactComponent(),
       new TestImportModule(), new TestCycle(), new TestCycle2(),
       #end
+      new TestTypeAlias(),
       new TestBind(),
       new TestImportAlias(),
       new TestMap(),
@@ -32,7 +33,6 @@ class Run {
       new TestTypesAsValues(),
       new TestGetterSetter(),
       new TestSyntax(),
-      new TestEitherAlias(),
       #if (haxe_ver >= 4.1) new TestException(),
       #end
       #if (haxe_ver >= 4.2)

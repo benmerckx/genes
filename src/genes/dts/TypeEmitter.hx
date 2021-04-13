@@ -39,15 +39,6 @@ class TypeEmitter {
       wrap = true) {
     final write = writer.write, emitPos = writer.emitPos,
     includeType = writer.includeType;
-    if (haxe.macro.TypeTools.toString(type).indexOf('Either') > -1)
-      switch (type) {
-        case TType(t, _):
-          var x = (t.get());
-          trace(x.name);
-          trace(x.isExtern);
-          trace(x.type);
-        default:
-      }
     switch type {
       case TInst(ref = _.get() => cl, params):
         switch [cl, params] {
@@ -122,6 +113,11 @@ class TypeEmitter {
             switch dt.type {
               case TInst(_.get() => {isExtern: true}, _):
                 emitType(writer, dt.type);
+              case TAbstract(t = _.get() => {
+                pack: ["haxe", "extern"],
+                name: "EitherType"
+              }, x) if (x.length == params.length):
+                emitType(writer, TAbstract(t, params));
               default:
                 includeType(type);
                 emitBaseType(writer, dt, params);

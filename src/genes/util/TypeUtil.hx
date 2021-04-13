@@ -20,6 +20,15 @@ class TypeUtil {
       case _: null;
     }
 
+  public static function typeToBaseType(type: Type): BaseType
+    return switch type {
+      case TEnum((_.get() : BaseType) => base, _): base;
+      case TInst((_.get() : BaseType) => base, _): base;
+      case TType((_.get() : BaseType) => base, _): base;
+      case TAbstract((_.get() : BaseType) => base, _): base;
+      case _: null;
+    }
+
   public static function getModuleType(module: String)
     return typeToModuleType(Context.getType(module));
 
