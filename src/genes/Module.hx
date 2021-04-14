@@ -2,7 +2,7 @@ package genes;
 
 import haxe.macro.Context;
 import haxe.macro.Type;
-import haxe.macro.Expr.Position;
+import haxe.macro.Expr;
 import helder.Set;
 import genes.util.TypeUtil;
 import genes.Dependencies;
@@ -35,6 +35,7 @@ typedef Field = {
   final doc: Null<String>;
   final setter: Bool;
   final getter: Bool;
+  final tsType: Null<String>;
 }
 
 enum Member {
@@ -264,7 +265,8 @@ class Module {
           params: [],
           doc: null,
           getter: false,
-          setter: false
+          setter: false,
+          tsType: null
         });
     }
     for (field in cl.fields.get()) {
@@ -290,7 +292,11 @@ class Module {
         getter: !disableNativeAccessors && !isVar
         && field.kind.match(FVar(AccCall, AccCall | AccNever)),
         setter: !disableNativeAccessors && !isVar
-        && field.kind.match(FVar(AccCall | AccNever, AccCall))
+        && field.kind.match(FVar(AccCall | AccNever, AccCall)),
+        tsType: switch field.meta.extract(':genes.type') {
+          case [{params: [{expr: EConst(CString(type))}]}]: type;
+          default: null;
+        }
       });
     }
     for (field in cl.statics.get()) {
@@ -327,7 +333,11 @@ class Module {
         getter: !disableNativeAccessors && !isVar
         && field.kind.match(FVar(AccCall, AccCall | AccNever)),
         setter: !disableNativeAccessors && !isVar
-        && field.kind.match(FVar(AccCall | AccNever, AccCall))
+        && field.kind.match(FVar(AccCall | AccNever, AccCall)),
+        tsType: switch field.meta.extract(':genes.type') {
+          case [{params: [{expr: EConst(CString(type))}]}]: type;
+          default: null;
+        }
       });
     }
     return fields;

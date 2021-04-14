@@ -34,6 +34,7 @@ class Run {
       new TestGetterSetter(),
       new TestSyntax(),
       new TestExpose(),
+      new TestTsTypes(),
       #if (haxe_ver >= 4.1) new TestException(),
       #end
       #if (haxe_ver >= 4.2)

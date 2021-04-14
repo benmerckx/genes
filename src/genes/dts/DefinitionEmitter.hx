@@ -42,7 +42,12 @@ class DefinitionEmitter extends ModuleEmitter {
     write('export type ');
     emitBaseType(def, params);
     write(' = ');
-    emitType(def.type);
+    switch def.meta.extract(':genes.type') {
+      case [{params: [{expr: EConst(CString(type))}]}]:
+        write(type);
+      default:
+        emitType(def.type);
+    }
     writeNewline();
   }
 
@@ -158,7 +163,10 @@ class DefinitionEmitter extends ModuleEmitter {
           write('export const ');
           emitIdent(field.name);
           write(': ');
-          emitType(field.type, field.params);
+          if (field.tsType != null)
+            write(field.tsType);
+          else
+            emitType(field.type, field.params);
           writeNewline();
         default:
       }
@@ -251,7 +259,10 @@ class DefinitionEmitter extends ModuleEmitter {
               write('readonly ');
             write(field.name);
             write(': ');
-            emitType(field.type, field.params);
+            if (field.tsType != null)
+              write(field.tsType);
+            else
+              emitType(field.type, field.params);
         }
     }
     decreaseIndent();
