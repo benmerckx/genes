@@ -93,6 +93,16 @@ class TypeUtil {
     }
   }
 
+  public static function isRest(type: Type) {
+    return switch type {
+      case TType(_.get() => {module: 'haxe.extern.Rest', name: 'Rest'}, _) |
+        TAbstract(_.get() => {module: 'haxe.Rest', name: 'Rest'}, _):
+        true;
+      default:
+        false;
+    }
+  }
+
   public static function moduleTypeName(module: ModuleType) {
     return switch module {
       case TClassDecl(_.get() => {module: module}): module;

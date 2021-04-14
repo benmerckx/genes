@@ -175,7 +175,7 @@ class Dependencies {
         if (dependency == null)
           return;
         if (dependency.path != module.module)
-          push(dependency.path, dependency);
+          return push(dependency.path, dependency);
         switch type {
           case TTypeDecl(_.get() => t)
             if (module.getMember(dependency.name) == null):

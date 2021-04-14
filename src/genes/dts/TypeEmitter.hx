@@ -72,9 +72,13 @@ class TypeEmitter {
             emitPos(ab.pos);
             write('null | ');
             emitType(writer, realT);
-          case [{pack: ["haxe", "extern"], name: "EitherType"}, [aT, bT]]:
-            emitType(writer, aT);
+          case [{pack: ["haxe", "extern"] | ['haxe'], name: "Rest"}, [t]]:
             emitPos(ab.pos);
+            emitType(writer, t);
+            write('[]');
+          case [{pack: ["haxe", "extern"], name: "EitherType"}, [aT, bT]]:
+            emitPos(ab.pos);
+            emitType(writer, aT);
             write(' | ');
             emitType(writer, bT);
           default:
@@ -169,6 +173,8 @@ class TypeEmitter {
 
     for (i in joinIt(0...args.length, write.bind(', '))) {
       var arg = args[i];
+      if (TypeUtil.isRest(arg.t))
+        write('...');
       write(if (arg.name != "") arg.name else 'arg$i');
       if (arg.opt && i > noOptionalUntil)
         write("?");

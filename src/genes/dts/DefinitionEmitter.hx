@@ -1,14 +1,13 @@
 package genes.dts;
 
-import haxe.io.Path;
 import genes.es.ModuleEmitter;
 import haxe.macro.Type;
 import genes.Module;
 import genes.util.TypeUtil;
 import genes.util.IteratorUtil.*;
 import genes.dts.TypeEmitter;
-import haxe.macro.Context;
 import genes.util.Timer.timer;
+import helder.Set;
 
 class DefinitionEmitter extends ModuleEmitter {
   public function emitDefinition(module: Module) {
@@ -92,7 +91,8 @@ class DefinitionEmitter extends ModuleEmitter {
       write(': ');
       switch c.type {
         case TFun(args, ret):
-          final params = paramNames.concat(c.params.map(p -> p.name));
+          final params = new Set(paramNames.concat(c.params.map(p -> p.name)))
+            .toArray();
           if (params.length > 0) {
             write('<');
             for (param in join(params, write.bind(', ')))
@@ -160,7 +160,7 @@ class DefinitionEmitter extends ModuleEmitter {
           write('export const ');
           emitIdent(field.name);
           write(': ');
-          emitType(field.type);
+          emitType(field.type, field.params);
           writeNewline();
         default:
       }
@@ -226,6 +226,8 @@ class DefinitionEmitter extends ModuleEmitter {
                 }
                 for (i in joinIt(0...args.length, write.bind(', '))) {
                   final arg = args[i];
+                  if (TypeUtil.isRest(arg.t))
+                    write('...');
                   emitIdent(arg.name);
                   if (arg.opt && i >= optionalPos)
                     write('?');
@@ -251,7 +253,7 @@ class DefinitionEmitter extends ModuleEmitter {
               write('readonly ');
             write(field.name);
             write(': ');
-            emitType(field.type);
+            emitType(field.type, field.params);
         }
     }
     decreaseIndent();
@@ -269,8 +271,14 @@ class DefinitionEmitter extends ModuleEmitter {
     TypeEmitter.emitBaseType(this, type, params);
   }
 
-  function emitType(type: Type) {
-    TypeEmitter.emitType(this, type);
+  function emitType(type: Type, ?params: Array<TypeParameter>) {
+    if (params != null && params.length > 0) {
+      write('<');
+      for (param in join(params, write.bind(', ')))
+        write(param.name);
+      write('>');
+    }
+    TypeEmitter.emitType(this, type, params == null);
   }
 
   function emitParams(params: Array<Type>) {

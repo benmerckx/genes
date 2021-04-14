@@ -350,16 +350,8 @@ class ExprEmitter extends Emitter {
 
   function emitFunctionArguments(f: TFunc) {
     for (arg in join(f.args, write.bind(', '))) {
-      final isRest = switch arg.v.t {
-        case TType(_.get() => {module: 'haxe.extern.Rest', name: 'Rest'}, _) |
-          TAbstract(_.get() => {module: 'haxe.Rest', name: 'Rest'}, _):
-          true;
-        default:
-          false;
-      }
-      if (isRest) {
+      if (isRest(arg.v.t))
         write('...');
-      }
       emitLocalIdent(arg.v.name);
       if (arg.value != null) {
         write(' = ');
@@ -706,10 +698,12 @@ class ExprEmitter extends Emitter {
     write(fieldName(f));
   }
 
+  function transformIdent(name: String) {
+    return if (keywords.exists(name)) "$" + name; else name;
+  }
+
   function emitIdent(name: String) {
-    if (keywords.exists(name))
-      write("$");
-    write(name);
+    write(transformIdent(name));
   }
 
   function emitLocalIdent(name: String) {
