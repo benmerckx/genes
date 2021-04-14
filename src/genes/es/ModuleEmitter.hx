@@ -64,7 +64,7 @@ class ModuleEmitter extends ExprEmitter {
     write('export {');
     write(TypeUtil.typeToBaseType(type).name);
     write('} from ');
-    #if !genes.no_extension
+    #if genes.no_extension
     emitString(from);
     #else
     emitString(if (extension != null) '$from.$extension' else from);
@@ -109,7 +109,9 @@ class ModuleEmitter extends ExprEmitter {
     writeSpace();
     write('from');
     writeSpace();
-    #if !genes.no_extension
+    #if genes.no_extension
+    emitString(where);
+    #else
     var isExternal = false;
     for (dependency in what)
       if (dependency.external) {
@@ -118,8 +120,6 @@ class ModuleEmitter extends ExprEmitter {
       }
     emitString(if (!isExternal && extension != null) '$where.$extension' else
       where);
-    #else
-    emitString(where);
     #end
     writeNewline();
   }
