@@ -17,7 +17,7 @@ class ModuleEmitter extends ExprEmitter {
     final endTimer = timer('emitModule');
     ctx.typeAccessor = dependencies.typeAccessor;
     final typed = module.members.filter(m -> m.match(MType(_, _)));
-    if (typed.length == module.members.length)
+    if (typed.length == module.members.length && module.expose.length == 0)
       return endTimer();
     if (haxe.macro.Context.defined('genes.banner')) {
       write(haxe.macro.Context.definedValue('genes.banner'));
@@ -49,7 +49,22 @@ class ModuleEmitter extends ExprEmitter {
           emitExpr(e);
         default:
       }
+    for (type in module.expose)
+      switch type {
+        case TInst(_.get() => {module: m}, _) |
+          TEnum(_.get() => {module: m}, _):
+          emitExport(type, module.toPath(m));
+        default:
+      }
     return endTimer();
+  }
+
+  function emitExport(type: Type, from: String) {
+    writeNewline();
+    write('export {');
+    write(TypeUtil.typeToBaseType(type).name);
+    write('} from ');
+    emitString(from);
   }
 
   function emitImports(module: String, imports: Array<Dependency>,

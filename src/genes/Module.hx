@@ -53,6 +53,7 @@ class Module {
   public final module: String;
   public final path: String;
   public final members: Array<Member> = [];
+  public final expose: Array<Type> = [];
   public var typeDependencies(get, null): Dependencies;
   public var codeDependencies(get, null): Dependencies;
 
@@ -60,9 +61,11 @@ class Module {
   final cycleCache = new Map<String, Bool>();
 
   public function new(context: ModuleContext, module, types: Array<Type>,
-      ?main: TypedExpr) {
+      ?main: TypedExpr, ?expose: Array<Type>) {
     this.context = context;
     this.module = module;
+    if (expose != null)
+      this.expose = expose;
     path = module.split('.').join('/');
     final endTimer = timer('members');
     for (type in types)

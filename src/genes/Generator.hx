@@ -1,7 +1,5 @@
 package genes;
 
-import haxe.macro.Type;
-import haxe.macro.Expr;
 import haxe.macro.JSGenApi;
 import haxe.macro.Compiler;
 import haxe.macro.Context;
@@ -9,7 +7,6 @@ import haxe.macro.Type;
 import haxe.io.Path;
 import genes.es.ModuleEmitter;
 import genes.dts.DefinitionEmitter;
-import genes.util.Timer.timer;
 import genes.util.TypeUtil;
 
 using Lambda;
@@ -22,29 +19,32 @@ class Generator {
     final toGenerate = typesPerModule(api.types);
     final output = Path.withoutExtension(Path.withoutDirectory(api.outputFile));
     final modules = new Map();
+    final expose: Array<Type> = [];
     final concrete = [];
-    for (type in api.types)
+    for (type in api.types) {
+      final base = TypeUtil.typeToBaseType(type);
+      if (base.meta.has(':expose'))
+        expose.push(type);
       switch type {
         case TEnum((_.get() : BaseType) => t, _) |
           TInst((_.get() : BaseType) => t, _):
           concrete.push(TypeUtil.baseTypeName(t));
         default:
       }
+    }
     final context = {
       concrete: concrete,
       modules: modules
     }
     function addModule(module: String, types: Array<Type>,
-        ?main: Null<TypedExpr>)
-      modules.set(module, new Module(context, module, types, main));
-    switch api.main {
-      case null:
-      case v:
-        addModule(output, switch toGenerate.get(output) {
-          case null: [];
-          case v: v;
-        }, v);
-    }
+        ?main: Null<TypedExpr>, ?expose: Array<Type>)
+      modules.set(module, new Module(context, module, types, main, expose));
+
+    addModule(output, switch toGenerate.get(output) {
+      case null: [];
+      case v: v;
+    }, api.main, expose);
+
     for (module => types in toGenerate)
       if (module != output)
         addModule(module, types);
@@ -55,6 +55,8 @@ class Generator {
   }
 
   static function needsGen(module: Module) {
+    if (module.expose.length > 0)
+      return true;
     for (member in module.members) {
       switch member {
         case MClass({meta: meta}, _, _) | MEnum({meta: meta}, _) |
@@ -88,11 +90,11 @@ class Generator {
           module: module,
           isExtern: false
         }, _) | TEnum(_.get() => {
-            module: module,
-            isExtern: false
-          }, _) | TType(_.get() => {
-            module: module
-          }, _):
+          module: module,
+          isExtern: false
+        }, _) | TType(_.get() => {
+          module: module
+        }, _):
           if (modules.exists(module))
             modules.get(module).push(type);
           else
