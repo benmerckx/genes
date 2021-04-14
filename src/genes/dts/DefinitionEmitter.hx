@@ -31,9 +31,8 @@ class DefinitionEmitter extends ModuleEmitter {
           emitTypeDefinition(def, params);
         default:
       }
-    for (export in module.expose) {
+    for (export in module.expose)
       emitExport(export, module.toPath(export.module));
-    }
     endTimer();
   }
 

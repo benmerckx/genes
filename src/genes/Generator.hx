@@ -44,7 +44,7 @@ class Generator {
               export({
                 name: field.name,
                 pos: field.pos,
-                type: field.type,
+                isType: false,
                 module: module
               });
           }
@@ -55,7 +55,7 @@ class Generator {
             export({
               name: base.name,
               pos: base.pos,
-              type: type,
+              isType: type.match(TType(_, _)),
               module: base.module
             });
       }

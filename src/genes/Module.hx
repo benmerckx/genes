@@ -53,7 +53,7 @@ typedef ModuleExport = {
   pos: Position,
   name: String,
   module: String,
-  type: Type
+  isType: Bool
 }
 
 class Module {

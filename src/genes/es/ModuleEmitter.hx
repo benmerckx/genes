@@ -50,13 +50,8 @@ class ModuleEmitter extends ExprEmitter {
         default:
       }
     for (export in module.expose)
-      switch export {
-        case {
-          type: TInst(_, _) | TEnum(_, _) | TFun(_, _)
-        }:
-          emitExport(export, module.toPath(export.module), extension);
-        default:
-      }
+      if (!export.isType)
+        emitExport(export, module.toPath(export.module), extension);
     return endTimer();
   }
 
