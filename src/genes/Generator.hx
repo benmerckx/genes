@@ -19,12 +19,19 @@ class Generator {
     final toGenerate = typesPerModule(api.types);
     final output = Path.withoutExtension(Path.withoutDirectory(api.outputFile));
     final modules = new Map();
-    final expose: Array<Type> = [];
+    final expose: Map<String, Type> = new Map();
     final concrete = [];
     for (type in api.types) {
       final base = TypeUtil.typeToBaseType(type);
-      if (base.meta.has(':expose'))
-        expose.push(type);
+      if (base.meta.has(':expose')) {
+        if (expose.exists(base.name)) {
+          final duplicate = TypeUtil.typeToBaseType(expose.get(base.name));
+          Context.warning('Trying to @:expose ${base.name} ...', base.pos);
+          Context.error('... but there\'s already an export by that name',
+            duplicate.pos);
+        }
+        expose.set(base.name, type);
+      }
       switch type {
         case TEnum((_.get() : BaseType) => t, _) |
           TInst((_.get() : BaseType) => t, _):
@@ -43,7 +50,7 @@ class Generator {
     addModule(output, switch toGenerate.get(output) {
       case null: [];
       case v: v;
-    }, api.main, expose);
+    }, api.main, [for (t in expose) t]);
 
     for (module => types in toGenerate)
       if (module != output)
