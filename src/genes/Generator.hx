@@ -8,6 +8,7 @@ import haxe.io.Path;
 import genes.es.ModuleEmitter;
 import genes.dts.DefinitionEmitter;
 import genes.util.TypeUtil;
+import genes.Module;
 
 using Lambda;
 using StringTools;
@@ -19,18 +20,44 @@ class Generator {
     final toGenerate = typesPerModule(api.types);
     final output = Path.withoutExtension(Path.withoutDirectory(api.outputFile));
     final modules = new Map();
-    final expose: Map<String, Type> = new Map();
+    final expose: Map<String, ModuleExport> = new Map();
     final concrete = [];
+    function export(export: ModuleExport) {
+      if (expose.exists(export.name)) {
+        final duplicate = expose.get(export.name);
+        Context.warning('Trying to @:expose ${export.name} ...', export.pos);
+        Context.error('... but there\'s already an export by that name',
+          duplicate.pos);
+      }
+      expose.set(export.name, export);
+    }
     for (type in api.types) {
-      final base = TypeUtil.typeToBaseType(type);
-      if (base.meta.has(':expose')) {
-        if (expose.exists(base.name)) {
-          final duplicate = TypeUtil.typeToBaseType(expose.get(base.name));
-          Context.warning('Trying to @:expose ${base.name} ...', base.pos);
-          Context.error('... but there\'s already an export by that name',
-            duplicate.pos);
-        }
-        expose.set(base.name, type);
+      switch type {
+        #if (haxe_ver >= 4.2)
+        case TInst(_.get() => {
+          kind: KModuleFields(_),
+          module: module,
+          statics: _.get() => fields
+        }, _):
+          for (field in fields) {
+            if (field.meta.has(':expose'))
+              export({
+                name: field.name,
+                pos: field.pos,
+                type: field.type,
+                module: module
+              });
+          }
+        #end
+        default:
+          final base = TypeUtil.typeToBaseType(type);
+          if (base.meta.has(':expose'))
+            export({
+              name: base.name,
+              pos: base.pos,
+              type: type,
+              module: base.module
+            });
       }
       switch type {
         case TEnum((_.get() : BaseType) => t, _) |
@@ -44,7 +71,7 @@ class Generator {
       modules: modules
     }
     function addModule(module: String, types: Array<Type>,
-        ?main: Null<TypedExpr>, ?expose: Array<Type>)
+        ?main: Null<TypedExpr>, ?expose: Array<ModuleExport>)
       modules.set(module, new Module(context, module, types, main, expose));
 
     addModule(output, switch toGenerate.get(output) {

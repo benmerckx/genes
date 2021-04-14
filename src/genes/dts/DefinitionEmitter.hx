@@ -31,9 +31,8 @@ class DefinitionEmitter extends ModuleEmitter {
           emitTypeDefinition(def, params);
         default:
       }
-    for (type in module.expose) {
-      final base = TypeUtil.typeToBaseType(type);
-      emitExport(type, module.toPath(base.module));
+    for (export in module.expose) {
+      emitExport(export, module.toPath(export.module));
     }
     endTimer();
   }
