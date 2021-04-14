@@ -23,10 +23,10 @@ class TestExpose {
 
   public function testExpose() {
     final source = sys.io.File.getContent('bin/tests.js');
-    asserts.assert(source.indexOf('export {RootExport}') > -1);
-    asserts.assert(source.indexOf('export {RootExportEnum}') > -1);
+    asserts.assert(source.indexOf('export {RootExport} from "./tests/TestExpose.js"') > -1);
+    asserts.assert(source.indexOf('export {RootExportEnum} from "./tests/TestExpose.js"') > -1);
     final source = sys.io.File.getContent('bin/tests.d.ts');
-    asserts.assert(source.indexOf('export {Hello}') > -1);
+    asserts.assert(source.indexOf('export {Hello} from "./tests/TestExpose"') > -1);
     return asserts.done();
   }
 }

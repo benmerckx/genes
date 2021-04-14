@@ -53,18 +53,22 @@ class ModuleEmitter extends ExprEmitter {
       switch type {
         case TInst(_.get() => {module: m}, _) |
           TEnum(_.get() => {module: m}, _):
-          emitExport(type, module.toPath(m));
+          emitExport(type, module.toPath(m), extension);
         default:
       }
     return endTimer();
   }
 
-  function emitExport(type: Type, from: String) {
+  function emitExport(type: Type, from: String, ?extension: String) {
     writeNewline();
     write('export {');
     write(TypeUtil.typeToBaseType(type).name);
     write('} from ');
+    #if !genes.no_extension
     emitString(from);
+    #else
+    emitString(if (extension != null) '$from.$extension' else from);
+    #end
   }
 
   function emitImports(module: String, imports: Array<Dependency>,
