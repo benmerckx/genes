@@ -40,7 +40,7 @@ class DefinitionEmitter extends ModuleEmitter {
     writeNewline();
     emitPos(def.pos);
     write('export type ');
-    emitBaseType(def, params);
+    emitBaseType(def, params, true);
     write(' = ');
     switch def.meta.extract(':genes.type') {
       case [{params: [{expr: EConst(CString(type))}]}]:
@@ -68,7 +68,7 @@ class DefinitionEmitter extends ModuleEmitter {
       emitPos(c.pos);
       write('export type ');
       write(name);
-      emitParams(params);
+      emitParams(params, true);
       write(' = ');
       write('{_hx_index: ${c.index}');
       switch c.type {
@@ -94,14 +94,8 @@ class DefinitionEmitter extends ModuleEmitter {
       write(': ');
       switch c.type {
         case TFun(args, ret):
-          final params = new Set(paramNames.concat(c.params.map(p -> p.name)))
-            .toArray();
-          if (params.length > 0) {
-            write('<');
-            for (param in join(params, write.bind(', ')))
-              write(param);
-            write('>');
-          }
+          final allParams = params.concat(c.params.map(p -> p.t));
+          emitParams(allParams, true);
           write('(');
           for (arg in join(args, write.bind(', '))) {
             emitIdent(arg.name);
@@ -136,7 +130,7 @@ class DefinitionEmitter extends ModuleEmitter {
     writeNewline();
     emitComment(et.doc);
     write('export declare type ');
-    emitBaseType(et, params);
+    emitBaseType(et, params, true);
     write(' = ');
     increaseIndent();
     for (name => c in et.constructs) {
@@ -180,7 +174,7 @@ class DefinitionEmitter extends ModuleEmitter {
     write('export declare ');
     write(if (cl.isInterface) 'interface' else 'class');
     writeSpace();
-    emitBaseType(cl, params);
+    emitBaseType(cl, params, true);
     emitPos(cl.pos);
     switch cl.superClass {
       case null:
@@ -216,7 +210,7 @@ class DefinitionEmitter extends ModuleEmitter {
                 write(if (field.kind.equals(Constructor)) 'constructor' else
                   field.name);
                 if (field.params.length > 0)
-                  emitParams(field.params.map(p -> p.t));
+                  emitParams(field.params.map(p -> p.t), true);
                 write('(');
                 var optionalPos = args.length;
                 for (i in 0...args.length) {
@@ -272,21 +266,26 @@ class DefinitionEmitter extends ModuleEmitter {
   public function typeAccessor(type: TypeAccessor)
     return ctx.typeAccessor(type);
 
-  function emitBaseType(type: BaseType, params: Array<Type>) {
-    TypeEmitter.emitBaseType(this, type, params);
+  function emitBaseType(type: BaseType, params: Array<Type>,
+      withConstraints = false) {
+    TypeEmitter.emitBaseType(this, type, params, withConstraints);
   }
 
   function emitType(type: Type, ?params: Array<TypeParameter>) {
-    if (params != null && params.length > 0) {
-      write('<');
-      for (param in join(params, write.bind(', ')))
-        write(param.name);
-      write('>');
-    }
+    if (params != null && params.length > 0)
+      emitParams(params.map(p -> p.t), true);
     TypeEmitter.emitType(this, type, params == null);
   }
 
-  function emitParams(params: Array<Type>) {
-    TypeEmitter.emitParams(this, params);
+  function emitParams(params: Array<Type>, withConstraints = false) {
+    final all = new Map();
+    for (param in params) {
+      switch param {
+        case TInst(_.get().name => name, _):
+          all.set(name, param);
+        default:
+      }
+    }
+    TypeEmitter.emitParams(this, [for (p in all) p], withConstraints);
   }
 }

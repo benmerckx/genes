@@ -7,7 +7,13 @@ typedef __B = {b: String}
 @:genes.type('number') typedef Overwritten = Dynamic;
 
 @:keep
-class TsMethods {
+enum TestEnumConstraints<T:__A> {
+  CTor<A:__A>
+  (_ : Int) : TestEnumConstraints<A>;
+}
+
+@:keep
+class TsMethods<T:{}> {
   public function typeConstraints<T: (__A & __B)>() {}
 }
 

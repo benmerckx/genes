@@ -18,28 +18,30 @@ typedef TypeWriter = {
 
 class TypeEmitter {
   public static function emitBaseType(writer: TypeWriter, type: BaseType,
-      params: Array<Type>) {
+      params: Array<Type>, withConstraints = false) {
     final write = writer.write, emitPos = writer.emitPos;
     emitPos(type.pos);
     write(writer.typeAccessor(type));
-    emitParams(writer, params);
+    emitParams(writer, params, withConstraints);
   }
 
-  public static function emitParams(writer: TypeWriter, params: Array<Type>) {
+  public static function emitParams(writer: TypeWriter, params: Array<Type>,
+      withConstraints = false) {
     final write = writer.write;
     if (params.length > 0) {
       write('<');
       for (param in join(params, write.bind(', '))) {
         emitType(writer, param);
-        switch param {
-          case TInst(_.get() => {kind: KTypeParameter(constraints)}, _):
-            if (constraints.length > 0) {
-              write(' extends ');
-              for (c in join(constraints, write.bind(' & ')))
-                emitType(writer, c);
-            }
-          default:
-        }
+        if (withConstraints)
+          switch param {
+            case TInst(_.get() => {kind: KTypeParameter(constraints)}, _):
+              if (constraints.length > 0) {
+                write(' extends ');
+                for (c in join(constraints, write.bind(' & ')))
+                  emitType(writer, c);
+              }
+            default:
+          }
       }
       write('>');
     }
