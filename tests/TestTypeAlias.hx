@@ -16,9 +16,9 @@ class TestTypeAlias {
   public function new() {}
 
   public function testType() {
-    asserts.assert(types.indexOf('type A_ = number | string') > -1);
-    asserts.assert(types.indexOf('type B_ = B') > -1);
-    asserts.assert(types.indexOf('type C_ = C') > -1);
+    asserts.assert(types.contains('type A_ = number | string'));
+    asserts.assert(types.contains('type B_ = B'));
+    asserts.assert(types.contains('type C_ = C'));
     return asserts.done();
   }
 }

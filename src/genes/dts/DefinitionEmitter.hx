@@ -215,12 +215,8 @@ class DefinitionEmitter extends ModuleEmitter {
                 emitPos(field.pos);
                 write(if (field.kind.equals(Constructor)) 'constructor' else
                   field.name);
-                if (field.params.length > 0) {
-                  write('<');
-                  for (param in join(field.params, write.bind(', ')))
-                    write(param.name);
-                  write('>');
-                }
+                if (field.params.length > 0)
+                  emitParams(field.params.map(p -> p.t));
                 write('(');
                 var optionalPos = args.length;
                 for (i in 0...args.length) {

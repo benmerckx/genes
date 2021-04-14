@@ -29,8 +29,18 @@ class TypeEmitter {
     final write = writer.write;
     if (params.length > 0) {
       write('<');
-      for (param in join(params, write.bind(', ')))
+      for (param in join(params, write.bind(', '))) {
         emitType(writer, param);
+        switch param {
+          case TInst(_.get() => {kind: KTypeParameter(constraints)}, _):
+            if (constraints.length > 0) {
+              write(' extends ');
+              for (c in join(constraints, write.bind(' & ')))
+                emitType(writer, c);
+            }
+          default:
+        }
+      }
       write('>');
     }
   }
