@@ -150,12 +150,15 @@ class Module {
       typeAccessor: dependencies.typeAccessor
     }
     function addBaseType(type: BaseType, params: Array<Type>)
-      TypeEmitter.emitBaseType(writer, type, params);
+      TypeEmitter.emitBaseType(writer, type, params, true);
     function addType(type: Type)
       TypeEmitter.emitType(writer, type);
+    function addParams(params: Array<Type>)
+      TypeEmitter.emitParams(writer, params, true);
     for (member in members) {
       switch member {
-        case MClass(cl, _, fields):
+        case MClass(cl, params, fields):
+          addParams(params);
           switch cl.interfaces {
             case null | []:
             case v:
@@ -168,20 +171,26 @@ class Module {
             case null:
             case {t: t}: dependencies.add(TClassDecl(t));
           }
-          for (field in fields)
+          for (field in fields) {
+            addParams(field.params.map(p -> p.t));
             addType(field.type);
-        case MEnum(et, _):
+          }
+        case MEnum(et, params):
+          addParams(params);
           for (c in et.constructs) {
+            addParams(c.params.map(p -> p.t));
             switch c.type {
               case TFun(args, ret):
-                for (arg in args)
+                for (arg in args) {
                   addType(arg.t);
+                }
               default:
             }
           }
         case MMain(expr):
           addType(expr.t);
-        case MType(def, _):
+        case MType(def, params):
+          addParams(params);
           addType(def.type);
         default:
       }

@@ -7,7 +7,6 @@ import genes.util.TypeUtil;
 import genes.util.IteratorUtil.*;
 import genes.dts.TypeEmitter;
 import genes.util.Timer.timer;
-import helder.Set;
 
 class DefinitionEmitter extends ModuleEmitter {
   public function emitDefinition(module: Module) {

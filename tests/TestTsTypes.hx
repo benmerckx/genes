@@ -10,6 +10,8 @@ typedef __B = {b: String}
 enum TestEnumConstraints<T:__A> {
   CTor<A:__A>
   (_ : Int) : TestEnumConstraints<A>;
+  TestImportTypeConstraint<X:ExternalEnum>
+  (_ : Int);
 }
 
 @:keep
@@ -29,6 +31,7 @@ class TestTsTypes {
     asserts.assert(types.contains('type Overwritten = number'));
     asserts.assert(types.contains('prop: number'));
     asserts.assert(types.contains('T extends __A & __B'));
+    asserts.assert(types.contains('import {ExternalEnum} from'));
     return asserts.done();
   }
 }
