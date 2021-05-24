@@ -52,6 +52,11 @@ class TypeEmitter {
     final write = writer.write, emitPos = writer.emitPos,
     includeType = writer.includeType;
     switch type {
+      case TInst(_.get().meta => meta, _) if (meta.has(':genes.type')):
+        switch meta.extract(':genes.type') {
+          case [{params: [{expr: EConst(CString(type))}]}]: write(type);
+          default: throw '@:genes.type needs an expression';
+        }
       case TInst(ref = _.get() => cl, params):
         switch [cl, params] {
           case [{pack: [], name: 'String'}, _]:

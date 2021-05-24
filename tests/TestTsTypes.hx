@@ -17,6 +17,8 @@ enum TestEnumConstraints<T:__A> {
 @:keep
 class TsMethods<T:{}> {
   public function typeConstraints<T: (__A & __B)>() {}
+
+  public function testParamType<@:genes.type('param1') T>(@:genes.type('param2') a: Int) {}
 }
 
 @:asserts
@@ -32,6 +34,8 @@ class TestTsTypes {
     asserts.assert(types.contains('prop: number'));
     asserts.assert(types.contains('T extends __A & __B'));
     asserts.assert(types.contains('import {ExternalEnum} from'));
+    asserts.assert(types.contains('a: param2'));
+    asserts.assert(types.contains('<param1'));
     return asserts.done();
   }
 }

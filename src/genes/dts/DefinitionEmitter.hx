@@ -227,7 +227,18 @@ class DefinitionEmitter extends ModuleEmitter {
                   if (arg.opt && i >= optionalPos)
                     write('?');
                   write(': ');
-                  emitType(arg.t);
+                  switch field.expr {
+                    case null:
+                      emitType(arg.t);
+                    case {expr: TFunction(f)}:
+                      final meta = f.args[i].v.meta;
+                      switch meta.extract(':genes.type') {
+                        case [{params: [{expr: EConst(CString(type))}]}]: write(type);
+                        default: emitType(arg.t);
+                      }
+                    default:
+                      emitType(arg.t);
+                  }
                 }
                 write(')');
                 if (!field.kind.match(Constructor)) {
