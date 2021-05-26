@@ -1,7 +1,12 @@
 package tests;
 
 import tests.util.ModuleSource.sourceCode;
+import tests.bar.MyClass in MyClassAlias;
 
+// Make sure we do not try to import this from the current module,
+// because it resembles import X in Y;
+typedef X1<T> = T;
+typedef Y = X1<MyClassAlias>;
 typedef __A = {a: Int}
 typedef __B = {b: String}
 @:genes.type('number') typedef Overwritten = Dynamic;
@@ -30,6 +35,7 @@ class TestTsTypes {
   public function new() {}
 
   public function testType() {
+    asserts.assert(types.contains('export type X1<T> = T'));
     asserts.assert(types.contains('type Overwritten = number'));
     asserts.assert(types.contains('prop: number'));
     asserts.assert(types.contains('T extends __A & __B'));

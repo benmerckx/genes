@@ -83,14 +83,7 @@ class Module {
         case TInst(_.get() => cl, params):
           members.push(MClass(cl, params, fieldsOf(cl)));
         case TType(_.get() => tt, params):
-          switch Context.followWithAbstracts(tt.type) {
-            case TEnum((_.get() : BaseType) => t, _) |
-              TInst((_.get() : BaseType) => t, _):
-              final name = TypeUtil.baseTypeName(t);
-              if (context.concrete.indexOf(name) > -1) members.push(MType(tt,
-                params));
-            default: members.push(MType(tt, params));
-          }
+          members.push(MType(tt, params));
         default:
           throw 'assert';
       }
