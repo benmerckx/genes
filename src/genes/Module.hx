@@ -91,8 +91,11 @@ class Module {
           switch Context.followWithAbstracts(tt.type) {
             case TEnum(_.get() => t, _): addIfConcrete(t);
             case TInst(t = _.get() => {
-              kind: KNormal | KModuleFields(_) | KGeneric | KGenericInstance(_,
-                _) | KAbstractImpl(_)
+              kind: KNormal
+              #if (haxe_ver >= 4.2)
+              | KModuleFields(_)
+              #end
+              | KGeneric | KGenericInstance(_, _) | KAbstractImpl(_)
             }, _):
               addIfConcrete(t.get());
             default: members.push(MType(tt, params));
