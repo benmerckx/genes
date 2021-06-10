@@ -404,14 +404,24 @@ class ModuleEmitter extends ExprEmitter {
       emitPos(c.pos);
       write(name);
       write(': ');
-      write(switch c.type {
+      switch c.type {
         case TFun(args, ret):
-          final params = args.map(param -> param.name).join(', ');
-          final paramsQuoted = args.map(param -> '"${param.name}"').join(', ');
-          'Object.assign(($params) => ({_hx_index: ${c.index}, __enum__: "${id}", $params}), {_hx_name: "${name}", __params__: [$paramsQuoted]})';
+          write('Object.assign((');
+          for (param in join(args, write.bind(', ')))
+            emitLocalIdent(param.name);
+          write(') => ({_hx_index: ${c.index}, __enum__: "${id}", ');
+          for (param in join(args, write.bind(', '))) {
+            emitString(param.name);
+            write(': ');
+            emitLocalIdent(param.name);
+          }
+          write('}), {_hx_name: "${name}", __params__: [');
+          for (param in join(args, write.bind(', ')))
+            emitString(param.name);
+          write(']})');
         default:
-          '{_hx_name: "${name}", _hx_index: ${c.index}, __enum__: "${id}"}';
-      });
+          write('{_hx_name: "${name}", _hx_index: ${c.index}, __enum__: "${id}"}');
+      }
     }
     decreaseIndent();
     writeNewline();

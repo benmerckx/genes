@@ -5,7 +5,8 @@ import tink.unit.Assert.*;
 enum Gen<A, B> {
   Single:Gen<String, A>;
   Multi(a: A, b: B):Gen<Bool, B>;
-  More<T>(a : A, b : B, c : T) : Gen<T, T>;
+  More<T>
+  (a : A, b : B, c : T) : Gen<T, T>;
 }
 
 enum Order {
@@ -17,7 +18,14 @@ enum abstract Str(String) to String {
   final A = 'a';
 }
 
+// https://github.com/benmerckx/genes/issues/46
+enum Query {
+  Delete(delete: {});
+}
+
 class TestEnum {
+  @:keep var query = Delete({});
+
   public function new() {}
 
   public function test()
