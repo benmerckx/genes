@@ -83,7 +83,20 @@ class Module {
         case TInst(_.get() => cl, params):
           members.push(MClass(cl, params, fieldsOf(cl)));
         case TType(_.get() => tt, params):
-          members.push(MType(tt, params));
+          function addIfConcrete(t: BaseType) {
+            final name = TypeUtil.baseTypeName(t);
+            if (context.concrete.indexOf(name) > -1)
+              members.push(MType(tt, params));
+          }
+          switch Context.followWithAbstracts(tt.type) {
+            case TEnum(_.get() => t, _): addIfConcrete(t);
+            case TInst(t = _.get() => {
+              kind: KNormal | KModuleFields(_) | KGeneric | KGenericInstance(_,
+                _) | KAbstractImpl(_)
+            }, _):
+              addIfConcrete(t.get());
+            default: members.push(MType(tt, params));
+          }
         default:
           throw 'assert';
       }
