@@ -194,76 +194,79 @@ class DefinitionEmitter extends ModuleEmitter {
     write(' {');
     increaseIndent();
     for (field in fields) {
-      if (field.isPublic)
-        switch field.kind {
-          case Constructor | Method:
-            switch field.type {
-              case TFun(args, ret):
-                writeNewline();
-                if (field.doc != null)
-                  writeNewline();
-                emitComment(field.doc);
-                if (field.isStatic)
-                  write('static ');
-                emitPos(field.pos);
-                write(if (field.kind.equals(Constructor)) 'constructor' else
-                  field.name);
-                if (field.params.length > 0)
-                  emitParams(field.params.map(p -> p.t), true);
-                write('(');
-                var optionalPos = args.length;
-                for (i in 0...args.length) {
-                  final fromEnd = args.length - 1 - i;
-                  if (args[fromEnd].opt)
-                    optionalPos = fromEnd;
-                  else
-                    break;
-                }
-                for (i in joinIt(0...args.length, write.bind(', '))) {
-                  final arg = args[i];
-                  if (TypeUtil.isRest(arg.t))
-                    write('...');
-                  emitIdent(arg.name);
-                  if (arg.opt && i >= optionalPos)
-                    write('?');
-                  write(': ');
-                  switch field.expr {
-                    case null:
-                      emitType(arg.t);
-                    case {expr: TFunction(f)}:
-                      final meta = f.args[i].v.meta;
-                      switch meta.extract(':genes.type') {
-                        case [{params: [{expr: EConst(CString(type))}]}]: write(type);
-                        default: emitType(arg.t);
-                      }
-                    default:
-                      emitType(arg.t);
-                  }
-                }
-                write(')');
-                if (!field.kind.match(Constructor)) {
-                  write(': ');
-                  emitType(ret);
-                }
-              default: throw 'assert';
-            }
-          case Property:
-            writeNewline();
-            emitPos(field.pos);
-            if (field.doc != null)
+      switch field.kind {
+        case Constructor | Method:
+          switch field.type {
+            case TFun(args, ret):
               writeNewline();
-            emitComment(field.doc);
-            if (field.isStatic)
-              write('static ');
-            if (field.getter && !field.setter)
-              write('readonly ');
-            write(field.name);
-            write(': ');
-            if (field.tsType != null)
-              write(field.tsType);
-            else
-              emitType(field.type, field.params);
-        }
+              if (field.doc != null)
+                writeNewline();
+              emitComment(field.doc);
+              if (!field.isPublic)
+                write('protected ');
+              if (field.isStatic)
+                write('static ');
+              emitPos(field.pos);
+              write(if (field.kind.equals(Constructor)) 'constructor' else
+                field.name);
+              if (field.params.length > 0)
+                emitParams(field.params.map(p -> p.t), true);
+              write('(');
+              var optionalPos = args.length;
+              for (i in 0...args.length) {
+                final fromEnd = args.length - 1 - i;
+                if (args[fromEnd].opt)
+                  optionalPos = fromEnd;
+                else
+                  break;
+              }
+              for (i in joinIt(0...args.length, write.bind(', '))) {
+                final arg = args[i];
+                if (TypeUtil.isRest(arg.t))
+                  write('...');
+                emitIdent(arg.name);
+                if (arg.opt && i >= optionalPos)
+                  write('?');
+                write(': ');
+                switch field.expr {
+                  case null:
+                    emitType(arg.t);
+                  case {expr: TFunction(f)}:
+                    final meta = f.args[i].v.meta;
+                    switch meta.extract(':genes.type') {
+                      case [{params: [{expr: EConst(CString(type))}]}]: write(type);
+                      default: emitType(arg.t);
+                    }
+                  default:
+                    emitType(arg.t);
+                }
+              }
+              write(')');
+              if (!field.kind.match(Constructor)) {
+                write(': ');
+                emitType(ret);
+              }
+            default: throw 'assert';
+          }
+        case Property:
+          writeNewline();
+          emitPos(field.pos);
+          if (field.doc != null)
+            writeNewline();
+          emitComment(field.doc);
+          if (!field.isPublic)
+            write('protected ');
+          if (field.isStatic)
+            write('static ');
+          if (field.getter && !field.setter)
+            write('readonly ');
+          write(field.name);
+          write(': ');
+          if (field.tsType != null)
+            write(field.tsType);
+          else
+            emitType(field.type, field.params);
+      }
     }
     decreaseIndent();
     writeNewline();
