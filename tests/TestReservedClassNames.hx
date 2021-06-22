@@ -15,4 +15,16 @@ class TestReservedClassNames {
     asserts.assert(Std.is(new Reserved(), Object));
     return asserts.done();
   }
+
+  public function testGlobalType() {
+    asserts.assert(Promise != cast js.lib.Promise);
+    asserts.assert(Event != cast js.html.Event);
+    return asserts.done();
+  }
 }
+
+// name clash with js.lib.Promise
+class Promise {}
+
+// name clash with js.html.Event
+class Event {}
