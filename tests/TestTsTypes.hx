@@ -64,4 +64,10 @@ class TestTsTypes {
     asserts.assert(types.contains('static ABSTRACT_INST: number'));
     return asserts.done();
   }
+
+  public function testCompile() {
+    // make sure TS compiler approves the generated codes
+    asserts.assert(Sys.command('tsc', ['bin/tests.d.ts']) == 0);
+    return asserts.done();
+  }
 }
