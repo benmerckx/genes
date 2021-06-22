@@ -11,15 +11,15 @@ class Run {
       // These test specific genes features that make no sense in default
       // haxe generated js
       #if !genes.disable
-      new TestRequire(), new TestExtendExtern(), new TestReactComponent(),
-      new TestImportModule(), new TestCycle(), new TestCycle2(),
+      new TestAbstract(), new TestRequire(), new TestExtendExtern(),
+      new TestReactComponent(), new TestImportModule(), new TestCycle(),
+      new TestCycle2(), new TestComments(), new TestTsTypes(),
+      new TestTypeAlias(), new TestSyntax(),
       #end
-      new TestTypeAlias(),
       new TestBind(),
       new TestImportAlias(),
       new TestMap(),
       new TestIterators(),
-      new TestComments(),
       new TestTypedef(),
       new TestEnum(),
       new TestRegisterAlias(),
@@ -32,9 +32,7 @@ class Run {
       new TestTypeNameClash(),
       new TestTypesAsValues(),
       new TestGetterSetter(),
-      new TestSyntax(),
       new TestExpose(),
-      new TestTsTypes(),
       #if (haxe_ver >= 4.1) new TestException(),
       #end
       #if (haxe_ver >= 4.2)

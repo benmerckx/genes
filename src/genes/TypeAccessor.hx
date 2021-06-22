@@ -1,5 +1,6 @@
 package genes;
 
+import genes.util.GlobalTypes;
 import genes.util.TypeUtil;
 import haxe.macro.Type;
 
@@ -17,7 +18,9 @@ abstract TypeAccessor(TypeAccessorImpl) from TypeAccessorImpl {
           case true: Abstract('"$$hxCoreType__$name"');
           case false: throw 'assert';
         }
-      case TClassDecl((_.get() : BaseType) => base) | TEnumDecl((_.get() : BaseType) => base) | TTypeDecl((_.get() : BaseType) => base):
+      case TClassDecl((_.get() : BaseType) => base) |
+        TEnumDecl((_.get() : BaseType) => base) |
+        TTypeDecl((_.get() : BaseType) => base):
         fromBaseType(base);
     }
   }
@@ -29,17 +32,18 @@ abstract TypeAccessor(TypeAccessorImpl) from TypeAccessorImpl {
   @:from public static function fromBaseType(type: BaseType): TypeAccessor {
     final native = switch type.meta.extract(':native') {
       case [{params: [{expr: EConst(CString(name))}]}]:
-        name;
+        if (GlobalTypes.LIST.exists(name)) 'Register.$$global.$name' else name;
       default:
         switch type.meta.extract(':jsRequire') {
-          case [{params: [_, {expr: EConst(CString(name))}]}] if (name != 'default'):
+          case [{params: [_, {expr: EConst(CString(name))}]}]
+            if (name != 'default'):
             name;
           default: null;
         }
     }
     final dependency = Dependencies.makeDependency(type);
     if (dependency == null)
-      return Concrete(type.module, type.name, native);
+      return Concrete(type.module, TypeUtil.baseTypeName(type), native);
     return Concrete(dependency.path, dependency.name, native);
   }
 }

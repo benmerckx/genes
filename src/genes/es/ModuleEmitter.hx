@@ -128,7 +128,7 @@ class ModuleEmitter extends ExprEmitter {
         case {kind: Property, isStatic: true, expr: expr} if (expr != null):
           final types = TypeUtil.typesInExpr(expr);
           final isCyclic = types.fold((type, res) -> {
-            return res || checkCycles(TypeUtil.moduleTypeName(type));
+            return res || checkCycles(TypeUtil.moduleTypeModule(type));
           }, false);
           if (isCyclic)
             emitDeferredStatic(cl, field);
@@ -147,7 +147,7 @@ class ModuleEmitter extends ExprEmitter {
           write('export const ');
           emitIdent(field.name);
           write(' = ');
-          emitIdent(cl.name);
+          emitIdent(TypeUtil.className(cl));
           emitField(field.name);
           writeNewline();
         default:
@@ -158,7 +158,7 @@ class ModuleEmitter extends ExprEmitter {
   function emitStatic(cl: ClassType, field: Field) {
     writeNewline();
     emitPos(field.pos);
-    emitIdent(cl.name);
+    emitIdent(TypeUtil.className(cl));
     emitField(field.name);
     write(' = ');
     emitValue(field.expr);
@@ -169,7 +169,7 @@ class ModuleEmitter extends ExprEmitter {
     emitPos(field.pos);
     write(ctx.typeAccessor(registerType));
     write('.createStatic(');
-    emitIdent(cl.name);
+    emitIdent(TypeUtil.className(cl));
     write(', ');
     emitString(field.name);
     write(', function () { return ');
@@ -203,7 +203,7 @@ class ModuleEmitter extends ExprEmitter {
   function emitInterface(cl: ClassType) {
     writeNewline();
     write('export const ');
-    write(cl.name);
+    write(TypeUtil.className(cl));
     write(' = {}');
     writeNewline();
   }
@@ -216,10 +216,10 @@ class ModuleEmitter extends ExprEmitter {
     if (export)
       write('export ');
 
-    final id = cl.pack.concat([cl.name]).join('.');
+    final id = cl.pack.concat([TypeUtil.className(cl)]).join('.');
     if (id != 'genes.Register') {
       write('const ');
-      write(cl.name);
+      write(TypeUtil.className(cl));
       write(' = ');
       writeGlobalVar("$hxClasses");
       write('[');
@@ -231,7 +231,7 @@ class ModuleEmitter extends ExprEmitter {
 
     emitPos(cl.pos);
     write('class ');
-    write(cl.name);
+    write(TypeUtil.className(cl));
     if (cl.superClass != null || hasConstructor(fields)) {
       write(' extends ');
       write(ctx.typeAccessor(registerType));
@@ -239,7 +239,7 @@ class ModuleEmitter extends ExprEmitter {
       switch cl.superClass {
         case null:
         case {t: TClassDecl(_) => t}:
-          final isCyclic = checkCycles(TypeUtil.moduleTypeName(t));
+          final isCyclic = checkCycles(TypeUtil.moduleTypeModule(t));
           if (isCyclic)
             write('() => ');
           write(ctx.typeAccessor(t));
@@ -359,7 +359,7 @@ class ModuleEmitter extends ExprEmitter {
     increaseIndent();
     writeNewline();
     write('return ');
-    emitIdent(cl.name);
+    emitIdent(TypeUtil.className(cl));
     decreaseIndent();
     writeNewline();
     write('}');

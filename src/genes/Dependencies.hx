@@ -1,6 +1,7 @@
 package genes;
 
 import genes.util.TypeUtil;
+import genes.util.GlobalTypes;
 import haxe.macro.Type;
 import genes.Module;
 import genes.TypeAccessor;
@@ -35,22 +36,17 @@ class Dependencies {
   public function new(module: Module, runtime = true) {
     this.module = module;
     this.runtime = runtime;
-    this.names = [
-      for (member in module.members)
-        if (member.match(MType(_,
-          _) | MClass(_, _, _) | MEnum(_, _))) switch member {
-            case MClass({
-              name: name,
-              module: module
-            }, _, _) | MEnum({
-              name: name,
-              module: module
-            }, _) | MType({name: name, module: module}, _):
-              {name: name, module: module}
-            default:
-              throw 'assert';
-          }
-    ];
+    this.names = [];
+    for (member in module.members)
+      switch member {
+        case MClass(type, _, _):
+          names.push({name: TypeUtil.className(type), module: type.module});
+        case MEnum({name: name, module: module}, _):
+          names.push({name: name, module: module});
+        case MType({name: name, module: module}, _):
+          names.push({name: name, module: module});
+        default:
+      }
   }
 
   public function push(module: String, dependency: Dependency) {
@@ -65,7 +61,7 @@ class Dependencies {
     }
     switch aliases[key] {
       case null:
-        if (genes.util.GlobalTypes.LIST.contains(dependency.name)) {
+        if (GlobalTypes.LIST.exists(dependency.name)) {
           dependency.alias = alias(key, dependency.name);
         } else
           for (named in names) {
@@ -91,6 +87,7 @@ class Dependencies {
   }
 
   public static function makeDependency(base: BaseType): Dependency {
+    final name = TypeUtil.baseTypeName(base);
     if (base.isExtern) {
       switch base.meta.extract(':jsRequire') {
         case [{params: [{expr: EConst(CString(path))}]}]:
@@ -106,7 +103,7 @@ class Dependencies {
           }
           return {
             type: if (isWildcard) DAsterisk else DDefault,
-            name: base.name,
+            name: name,
             path: path,
             external: true,
             pos: base.pos
@@ -114,7 +111,7 @@ class Dependencies {
         case [{params: [{expr: EConst(CString(path))}, {expr: EConst(CString('default'))}]}]:
           return {
             type: DDefault,
-            name: base.name,
+            name: name,
             path: path,
             external: true,
             pos: base.pos
@@ -158,7 +155,7 @@ class Dependencies {
     }
     return {
       type: DName,
-      name: base.name,
+      name: name,
       external: false,
       path: base.module,
       pos: base.pos
@@ -177,7 +174,7 @@ class Dependencies {
           return push(dependency.path, dependency);
         switch type {
           case TTypeDecl(_.get() => t)
-            if (module.getMember(dependency.name) == null):
+            if (module.getMember(TypeUtil.baseTypeName(base)) == null):
             // import X in Y;
             final x = TypeUtil.typeToBaseType(t.type);
             if (x == null)

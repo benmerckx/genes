@@ -36,7 +36,7 @@ class Genes {
           final type = Context.followWithAbstracts(Context.getType(arg.name));
           final fullname = type.toString();
           final name = fullname.split('.').pop();
-          final module = TypeUtil.moduleTypeName(TypeUtil.typeToModuleType(type));
+          final module = TypeUtil.moduleTypeModule(TypeUtil.typeToModuleType(type));
 
           switch modules.find(m -> m.name == module) {
             case null:

@@ -19,6 +19,8 @@ class TestReservedClassNames {
   public function testGlobalType() {
     asserts.assert(Object != cast js.lib.Object); // class Object is defined in another module
     asserts.assert(Promise != cast js.lib.Promise); // class Promise is defined in current module
+    asserts.assert((cast js.lib.Promise)
+      .name == 'Promise'); // we can actually reference the Promise module
     return asserts.done();
   }
 }

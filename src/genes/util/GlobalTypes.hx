@@ -1,8 +1,10 @@
 package genes.util;
 
+import helder.Set;
+
 class GlobalTypes {
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
-  public static final LIST = [
+  public static final LIST = new Set([
     'Infinity', 'NaN', 'Object', 'Function', 'Boolean', 'Symbol', 'Error',
     'AggregateError ', 'EvalError', 'InternalError', 'RangeError',
     'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number',
@@ -14,5 +16,5 @@ class GlobalTypes {
     'Promise', 'Generator', 'GeneratorFunction', 'AsyncFunction',
     'AsyncGenerator', 'AsyncGeneratorFunction', 'Reflect', 'Proxy', 'Intl',
     'WebAssembly',
-  ];
+  ]);
 }
