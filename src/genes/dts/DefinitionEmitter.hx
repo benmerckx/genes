@@ -265,7 +265,7 @@ class DefinitionEmitter extends ModuleEmitter {
           if (field.tsType != null)
             write(field.tsType);
           else
-            emitType(field.type, field.params);
+            emitType(field.type, field.isStatic ? null : field.params);
       }
     }
     decreaseIndent();
