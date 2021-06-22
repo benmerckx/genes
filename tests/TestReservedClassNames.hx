@@ -17,14 +17,10 @@ class TestReservedClassNames {
   }
 
   public function testGlobalType() {
-    asserts.assert(Promise != cast js.lib.Promise);
-    asserts.assert(Event != cast js.html.Event);
+    asserts.assert(Object != cast js.lib.Object); // class Object is defined in another module
+    asserts.assert(Promise != cast js.lib.Promise); // class Promise is defined in current module
     return asserts.done();
   }
 }
 
-// name clash with js.lib.Promise
 class Promise {}
-
-// name clash with js.html.Event
-class Event {}

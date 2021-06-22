@@ -65,16 +65,15 @@ class Dependencies {
     }
     switch aliases[key] {
       case null:
-        switch dependency.name {
-          case 'Object':
-            dependency.alias = alias(key, dependency.name);
-          default:
-            for (named in names)
-              if (named.module != module && named.name == dependency.name) {
-                dependency.alias = alias(key, named.name);
-                break;
-              }
-        }
+        if (genes.util.GlobalTypes.LIST.contains(dependency.name)) {
+          dependency.alias = alias(key, dependency.name);
+        } else
+          for (named in names) {
+            if (named.module != module && named.name == dependency.name) {
+              dependency.alias = alias(key, named.name);
+              break;
+            }
+          }
       case v:
         dependency.alias = v;
     }
