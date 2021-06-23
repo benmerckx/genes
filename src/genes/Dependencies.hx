@@ -61,7 +61,7 @@ class Dependencies {
     }
     switch aliases[key] {
       case null:
-        if (GlobalTypes.LIST.exists(dependency.name)) {
+        if (GlobalTypes.exists(dependency.name)) {
           dependency.alias = alias(key, dependency.name);
         } else
           for (named in names) {

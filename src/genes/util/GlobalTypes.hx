@@ -4,7 +4,7 @@ import helder.Set;
 
 class GlobalTypes {
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
-  public static final LIST = new Set([
+  static final LIST = new Set([
     'Infinity', 'NaN', 'Object', 'Function', 'Boolean', 'Symbol', 'Error',
     'AggregateError ', 'EvalError', 'InternalError', 'RangeError',
     'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number',
@@ -17,4 +17,7 @@ class GlobalTypes {
     'AsyncGenerator', 'AsyncGeneratorFunction', 'Reflect', 'Proxy', 'Intl',
     'WebAssembly',
   ]);
+
+  public static inline function exists(v)
+    return LIST.exists(v);
 }
