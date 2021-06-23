@@ -62,7 +62,7 @@ class Generator {
       switch type {
         case TEnum((_.get() : BaseType) => t, _) |
           TInst((_.get() : BaseType) => t, _):
-          concrete.push(TypeUtil.baseTypeName(t));
+          concrete.push(TypeUtil.baseTypeFullName(t));
         default:
       }
     }

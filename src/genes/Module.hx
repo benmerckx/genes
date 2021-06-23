@@ -84,7 +84,7 @@ class Module {
           members.push(MClass(cl, params, fieldsOf(cl)));
         case TType(_.get() => tt, params):
           function addIfConcrete(t: BaseType) {
-            final name = TypeUtil.baseTypeName(t);
+            final name = TypeUtil.baseTypeFullName(t);
             if (context.concrete.indexOf(name) > -1)
               members.push(MType(tt, params));
           }

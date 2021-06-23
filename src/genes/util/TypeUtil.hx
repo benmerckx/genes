@@ -32,7 +32,7 @@ class TypeUtil {
   public static function getModuleType(module: String)
     return typeToModuleType(Context.getType(module));
 
-  public static function baseTypeName(type: BaseType) {
+  public static function baseTypeFullName(type: BaseType) {
     return type.module + '.' + type.name;
   }
 
@@ -103,12 +103,43 @@ class TypeUtil {
     }
   }
 
-  public static function moduleTypeName(module: ModuleType) {
+  public static function moduleTypeModule(module: ModuleType) {
     return switch module {
       case TClassDecl(_.get() => {module: module}): module;
       case TEnumDecl(_.get() => {module: module}): module;
       case TTypeDecl(_.get() => {module: module}): module;
       default: '';
+    }
+  }
+
+  public static function moduleTypeName(module: ModuleType) {
+    return switch module {
+      case TClassDecl(_.get() => cl): className(cl);
+      case TEnumDecl(_.get() => {name: name}): name;
+      case TTypeDecl(_.get() => {name: name}): name;
+      default: '';
+    }
+  }
+
+  public static function baseTypeName(base: BaseType) {
+    if (Reflect.hasField(base, 'kind'))
+      return className(cast base);
+    return base.name;
+  }
+
+  public static function typeName(module: Type) {
+    return switch module {
+      case TInst(_.get() => cl, _): className(cl);
+      default: typeToBaseType(module).name;
+    }
+  }
+
+  public static function className(cl: ClassType) {
+    return switch cl {
+      case {kind: KAbstractImpl(_.get() => a), meta: meta}
+        if (!meta.has(':native')):
+        a.name;
+      default: cl.name;
     }
   }
 
