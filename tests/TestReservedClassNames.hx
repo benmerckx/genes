@@ -19,6 +19,7 @@ class TestReservedClassNames {
   public function testGlobalType() {
     asserts.assert(Object != cast js.lib.Object); // class Object is defined in another module
     asserts.assert(Promise != cast js.lib.Promise); // class Promise is defined in current module
+    asserts.assert(Collator != cast js.lib.intl.Collator); // Collator is a sub-type of Intl `@:native("Intl.Collator")`
     asserts.assert((cast js.lib.Promise)
       .name == 'Promise'); // we can actually reference the Promise module
     return asserts.done();
@@ -26,3 +27,4 @@ class TestReservedClassNames {
 }
 
 class Promise {}
+class Collator {}
