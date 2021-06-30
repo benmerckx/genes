@@ -27,7 +27,8 @@ Install the library and add `-lib genes` to your hxml.
   haxe js generator)
 - `-D genes.no_extension` do not use the '.js' extension in import paths
 - `-D genes.disable_native_accessors` do not generate native getter/setters for properties
-- `-D genes.banner` string to be inserted at the beginning of every generated js file
+- `-D genes.banner` string to be inserted at the beginning of every generated .js file
+- `-D genes.dts_banner` string to be inserted at the beginning of every generated .d.ts file
 
 ### Metadata
 

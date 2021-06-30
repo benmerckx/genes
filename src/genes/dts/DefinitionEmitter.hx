@@ -13,6 +13,10 @@ class DefinitionEmitter extends ModuleEmitter {
     final dependencies = module.typeDependencies;
     final endTimer = timer('emitDefinition');
     ctx.typeAccessor = dependencies.typeAccessor;
+    if (haxe.macro.Context.defined('genes.dts_banner')) {
+      write(haxe.macro.Context.definedValue('genes.dts_banner'));
+      writeNewline();
+    }
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path),
         imports);
