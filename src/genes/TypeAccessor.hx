@@ -32,7 +32,7 @@ abstract TypeAccessor(TypeAccessorImpl) from TypeAccessorImpl {
   @:from public static function fromBaseType(type: BaseType): TypeAccessor {
     final native = switch type.meta.extract(':native') {
       case [{params: [{expr: EConst(CString(name))}]}]:
-        if (GlobalTypes.exists(name)) 'Register.$$global.$name' else name;
+        /*if (GlobalTypes.exists(name)) 'Register.$$global.$name' else*/ name;
       default:
         switch type.meta.extract(':jsRequire') {
           case [{params: [_, {expr: EConst(CString(name))}]}]
