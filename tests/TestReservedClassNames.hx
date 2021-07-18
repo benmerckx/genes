@@ -1,6 +1,11 @@
 package tests;
 
 import tests.ExternalClass;
+#if (haxe >= version("4.1.0"))
+import Std.isOfType;
+#else
+import Std.is as isOfType;
+#end
 
 class Reserved extends Object {}
 
@@ -31,11 +36,11 @@ class TestReservedClassNames {
 
     final nativePromiseInst: Dynamic = Promise.native();
     trace(nativePromiseInst);
-    asserts.assert(Std.isOfType(nativePromiseInst, nativePromise));
+    asserts.assert(isOfType(nativePromiseInst, nativePromise));
 
     final customPromiseInst: Dynamic = Promise.custom();
     trace(customPromiseInst);
-    asserts.assert(Std.isOfType(customPromiseInst, customPromise));
+    asserts.assert(isOfType(customPromiseInst, customPromise));
 
     return asserts.done();
   }
