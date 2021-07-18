@@ -29,6 +29,14 @@ class TestReservedClassNames {
     asserts.assert(Type.getClassName(customPromise) == 'tests.Promise');
     // asserts.assert(customPromise.name == 'Promise'); // every js function has a `name`
 
+    final nativePromiseInst: Dynamic = Promise.native();
+    trace(nativePromiseInst);
+    asserts.assert(Std.isOfType(nativePromiseInst, nativePromise));
+
+    final customPromiseInst: Dynamic = Promise.custom();
+    trace(customPromiseInst);
+    asserts.assert(Std.isOfType(customPromiseInst, customPromise));
+
     return asserts.done();
   }
 }
@@ -36,11 +44,11 @@ class TestReservedClassNames {
 class Promise {
   public function new() {}
 
-  @:keep public function native(): js.lib.Promise<Dynamic> {
-    return new js.lib.Promise(null);
+  @:keep public static function native(): js.lib.Promise<Dynamic> {
+    return new js.lib.Promise((res, rej) -> {});
   }
 
-  @:keep public function custom(): Promise {
+  @:keep public static function custom(): Promise {
     return new Promise();
   }
 }
