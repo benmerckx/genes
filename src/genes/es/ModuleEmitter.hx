@@ -146,7 +146,7 @@ class ModuleEmitter extends ExprEmitter {
         case {isStatic: true, isPublic: true}:
           write('export const ');
           emitIdent(field.name);
-          write(' = ');
+          write(' = $$');
           emitIdent(TypeUtil.className(cl));
           emitField(field.name);
           writeNewline();
@@ -158,6 +158,7 @@ class ModuleEmitter extends ExprEmitter {
   function emitStatic(cl: ClassType, field: Field) {
     writeNewline();
     emitPos(field.pos);
+    write('$$');
     emitIdent(TypeUtil.className(cl));
     emitField(field.name);
     write(' = ');
@@ -168,7 +169,7 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     emitPos(field.pos);
     write(ctx.typeAccessor(registerType));
-    write('.createStatic(');
+    write('.createStatic($$');
     emitIdent(TypeUtil.className(cl));
     write(', ');
     emitString(field.name);
@@ -202,9 +203,15 @@ class ModuleEmitter extends ExprEmitter {
 
   function emitInterface(cl: ClassType) {
     writeNewline();
-    write('export const ');
+    write('const $$');
     write(TypeUtil.className(cl));
     write(' = {}');
+    writeNewline();
+    write('export { $$');
+    write(TypeUtil.className(cl));
+    write(' as ');
+    write(TypeUtil.className(cl));
+    write(' }');
     writeNewline();
   }
 
@@ -213,24 +220,11 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     emitComment(cl.doc);
     emitPos(cl.pos);
-    if (export)
-      write('export ');
 
     final id = cl.pack.concat([TypeUtil.className(cl)]).join('.');
-    if (id != 'genes.Register') {
-      write('const ');
-      write(TypeUtil.className(cl));
-      write(' = ');
-      writeGlobalVar("$hxClasses");
-      write('[');
-      emitString(id);
-      write(']');
-      write(' = ');
-      writeNewline();
-    }
 
     emitPos(cl.pos);
-    write('class ');
+    write('class $$');
     write(TypeUtil.className(cl));
     if (cl.superClass != null || hasConstructor(fields)) {
       write(' extends ');
@@ -358,7 +352,7 @@ class ModuleEmitter extends ExprEmitter {
     write('get __class__() {');
     increaseIndent();
     writeNewline();
-    write('return ');
+    write('return $$');
     emitIdent(TypeUtil.className(cl));
     decreaseIndent();
     writeNewline();
@@ -368,8 +362,25 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     write('}');
 
-    if (export)
+    if (export) {
       writeNewline();
+      write('export { $$');
+      write(TypeUtil.className(cl));
+      write(' as ');
+      write(TypeUtil.className(cl));
+      write(' }');
+      writeNewline();
+    }
+
+    if (id != 'genes.Register') {
+      writeGlobalVar("$hxClasses");
+      write('[');
+      emitString(id);
+      write(']');
+      write(' = $$');
+      write(TypeUtil.className(cl));
+      writeNewline();
+    }
   }
 
   function emitEnum(et: EnumType) {
@@ -377,14 +388,8 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     emitComment(et.doc);
     emitPos(et.pos);
-    write('export const ');
+    write('const $$');
     write(et.name);
-    write(' = ');
-    writeNewline();
-    writeGlobalVar("$hxEnums");
-    write('[');
-    emitString(id);
-    write(']');
     write(' = ');
     writeNewline();
     write('{');
@@ -428,10 +433,12 @@ class ModuleEmitter extends ExprEmitter {
     write('}');
     writeNewline();
 
+    write('$$');
     write(et.name);
     write('.__constructs__ = [');
     for (c in join(et.names, write.bind(', '))) {
       #if (haxe_ver >= 4.2)
+      write('$$');
       write(et.name);
       emitField(c);
       #else
@@ -441,6 +448,7 @@ class ModuleEmitter extends ExprEmitter {
     write(']');
     writeNewline();
 
+    write('$$');
     write(et.name);
     write('.__empty_constructs__ = [');
     final empty = [
@@ -448,10 +456,25 @@ class ModuleEmitter extends ExprEmitter {
         if (!et.constructs[name].type.match(TFun(_, _))) et.constructs[name]
     ];
     for (c in join(empty, write.bind(', '))) {
+      write('$$');
       write(et.name);
       emitField(c.name);
     }
     write(']');
     writeNewline();
+
+    write('export { $$');
+    write(et.name);
+    write(' as ');
+    write(et.name);
+    write(' }');
+    writeNewline();
+
+    writeGlobalVar("$hxEnums");
+    write('[');
+    emitString(id);
+    write(']');
+    write(' = $$');
+    write(et.name);
   }
 }
