@@ -5,7 +5,7 @@ import js.Syntax;
 
 class Register {
   @:keep @:native("$global")
-  public static final _global = js.Syntax.code('typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this');
+  public static final _global = js.Syntax.code('typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : undefined');
 
   static final globals = {}
 
@@ -36,9 +36,8 @@ class Register {
   }
 
   @:keep public static function iter<T>(a: Array<T>): Iterator<T> {
-    return untyped if (!Array.isArray(a))
-      js.Syntax.code('a.iterator()')
-    else untyped {
+    return untyped if (!Array.isArray(a)) js.Syntax.code('a.iterator()') else
+      untyped {
       cur: 0,
       arr: a,
       hasNext: function() {
