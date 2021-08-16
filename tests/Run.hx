@@ -17,6 +17,7 @@ class Run {
       new TestTypeAlias(), new TestSyntax(),
       #end
       new TestBind(),
+      new TestDefaultValue(),
       new TestImportAlias(),
       new TestMap(),
       new TestIterators(),
