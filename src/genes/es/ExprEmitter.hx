@@ -821,7 +821,7 @@ class ExprEmitter extends Emitter {
         TBlock([
           for (arg in f.args)
             switch arg.value {
-              case null:
+              case null | {expr: TConst(TNull)}:
                 continue;
               case value:
                 final ident = with(value, TIdent(getLocalIdent(arg.v.name)));
