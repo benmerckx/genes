@@ -44,6 +44,16 @@ class TestFunction {
     return asserts.done();
   }
 
+  public function testDefaultValueWithReservedName() {
+    var test = function(native = 1) return native;
+    
+    asserts.assert(test() == 1);
+    asserts.assert(test(null) == 1);
+    asserts.assert(test(2) == 2);
+    
+    return asserts.done();
+  }
+
   function getDefaultInt(a = 31) {
     return a;
   }

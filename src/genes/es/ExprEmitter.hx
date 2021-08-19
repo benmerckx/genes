@@ -710,9 +710,7 @@ class ExprEmitter extends Emitter {
   }
 
   function emitLocalIdent(name: String) {
-    if (keywords.exists(name) || keywordsLocal.exists(name))
-      write("$");
-    write(name);
+    write(getLocalIdent(name));
   }
 
   function emitStaticField(c: ClassType, s: String)
@@ -826,7 +824,7 @@ class ExprEmitter extends Emitter {
               case null:
                 continue;
               case value:
-                final ident = with(value, TIdent(arg.v.name));
+                final ident = with(value, TIdent(getLocalIdent(arg.v.name)));
                 {
                   t: value.t,
                   pos: value.pos,
@@ -839,5 +837,9 @@ class ExprEmitter extends Emitter {
         ].concat(body));
       case _: throw 'expected function body to be TBlock';
     });
+  }
+  
+  function getLocalIdent(name:String) {
+    return keywords.exists(name) || keywordsLocal.exists(name) ? '$$$name' : name;
   }
 }
