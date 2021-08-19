@@ -4,7 +4,6 @@ package tests;
 class TestDefaultValue {
   public function new() {}
 
-  @:exclude
   public function issue54() {
     asserts.assert(foo(1) == 1);
     asserts.assert(foo() == 42);
