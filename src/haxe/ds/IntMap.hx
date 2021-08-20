@@ -18,7 +18,7 @@ extern class IntMap<T> implements haxe.Constraints.IMap<Int, T> {
 #else
 class IntMap<T> extends genes.util.EsMap<Int, T> implements haxe.Constraints.IMap<Int, T> {
   public inline function copy(): IntMap<T> {
-    var copied = new genes.util.EsMap();
+    var copied = new IntMap();
     copied.inst = new js.lib.Map(inst);
     return cast copied;
   }
