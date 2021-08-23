@@ -274,7 +274,7 @@ class ModuleEmitter extends ExprEmitter {
               write('(');
               emitFunctionArguments(f);
               write(') ');
-              emitExpr(f.expr);
+              emitExpr(getFunctionBody(f));
             default:
           }
         case Property:

@@ -190,7 +190,7 @@ class ExprEmitter extends Emitter {
         write('function (');
         emitFunctionArguments(f);
         write(') ');
-        emitExpr(f.expr);
+        emitExpr(getFunctionBody(f));
         this.inValue = inValue;
         this.inLoop = inLoop;
       case TCall({
@@ -354,10 +354,12 @@ class ExprEmitter extends Emitter {
       if (isRest(arg.v.t))
         write('...');
       emitLocalIdent(arg.v.name);
-      if (arg.value != null) {
-        write(' = ');
-        emitValue(arg.value);
-      }
+
+      /* see getFunctionBody() and https://github.com/benmerckx/genes/issues/54 */
+      // if (arg.value != null) {
+      //   write(' = ');
+      //   emitValue(arg.value);
+      // }
     }
   }
 
@@ -708,9 +710,7 @@ class ExprEmitter extends Emitter {
   }
 
   function emitLocalIdent(name: String) {
-    if (keywords.exists(name) || keywordsLocal.exists(name))
-      write("$");
-    write(name);
+    write(getLocalIdent(name));
   }
 
   function emitStaticField(c: ClassType, s: String)
@@ -812,4 +812,34 @@ class ExprEmitter extends Emitter {
 
   function decreaseIndent()
     indent--;
+
+  // ref: https://github.com/HaxeFoundation/haxe/blob/6eb36b2aa38591203005ea30f8334e41de292111/src/core/texpr.ml#L542-L546
+  function getFunctionBody(f: TFunc) {
+    return with(f.expr, switch f.expr {
+      case {expr: TBlock(body)}:
+        // insert a `if(arg == null) arg = value` for each arg with default value
+        TBlock([
+          for (arg in f.args)
+            switch arg.value {
+              case null | {expr: TConst(TNull)}:
+                continue;
+              case value:
+                final ident = with(value, TIdent(getLocalIdent(arg.v.name)));
+                {
+                  t: value.t,
+                  pos: value.pos,
+                  expr: TIf(with(value,
+                    TParenthesis(with(value,
+                      TBinop(OpEq, ident, with(value, TConst(TNull)))))),
+                    with(value, TBinop(OpAssign, ident, value)), null),
+                }
+            }
+        ].concat(body));
+      case _: throw 'expected function body to be TBlock';
+    });
+  }
+  
+  function getLocalIdent(name:String) {
+    return keywords.exists(name) || keywordsLocal.exists(name) ? '$$$name' : name;
+  }
 }
