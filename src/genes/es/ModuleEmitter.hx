@@ -28,6 +28,13 @@ class ModuleEmitter extends ExprEmitter {
       emitImports(if (imports[0].external) path else module.toPath(path),
         imports, extension);
     endImportTimer();
+    if (module.module != 'genes.Register' && ctx.hasFeature('js.Lib.global')) {
+      writeNewline();
+      write("const $global = ");
+      write(ctx.typeAccessor(registerType));
+      write(".$global");
+      writeNewline();
+    }
     for (member in module.members)
       switch member {
         case MClass(cl, _, fields) if (cl.isInterface):

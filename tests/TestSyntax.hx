@@ -27,6 +27,14 @@ class TestSyntax {
     return assert(js.Syntax.code("parseFloat({0})", new Foo().foo()) == 100);
   }
 
+  // benmerckx/genes#57
+  public function testGlobal() {
+    untyped global.a = 1;
+    asserts.assert(js.Lib.global.a == 1);
+    asserts.assert(js.Syntax.code('{0}', js.Lib.global.a) == 1);
+    return asserts.done();
+  }
+
   // benmerckx/genes#27
   public function testCodeTypeAccessor() {
     asserts.assert(js.Syntax.code('{0}', ComponentA) == ComponentA);
