@@ -192,13 +192,16 @@ class Dependencies {
     return switch type {
       case Abstract(name): name;
       case Concrete(module, name, native):
-        if (native != null && native.indexOf('.') > -1)
+        if (native != null && native.indexOf('.') >= -1)
           return native;
         final deps = imports.get(module);
         if (deps != null)
           for (i in deps)
             if (i.name == name)
               return if (i.alias != null) i.alias else i.name;
-        return name;
+        return switch name {
+          case 'String' | 'Array' | 'Math': name;
+          case _: "$" + name;
+        }
     }
 }

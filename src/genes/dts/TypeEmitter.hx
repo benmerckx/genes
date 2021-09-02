@@ -21,7 +21,7 @@ class TypeEmitter {
       params: Array<Type>, withConstraints = false) {
     final write = writer.write, emitPos = writer.emitPos;
     emitPos(type.pos);
-    write(writer.typeAccessor(type));
+    write(writer.typeAccessor(type).substr(1));
     emitParams(writer, params, withConstraints);
   }
 

@@ -64,7 +64,7 @@ class Genes {
           case [module]:
             final setup = [
               for (sub in module.types)
-                macro js.Syntax.code($v{'var ${sub.name} = module.${sub.name}'})
+                macro js.Syntax.code($v{'var $$${sub.name} = module.${sub.name}'})
             ];
 
             final list = [for (sub in module.types) macro $v{sub.fullname}];
@@ -83,7 +83,7 @@ class Genes {
 
             for (i in 0...modules.length) {
               for (sub in modules[i].types) {
-                setup.push(macro js.Syntax.code($v{'var ${sub.name} = modules[$i].${sub.name}'}));
+                setup.push(macro js.Syntax.code($v{'var $$${sub.name} = modules[$i].${sub.name}'}));
                 ignores.push(macro $v{sub.fullname});
               }
             }
