@@ -181,6 +181,8 @@ class Module {
             case {t: t}: dependencies.add(TClassDecl(t));
           }
           for (field in fields) {
+            if (field.tsType != null)
+              continue;
             addParams(field.params.map(p -> p.t));
             addType(field.type);
           }
