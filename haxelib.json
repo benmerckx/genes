@@ -1,14 +1,14 @@
 {
-	"name": "genes",
-	"license": "MIT",
-	"tags": ["js"],
-	"classPath": "src",
-	"description": "Generates split ES6 modules and Typescript definitions from Haxe modules.",
-	"contributors": ["benmerckx"],
-	"releasenote": "See repository",
-	"version": "0.4.1",
-	"url": "https://github.com/benmerckx/genes",
-	"dependencies": {
-		"helder.set": "0.3.0"
-	}
+  "name": "genes",
+  "license": "MIT",
+  "tags": ["js"],
+  "classPath": "src",
+  "description": "Generates split ES6 modules and Typescript definitions from Haxe modules.",
+  "contributors": ["benmerckx"],
+  "releasenote": "See repository",
+  "version": "0.4.2",
+  "url": "https://github.com/benmerckx/genes",
+  "dependencies": {
+    "helder.set": "0.3.0"
+  }
 }
