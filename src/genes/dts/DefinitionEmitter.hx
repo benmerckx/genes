@@ -248,7 +248,15 @@ class DefinitionEmitter extends ModuleEmitter {
               write(')');
               if (!field.kind.match(Constructor)) {
                 write(': ');
-                emitType(ret);
+                switch field.meta {
+                  case null:
+                    emitType(ret);
+                  case _.extract(':genes.returnType') =>
+                    [{params: [{expr: EConst(CString(type))}]}]:
+                    write(type);
+                  default:
+                    emitType(ret);
+                }
               }
             default: throw 'assert';
           }

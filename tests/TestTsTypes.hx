@@ -34,6 +34,9 @@ class TestTsTypes {
 
   public function new() {}
 
+  @:keep @:genes.returnType('string')
+  function changeReturn() {}
+
   public function testType() {
     asserts.assert(types.contains('export type X1<T> = T'));
     asserts.assert(types.contains('type Overwritten = number'));
@@ -42,6 +45,7 @@ class TestTsTypes {
     asserts.assert(types.contains('import {ExternalEnum} from'));
     asserts.assert(types.contains('a: param2'));
     asserts.assert(types.contains('<param1'));
+    asserts.assert(types.contains('changeReturn(): string'));
     return asserts.done();
   }
 }

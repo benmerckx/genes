@@ -33,6 +33,7 @@ Install the library and add `-lib genes` to your hxml.
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `@:genes.disableNativeAccessors` | on class level or field level to disable generation of native getter/setters for properties                 |
 | `@:genes.type('MyType')`         | overwrite Typescript type in declarations (use on: class, class properties, typedef, type parameters, ....) |
+| `@:genes.returnType('MyType')`   | overwrite Typescript return type in declarations (use on functions)                                         |
 
 ## Dynamic imports
 

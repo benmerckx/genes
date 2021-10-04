@@ -22,6 +22,7 @@ enum FieldKind {
 
 typedef Field = {
   final kind: FieldKind;
+  final meta: Null<MetaAccess>;
   final name: String;
   final type: Type;
   final expr: TypedExpr;
@@ -274,6 +275,7 @@ class Module {
         fields.push({
           kind: Constructor,
           type: e.t,
+          meta: null,
           expr: e,
           pos: e.pos,
           name: 'new',
@@ -298,6 +300,7 @@ class Module {
           case FVar(_, _): Property;
           case FMethod(_): Method;
         },
+        meta: field.meta,
         name: field.name,
         type: field.type,
         expr: field.expr(),
@@ -328,6 +331,7 @@ class Module {
           case FVar(_, _): Property;
           case FMethod(_): Method;
         },
+        meta: field.meta,
         name: field.name,
         type: field.type,
         expr: field.expr(),
