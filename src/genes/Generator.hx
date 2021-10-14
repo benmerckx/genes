@@ -166,25 +166,28 @@ class Generator {
   #if macro
   public static function use() {
     #if !genes.disable
-    Context.onGenerate(types -> {
-      generation++;
-      final pos = Context.currentPos();
-      for (type in types) {
-        switch type {
-          case TEnum((_.get() : BaseType) => base, _) |
-            TInst((_.get() : BaseType) => base, _) |
-            TType((_.get() : BaseType) => base, _):
-            base.meta.add(':genes.generate', [
-              {
-                expr: ExprDef.EConst(CInt(Std.string(generation))),
-                pos: pos
-              }
-            ], pos);
-          default:
+    if (Context.defined('js')) {
+      Compiler.include('genes.Register');
+      Context.onGenerate(types -> {
+        generation++;
+        final pos = Context.currentPos();
+        for (type in types) {
+          switch type {
+            case TEnum((_.get() : BaseType) => base, _) |
+              TInst((_.get() : BaseType) => base, _) |
+              TType((_.get() : BaseType) => base, _):
+              base.meta.add(':genes.generate', [
+                {
+                  expr: ExprDef.EConst(CInt(Std.string(generation))),
+                  pos: pos
+                }
+              ], pos);
+            default:
+          }
         }
-      }
-    });
-    Compiler.setCustomJSGenerator(Generator.generate);
+      });
+      Compiler.setCustomJSGenerator(Generator.generate);
+    }
     #end
   }
   #end
