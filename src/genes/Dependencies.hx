@@ -192,7 +192,7 @@ class Dependencies {
     return switch type {
       case Abstract(name): name;
       case Concrete(module, name, native):
-        if (native != null && native.indexOf('.') > -1)
+        if (native != null)
           return native;
         final deps = imports.get(module);
         if (deps != null)

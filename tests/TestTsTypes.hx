@@ -11,6 +11,9 @@ typedef __A = {a: Int}
 typedef __B = {b: String}
 @:genes.type('number') typedef Overwritten = Dynamic;
 
+@:native('renamed')
+typedef Rename = String;
+
 @:keep
 enum TestEnumConstraints<T:__A> {
   CTor<A:__A>
@@ -40,6 +43,7 @@ class TestTsTypes {
   public function testType() {
     asserts.assert(types.contains('export type X1<T> = T'));
     asserts.assert(types.contains('type Overwritten = number'));
+    asserts.assert(types.contains('type renamed = string'));
     asserts.assert(types.contains('prop: number'));
     asserts.assert(types.contains('T extends __A & __B'));
     asserts.assert(types.contains('import {ExternalEnum} from'));
