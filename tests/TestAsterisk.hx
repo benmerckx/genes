@@ -7,8 +7,8 @@ class TestAsterisk {
   public function new() {}
 
   public function enumAbstract() {
-    asserts.assert(Dummy.A == 1);
-    asserts.assert(Dummy.B == 2);
+    asserts.assert((Dummy.A : Int) == 1);
+    asserts.assert((Dummy.B : Int) == 2);
     return asserts.done();
   }
 }
