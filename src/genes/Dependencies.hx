@@ -92,8 +92,11 @@ class Dependencies {
       switch base.meta.extract(':jsRequire') {
         case [{params: [{expr: EConst(CString(path))}]}]:
           final cl: ClassType = cast base;
-          final isWildcard = switch [cl.fields.get(), cl.statics.get()] {
-            case [fields, statics]:
+          final isWildcard = switch [cl.kind, cl.fields.get(), cl.statics.get()] {
+            case [KAbstractImpl(_.get() => {meta: meta}), _, _]
+              if (meta.has(':enum')):
+              true;
+            case [_, fields, statics]:
               cl.kind.equals(KNormal)
               && !cl.isInterface
               && cl.superClass == null
@@ -101,6 +104,7 @@ class Dependencies {
               && fields.length == 0
               && statics.filter(st -> st.meta.has(':selfCall')).length == 0;
           }
+
           return {
             type: if (isWildcard) DAsterisk else DDefault,
             name: name,

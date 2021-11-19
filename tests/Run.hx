@@ -16,6 +16,7 @@ class Run {
       new TestCycle2(), new TestComments(), new TestTsTypes(),
       new TestTypeAlias(), new TestSyntax(),
       #end
+      new TestAsterisk(),
       new TestBind(),
       new TestImportAlias(),
       new TestMap(),
