@@ -36,7 +36,7 @@ abstract TypeAccessor(TypeAccessorImpl) from TypeAccessorImpl {
       default:
         switch type.meta.extract(':jsRequire') {
           case [{params: [_, {expr: EConst(CString(name))}]}]
-            if (name != 'default'):
+            if (name != 'default' && name.contains('.')):
             name;
           default: null;
         }
