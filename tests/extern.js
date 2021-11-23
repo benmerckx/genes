@@ -15,3 +15,10 @@ export class ExtendHaxeClass extends ExternalClass {
 export const Dropdown = function() {}
 Dropdown.Header = DummyClass
 Dropdown.Menu = DummyClass
+
+export class MyClass {
+  constructor() {}
+  toString() {
+    return 'baz'
+  }
+}
