@@ -37,6 +37,9 @@ class TestTsTypes {
 
   public function new() {}
 
+  @:keep @:genes.type('() => void')
+  function overwriteFunctionType() {}
+
   @:keep @:genes.returnType('string')
   function changeReturn() {}
 
@@ -44,6 +47,7 @@ class TestTsTypes {
     asserts.assert(types.contains('export type X1<T> = T'));
     asserts.assert(types.contains('type Overwritten = number'));
     asserts.assert(types.contains('type renamed = string'));
+    asserts.assert(types.contains('overwriteFunctionType: () => void'));
     asserts.assert(types.contains('prop: number'));
     asserts.assert(types.contains('T extends __A & __B'));
     asserts.assert(types.contains('import {ExternalEnum} from'));

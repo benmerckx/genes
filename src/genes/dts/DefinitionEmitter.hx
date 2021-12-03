@@ -213,49 +213,58 @@ class DefinitionEmitter extends ModuleEmitter {
               emitPos(field.pos);
               write(if (field.kind.equals(Constructor)) 'constructor' else
                 field.name);
-              if (field.params.length > 0)
-                emitParams(field.params.map(p -> p.t), true);
-              write('(');
-              var optionalPos = args.length;
-              for (i in 0...args.length) {
-                final fromEnd = args.length - 1 - i;
-                if (args[fromEnd].opt)
-                  optionalPos = fromEnd;
-                else
-                  break;
+              final tsType = switch field.meta != null ? field.meta.extract(':genes.type') : [] {
+                case [{params: [{expr: EConst(CString(type))}]}]:
+                  type;
+                default: null;
               }
-              for (i in joinIt(0...args.length, write.bind(', '))) {
-                final arg = args[i];
-                if (TypeUtil.isRest(arg.t))
-                  write('...');
-                emitIdent(arg.name);
-                if (arg.opt && i >= optionalPos)
-                  write('?');
-                write(': ');
-                switch field.expr {
-                  case null:
-                    emitType(arg.t);
-                  case {expr: TFunction(f)}:
-                    final meta = f.args[i].v.meta;
-                    switch meta.extract(':genes.type') {
-                      case [{params: [{expr: EConst(CString(type))}]}]: write(type);
-                      default: emitType(arg.t);
-                    }
-                  default:
-                    emitType(arg.t);
+              if (tsType != null) {
+                write(': $tsType');
+              } else {
+                if (field.params.length > 0)
+                  emitParams(field.params.map(p -> p.t), true);
+                write('(');
+                var optionalPos = args.length;
+                for (i in 0...args.length) {
+                  final fromEnd = args.length - 1 - i;
+                  if (args[fromEnd].opt)
+                    optionalPos = fromEnd;
+                  else
+                    break;
                 }
-              }
-              write(')');
-              if (!field.kind.match(Constructor)) {
-                write(': ');
-                switch field.meta {
-                  case null:
-                    emitType(ret);
-                  case _.extract(':genes.returnType') =>
-                    [{params: [{expr: EConst(CString(type))}]}]:
-                    write(type);
-                  default:
-                    emitType(ret);
+                for (i in joinIt(0...args.length, write.bind(', '))) {
+                  final arg = args[i];
+                  if (TypeUtil.isRest(arg.t))
+                    write('...');
+                  emitIdent(arg.name);
+                  if (arg.opt && i >= optionalPos)
+                    write('?');
+                  write(': ');
+                  switch field.expr {
+                    case null:
+                      emitType(arg.t);
+                    case {expr: TFunction(f)}:
+                      final meta = f.args[i].v.meta;
+                      switch meta.extract(':genes.type') {
+                        case [{params: [{expr: EConst(CString(type))}]}]: write(type);
+                        default: emitType(arg.t);
+                      }
+                    default:
+                      emitType(arg.t);
+                  }
+                }
+                write(')');
+                if (!field.kind.match(Constructor)) {
+                  write(': ');
+                  switch field.meta {
+                    case null:
+                      emitType(ret);
+                    case _.extract(':genes.returnType') =>
+                      [{params: [{expr: EConst(CString(type))}]}]:
+                      write(type);
+                    default:
+                      emitType(ret);
+                  }
                 }
               }
             default: throw 'assert';
