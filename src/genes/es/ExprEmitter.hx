@@ -783,7 +783,7 @@ class ExprEmitter extends Emitter {
       case OpIn: ' in ';
     });
 
-  function writeNewline() {
+  public function writeNewline() {
     write('\n');
     for (i in 0...indent)
       write('\t');
@@ -807,10 +807,10 @@ class ExprEmitter extends Emitter {
 
   // Utilities
 
-  function increaseIndent()
+  public function increaseIndent()
     indent++;
 
-  function decreaseIndent()
+  public function decreaseIndent()
     indent--;
 
   // ref: https://github.com/HaxeFoundation/haxe/blob/6eb36b2aa38591203005ea30f8334e41de292111/src/core/texpr.ml#L542-L546

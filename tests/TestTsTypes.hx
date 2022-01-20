@@ -36,6 +36,8 @@ class TsMethods<T:{}> {
   public function typeConstraints<T: (__A & __B)>() {}
 
   public function testParamType<@:genes.type('param1') T>(@:genes.type('param2') a: Int) {}
+
+  public function testInlineAnonymous(a: {a: String, b: String}) {}
 }
 
 @:asserts

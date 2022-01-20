@@ -151,8 +151,12 @@ class Module {
       return typeDependencies;
     final endTimer = timer('typeDependencies');
     final dependencies = new Dependencies(this, false);
+    final noop = function() {}
     final writer = {
       write: function(code: String) {},
+      writeNewline: noop,
+      increaseIndent: noop,
+      decreaseIndent: noop,
       emitComment: function(comment: String) {},
       emitPos: function(pos) {},
       includeType: function(type: Type) {

@@ -11,7 +11,10 @@ using haxe.macro.Tools;
 
 typedef TypeWriter = {
   function write(code: String): Void;
+  function writeNewline(): Void;
   function emitComment(comment: String): Void;
+  function increaseIndent(): Void;
+  function decreaseIndent(): Void;
   function emitPos(pos: SourcePosition): Void;
   function includeType(type: Type): Void;
   function typeAccessor(type: TypeAccessor): String;
@@ -110,7 +113,9 @@ class TypeEmitter {
         }
       case TAnonymous(_.get() => anon):
         write('{');
+        writer.increaseIndent();
         for (field in join(anon.fields, write.bind(', '))) {
+          writer.writeNewline();
           emitPos(field.pos);
           if (field.doc != null)
             writer.emitComment(field.doc);
@@ -126,6 +131,8 @@ class TypeEmitter {
           }
           emitType(writer, field.type, false);
         }
+        writer.decreaseIndent();
+        writer.writeNewline();
         write('}');
       case TType(_.get() => dt, params):
         switch [dt, params] {
