@@ -727,7 +727,7 @@ class ExprEmitter extends Emitter {
       write('.${name}');
   }
 
-  function emitComment(text: Null<String>) {
+  public function emitComment(text: Null<String>) {
     if (text == null)
       return;
     final comment = text.trim();
@@ -838,8 +838,9 @@ class ExprEmitter extends Emitter {
       case _: throw 'expected function body to be TBlock';
     });
   }
-  
-  function getLocalIdent(name:String) {
-    return keywords.exists(name) || keywordsLocal.exists(name) ? '$$$name' : name;
+
+  function getLocalIdent(name: String) {
+    return keywords.exists(name)
+      || keywordsLocal.exists(name) ? '$$$name' : name;
   }
 }

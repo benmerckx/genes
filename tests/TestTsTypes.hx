@@ -11,6 +11,15 @@ typedef __A = {a: Int}
 typedef __B = {b: String}
 @:genes.type('number') typedef Overwritten = Dynamic;
 
+/** Typedef comment */
+typedef Comments = {
+  /** Typedef prop comment **/
+  var prop: String;
+
+  /** Typedef prop2 comment **/
+  var prop2: Int;
+}
+
 @:native('renamed')
 typedef Rename = String;
 
@@ -54,6 +63,9 @@ class TestTsTypes {
     asserts.assert(types.contains('a: param2'));
     asserts.assert(types.contains('<param1'));
     asserts.assert(types.contains('changeReturn(): string'));
+    asserts.assert(types.contains('Typedef comment'));
+    asserts.assert(types.contains('Typedef prop comment'));
+    asserts.assert(types.contains('Typedef prop2 comment'));
     return asserts.done();
   }
 }

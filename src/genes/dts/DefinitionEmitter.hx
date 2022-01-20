@@ -41,6 +41,7 @@ class DefinitionEmitter extends ModuleEmitter {
 
   function emitTypeDefinition(def: DefType, params: Array<Type>) {
     writeNewline();
+    emitComment(def.doc);
     emitPos(def.pos);
     write('export type ');
     emitBaseType(def, params, true);
@@ -61,6 +62,7 @@ class DefinitionEmitter extends ModuleEmitter {
       default: throw 'assert';
     });
     writeNewline();
+    emitComment(et.doc);
     emitPos(et.pos);
     write('export declare namespace ');
     write(et.name);

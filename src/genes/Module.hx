@@ -153,6 +153,7 @@ class Module {
     final dependencies = new Dependencies(this, false);
     final writer = {
       write: function(code: String) {},
+      emitComment: function(comment: String) {},
       emitPos: function(pos) {},
       includeType: function(type: Type) {
         dependencies.add(TypeUtil.typeToModuleType(type));
