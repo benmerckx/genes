@@ -211,7 +211,10 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     write('export const ');
     write(TypeUtil.className(cl));
-    write(' = {}');
+    write(' = function() {};');
+    writeNewline();
+    write(TypeUtil.className(cl));
+    write('.__isInterface__ = true;');
     writeNewline();
   }
 
