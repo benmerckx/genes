@@ -43,8 +43,11 @@ class Genes {
               modules.push({
                 name: module,
                 importExpr: {
-                  final path = PathUtil.relative(current.replace('.', '/'),
+                  var path = PathUtil.relative(current.replace('.', '/'),
                     module.replace('.', '/'));
+                  #if !genes.no_extension
+                  path += ".js";
+                  #end
                   macro js.Syntax.code('import({0})', $v{path});
                 },
                 types: [
