@@ -70,7 +70,7 @@ class ModuleEmitter extends ExprEmitter {
     #if genes.no_extension
     emitString(from);
     #else
-    emitString(if (extension != null) '$from.$extension' else from);
+    emitString(if (extension != null) '$from$extension' else from);
     #end
   }
 
@@ -121,7 +121,7 @@ class ModuleEmitter extends ExprEmitter {
         isExternal = true;
         break;
       }
-    emitString(if (!isExternal && extension != null) '$where.$extension' else
+    emitString(if (!isExternal && extension != null) '$where$extension' else
       where);
     #end
     writeNewline();

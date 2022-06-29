@@ -19,6 +19,8 @@ class Generator {
   static function generate(api: JSGenApi) {
     final toGenerate = typesPerModule(api.types);
     final output = Path.withoutExtension(Path.withoutDirectory(api.outputFile));
+    final extension = Path.extension(api.outputFile);
+    Genes.outExtension = extension.length > 0 ? '.$extension' : extension;
     final modules = new Map();
     final expose: Map<String, ModuleExport> = new Map();
     final concrete = [];
@@ -141,13 +143,12 @@ class Generator {
 
   static function generateModule(api: JSGenApi, module: Module) {
     final outputDir = Path.directory(api.outputFile);
-    final extension = Path.extension(api.outputFile);
-    final path = [Path.join([outputDir, module.path]), extension].join('.');
+    final path = Path.join([outputDir, module.path]) + Genes.outExtension;
     final definition = [Path.join([outputDir, module.path]), 'd.ts'].join('.');
     final ctx = module.createContext(api);
     final moduleEmitter = new ModuleEmitter(ctx,
       Writer.bufferedFileWriter(path));
-    moduleEmitter.emitModule(module, extension);
+    moduleEmitter.emitModule(module, Genes.outExtension);
     #if (debug || js_source_map)
     moduleEmitter.emitSourceMap(path + '.map', true);
     #end

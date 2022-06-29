@@ -21,6 +21,8 @@ private typedef ImportedModule = {
 #end
 
 class Genes {
+  @:persistent public static var outExtension: String = '.js';
+
   macro public static function dynamicImport<T, R>(expr: ExprOf<T->
     R>): ExprOf<js.lib.Promise<R>> {
     final pos = Context.currentPos();
@@ -44,7 +46,11 @@ class Genes {
                 name: module,
                 importExpr: {
                   final path = PathUtil.relative(current.replace('.', '/'),
-                    module.replace('.', '/'));
+                    module.replace('.', '/'))
+                  #if !genes.no_extension
+                  + outExtension
+                  #end
+                  ;
                   macro js.Syntax.code('import({0})', $v{path});
                 },
                 types: [

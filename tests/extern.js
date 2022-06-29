@@ -1,4 +1,4 @@
-import {ExternalClass} from '../bin/tests/ExternalClass'
+import {ExternalClass} from '../bin/tests/ExternalClass.js'
 
 const DummyClass = function (num) {
   this.test = num
