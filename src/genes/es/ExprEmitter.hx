@@ -781,6 +781,9 @@ class ExprEmitter extends Emitter {
       case OpInterval: '...';
       case OpArrow: '=>';
       case OpIn: ' in ';
+      #if (haxe_ver >= 4.3)
+      case OpNullCoal: '??';
+      #end
     });
 
   public function writeNewline() {
