@@ -30,7 +30,10 @@ class Genes {
     return switch expr.expr {
       case EFunction(_, {args: args, expr: body}):
         final current = Context.getLocalClass().get().module;
-        final ret = Context.typeExpr(body).t.toComplexType();
+        final ret = switch Context.typeExpr(body).t.toComplexType() {
+          case null: (macro:Dynamic);
+          case v: v;
+        }
 
         final modules: Array<ImportedModule> = [];
 
