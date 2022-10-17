@@ -1,4 +1,5 @@
 {
+  "editor.inlayHints.enabled": "off",
   "haxe.executable": {
     "path": "node_modules/.bin/haxe",
     "windows": {
