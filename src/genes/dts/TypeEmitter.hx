@@ -143,7 +143,8 @@ class TypeEmitter {
           default:
             switch dt.type {
               case TInst(_.get() => {isExtern: true}, _):
-                emitType(writer, dt.type);
+                emitType(writer,
+                  dt.type.applyTypeParameters(dt.params, params));
               case TAbstract(t = _.get() => {
                 pack: ["haxe", "extern"],
                 name: "EitherType"
