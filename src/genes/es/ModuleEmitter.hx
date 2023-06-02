@@ -162,11 +162,17 @@ class ModuleEmitter extends ExprEmitter {
     #end
   }
 
+  function staticName(cl: ClassType, field: Field)
+    return switch [cl.isExtern, field.name] {
+      case [false, name = 'name' | 'length']: '$' + name;
+      default: field.name;
+    }
+
   function emitStatic(cl: ClassType, field: Field) {
     writeNewline();
     emitPos(field.pos);
     emitIdent(TypeUtil.className(cl));
-    emitField(field.name);
+    emitField(staticName(cl, field));
     write(' = ');
     emitValue(field.expr);
   }
@@ -178,7 +184,7 @@ class ModuleEmitter extends ExprEmitter {
     write('.createStatic(');
     emitIdent(TypeUtil.className(cl));
     write(', ');
-    emitString(field.name);
+    emitString(staticName(cl, field));
     write(', function () { return ');
     emitValue(field.expr);
     write(' })');
@@ -278,9 +284,12 @@ class ModuleEmitter extends ExprEmitter {
                 writeNewline();
               emitComment(field.doc);
               emitPos(field.pos);
-              if (field.isStatic)
+              if (field.isStatic) {
                 write('static ');
-              write(field.name);
+                write(staticName(cl, field));
+              } else {
+                write(field.name);
+              }
               write('(');
               emitFunctionArguments(f);
               write(') ');
