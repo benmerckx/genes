@@ -277,7 +277,10 @@ class ExprEmitter extends Emitter {
         this.inLoop = true;
         write('do ');
         emitExpr(e);
-        write('; while ');
+        switch e.expr {
+          case TBlock(el): write(' while ');
+          case _: write('; while ');
+        }
         emitValue(cond);
         this.inLoop = inLoop;
       case TObjectDecl(fields):
