@@ -434,12 +434,25 @@ class ModuleEmitter extends ExprEmitter {
             write(': ');
             emitLocalIdent(param.name);
           }
+          if (haxe.macro.Context.defined('genes.enum_discriminator')) {
+            write(', ');
+            emitString(haxe.macro.Context.definedValue('genes.enum_discriminator'));
+            write(': ');
+            emitString(name);
+          }
           write('}), {_hx_name: "${name}", __params__: [');
           for (param in join(args, write.bind(', ')))
             emitString(param.name);
           write(']})');
         default:
-          write('{_hx_name: "${name}", _hx_index: ${c.index}, __enum__: "${id}"}');
+          write('{_hx_name: "${name}", _hx_index: ${c.index}, __enum__: "${id}"');
+          if (haxe.macro.Context.defined('genes.enum_discriminator')) {
+            write(', ');
+            emitString(haxe.macro.Context.definedValue('genes.enum_discriminator'));
+            write(': ');
+            emitString(name);
+          }
+          write('}');
       }
     }
     decreaseIndent();
