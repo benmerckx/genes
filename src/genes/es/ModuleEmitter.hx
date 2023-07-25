@@ -392,6 +392,7 @@ class ModuleEmitter extends ExprEmitter {
   }
 
   function emitEnum(et: EnumType) {
+    final discriminator = haxe.macro.Context.definedValue('genes.enum_discriminator');
     final id = et.pack.concat([et.name]).join('.');
     writeNewline();
     emitComment(et.doc);
@@ -434,9 +435,9 @@ class ModuleEmitter extends ExprEmitter {
             write(': ');
             emitLocalIdent(param.name);
           }
-          if (haxe.macro.Context.defined('genes.enum_discriminator')) {
+          if (discriminator != null) {
             write(', ');
-            emitString(haxe.macro.Context.definedValue('genes.enum_discriminator'));
+            emitString(discriminator);
             write(': ');
             emitString(name);
           }
@@ -446,9 +447,9 @@ class ModuleEmitter extends ExprEmitter {
           write(']})');
         default:
           write('{_hx_name: "${name}", _hx_index: ${c.index}, __enum__: "${id}"');
-          if (haxe.macro.Context.defined('genes.enum_discriminator')) {
+          if (discriminator != null) {
             write(', ');
-            emitString(haxe.macro.Context.definedValue('genes.enum_discriminator'));
+            emitString(discriminator);
             write(': ');
             emitString(name);
           }
