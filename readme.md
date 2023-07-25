@@ -53,12 +53,12 @@ Roughly translates to:
 
 ```js
 import("./my/module/A")
-	.then(({ A }) => new A())
-	.then(console.log);
+  .then(({ A }) => new A())
+  .then(console.log);
 
 Promise.all([import("./my/module/B"), import("./my/module/C")])
-	.then((modules) => [new modules[0].B(), new modules[1].C()])
-	.then(console.log);
+  .then((modules) => [new modules[0].B(), new modules[1].C()])
+  .then(console.log);
 ```
 
 Genes expects a function declaration expression (`EFunction`) as the sole argument of `dynamicImport` and it will do 2 things:
