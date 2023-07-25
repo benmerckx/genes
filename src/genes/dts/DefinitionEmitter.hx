@@ -74,8 +74,15 @@ class DefinitionEmitter extends ModuleEmitter {
       write('export type ');
       write(name);
       emitParams(params, true);
-      write(' = ');
-      write('{_hx_index: ${c.index}');
+      write(' = {');
+      final discriminator = haxe.macro.Context.definedValue('genes.enum_discriminator');
+      if (discriminator != null) {
+        emitString(discriminator);
+        write(': ');
+        emitString(name);
+        write(', ');
+      }
+      write('_hx_index: ${c.index}');
       switch c.type {
         case TFun(args, ret):
           for (arg in args) {
