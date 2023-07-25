@@ -25,10 +25,14 @@ typedef Rename = String;
 
 @:keep
 enum TestEnumConstraints<T:__A> {
-  CTor<A:__A>
-  (_ : Int) : TestEnumConstraints<A>;
-  TestImportTypeConstraint<X:ExternalEnum>
-  (_ : Int);
+  CTor<A:__A>(_: Int):TestEnumConstraints<A>;
+  TestImportTypeConstraint<X:ExternalEnum>(_: Int);
+}
+
+@:keep
+enum BasicEnum {
+  A;
+  B(value: String);
 }
 
 @:keep
@@ -68,6 +72,10 @@ class TestTsTypes {
     asserts.assert(types.contains('Typedef comment'));
     asserts.assert(types.contains('Typedef prop comment'));
     asserts.assert(types.contains('Typedef prop2 comment'));
+
+    // benmerckx/genes#70
+    asserts.assert(types.contains('"$$kind": "A", '));
+    asserts.assert(types.contains('"$$kind": "B", '));
     return asserts.done();
   }
 }
