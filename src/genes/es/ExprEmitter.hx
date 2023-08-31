@@ -34,7 +34,7 @@ class ExprEmitter extends Emitter {
   var inLoop: Bool = false;
   var extendsExtern: Option<TypeAccessor> = None;
 
-  var declare = 'var'; // #if (haxe_ver >= 4.1) 'let'; #else 'var'; #end
+  var declare = #if (js_es == 6) 'let'; #else 'var'; #end
 
   public function emitExpr(e: TypedExpr) {
     emitPos(e.pos);

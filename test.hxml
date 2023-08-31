@@ -11,5 +11,6 @@
 -js bin/tests.js
 --times 
 -D macro-times
+-D js-es=6
 
 -D genes.enum_discriminator=$kind
