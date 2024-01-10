@@ -35,18 +35,19 @@ class Register {
     });
   }
 
-  @:keep public static function iter<T>(a: Array<T>): Iterator<T> {
-    return untyped if (!Array.isArray(a)) js.Syntax.code('a.iterator()') else
-      untyped {
-      cur: 0,
-      arr: a,
-      hasNext: function() {
-        return __this__.cur < __this__.arr.length;
-      },
-      next: function() {
-        return __this__.arr[__this__.cur++];
-      }
-    }
+  @:keep public static function iterator<T>(a: Array<T>): Void->Iterator<T> {
+    return if (!untyped Array.isArray(a))
+      js.Syntax.code('typeof a.iterator === "function" ? a.iterator.bind(a) : a.iterator') else
+      mkIter.bind(a);
+  }
+
+  @:keep public static function getIterator<T>(a: Array<T>): Iterator<T> {
+    return if (!untyped Array.isArray(a)) js.Syntax.code('a.iterator()') else
+      mkIter(a);
+  }
+
+  @:keep static function mkIter<T>(a: Array<T>): Iterator<T> {
+    return new ArrayIterator(a);
   }
 
   @:keep public static function extend(superClass) {
@@ -105,5 +106,22 @@ class Register {
       o.hx__closures__[m.__id__] = f;
     }
     return f;
+  }
+}
+
+private class ArrayIterator<T> {
+  final array: Array<T>;
+  var current: Int = 0;
+
+  public function new(array: Array<T>) {
+    this.array = array;
+  }
+
+  public function hasNext() {
+    return current < array.length;
+  }
+
+  public function next() {
+    return array[current++];
   }
 }
