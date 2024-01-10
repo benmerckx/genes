@@ -3,10 +3,14 @@ package tests;
 import tink.unit.Assert.*;
 
 // benmerckx/genes#72
+
 class TestClass {
-  public static function iterator() {
-    var array: Array<Int> = [42];
-    return array.iterator();
+  public static function testIterator(a: String) {
+    return iterator(a);
+  }
+
+  public static function iterator(a: String) {
+    return a;
   }
 }
 
@@ -23,7 +27,25 @@ class TestIterators {
     return assert(x.iterator().next() == 0);
   }
 
-  public function testGetIteratorName() {
-    return assert(TestClass.iterator().next() == 42);
+  public function testIteratorName() {
+    return assert(TestClass.testIterator('ok') == 'ok');
+  }
+
+  public function testDynamicIteratorExpr() {
+    final a: Dynamic = {
+      iterator: 0
+    }
+    return assert(a.iterator == 0);
+  }
+
+  public function testDynamicArrayIterator() {
+    final a: Dynamic = [0];
+    return assert(a.iterator().next() == 0);
+  }
+
+  public function testDynamicArrayIteratorProperty() {
+    final a: Dynamic = [0];
+    final x = a.iterator;
+    return assert(x().next() == 0);
   }
 }

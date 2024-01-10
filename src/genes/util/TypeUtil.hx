@@ -60,20 +60,20 @@ class TypeUtil {
       case FDynamic(n): n;
     }
 
-  public static function isDynamicIterator(e: TypedExpr): Bool
-    return switch e.expr {
-      case TField(x, f) if (fieldName(f) == "iterator"):
-        switch Context.followWithAbstracts(x.t) {
-          case TInst(_.get() => {name: 'Array'}, _) |
-            TInst(_.get() => {kind: KTypeParameter(_)}, _) | TAnonymous(_) |
-            TDynamic(_) | TMono(_):
-            true;
-          case _:
-            false;
-        }
+  // https://github.com/HaxeFoundation/haxe/blob/682b8e3407cf04bb0b81275d6543cc9c45e00e89/src/generators/genjs.ml#L251
+  static function isDynamicType(type: Type): Bool {
+    return switch Context.followWithAbstracts(type) {
+      case TInst(_.get() => {name: 'Array', pack: []}, _) |
+        TInst(_.get() => {kind: KTypeParameter(_)}, _) | TAnonymous(_) |
+        TDynamic(_) | TMono(_):
+        true;
       case _:
         false;
     }
+  }
+
+  public static function isDynamicIterator(x: TypedExpr): Bool
+    return isDynamicType(x.t);
 
   public static function posInfo(fields: Array<{name: String, expr: TypedExpr}>)
     return switch [fields[0], fields[1]] {

@@ -61,13 +61,14 @@ class ExprEmitter extends Emitter {
         writeBinop(op);
         writeSpace();
         emitValue(e2);
-      case TField(x, f) if (fieldName(f) == "iterator" && isDynamicIterator(e)):
+      case TField(x, f) if (fieldName(f) == "iterator" && isDynamicIterator(x)):
         ctx.addFeature("use.$iterator");
-        write("$iterator(");
+        write(ctx.typeAccessor(registerType));
+        write('.iterator(');
         emitValue(x);
-        write(")");
+        write(')');
       case TUnop(op, postFix, fe = {expr: TField(x, f)})
-        if (fieldName(f) == 'iterator' && isDynamicIterator(fe)):
+        if (fieldName(f) == 'iterator' && isDynamicIterator(x)):
         switch postFix {
           case false:
             writeUnop(op);
@@ -417,10 +418,10 @@ class ExprEmitter extends Emitter {
         else
           emitValue(eelse);
       case [TField(x, f), []]
-        if (fieldName(f) == "iterator" && isDynamicIterator(e)):
+        if (fieldName(f) == "iterator" && isDynamicIterator(x)):
         ctx.addFeature("use.$getIterator");
         write(ctx.typeAccessor(registerType));
-        write('.iter(');
+        write('.getIterator(');
         emitValue(x);
         write(')');
       case [TConst(TSuper), args]:
