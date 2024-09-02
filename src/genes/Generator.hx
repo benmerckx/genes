@@ -81,9 +81,12 @@ class Generator {
       case v: v;
     }, api.main, [for (t in expose) t]);
 
-    for (module => types in toGenerate)
-      if (module != output)
-        addModule(module, types);
+    for (module => types in toGenerate) {
+      if (module.toLowerCase() == output.toLowerCase())
+        Context.error('Genes: Module name "${module}" is the same as the output file name "${output}".',
+          Context.currentPos());
+      addModule(module, types);
+    }
     for (module in modules) {
       if (needsGen(module))
         generateModule(api, module);
