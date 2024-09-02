@@ -435,7 +435,10 @@ class ExprEmitter extends Emitter {
           case Some(t):
             write(ctx.typeAccessor(t));
             write('.call(this, ');
-          case None: write('super.new(');
+          case None:
+            write('super[');
+            write(ctx.typeAccessor(registerType));
+            write('.new](');
         }
         for (param in join(args, write.bind(', ')))
           emitValue(param);

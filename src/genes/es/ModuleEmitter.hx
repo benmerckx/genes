@@ -287,6 +287,10 @@ class ModuleEmitter extends ExprEmitter {
               if (field.isStatic) {
                 write('static ');
                 write(staticName(cl, field));
+              } else if (field.kind.equals(Constructor)) {
+                write('[');
+                write(ctx.typeAccessor(registerType));
+                write('.new]');
               } else {
                 write(field.name);
               }
@@ -386,6 +390,20 @@ class ModuleEmitter extends ExprEmitter {
     decreaseIndent();
     writeNewline();
     write('}');
+
+    for (field in fields)
+      switch field.kind {
+        case Property:
+          if (!field.getter && !field.setter && !field.isStatic) {
+            writeNewline();
+            emitIdent(TypeUtil.className(cl));
+            write('.prototype.');
+            emitPos(field.pos);
+            write(field.name);
+            write(' = null;');
+          }
+        default:
+      }
 
     if (export)
       writeNewline();

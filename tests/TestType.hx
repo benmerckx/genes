@@ -18,9 +18,28 @@ enum TestTypeEnum {
   C(param: Int);
 }
 
+// https://github.com/benmerckx/genes/issues/77
+class MySuperType {
+  @:keep var bar = 2;
+}
+
+class MyType extends MySuperType {
+  @:keep var foo = 1;
+
+  public function new() {}
+}
+
 @:asserts
 class TestType {
   public function new() {}
+
+  @:include
+  public function testInstanceFields() {
+    final fields = Type.getInstanceFields(MyType);
+    asserts.assert(fields[0] == 'foo');
+    asserts.assert(fields[1] == 'bar');
+    return asserts.done();
+  }
 
   public function testAllEnums() {
     final enums = Type.allEnums(TestTypeEnum);
