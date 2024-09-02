@@ -33,7 +33,6 @@ class MyType extends MySuperType {
 class TestType {
   public function new() {}
 
-  @:include
   public function testInstanceFields() {
     final fields = Type.getInstanceFields(MyType);
     asserts.assert(fields[0] == 'foo');
