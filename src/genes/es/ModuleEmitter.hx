@@ -231,20 +231,6 @@ class ModuleEmitter extends ExprEmitter {
     emitPos(cl.pos);
     if (export)
       write('export ');
-
-    final id = cl.pack.concat([TypeUtil.className(cl)]).join('.');
-    if (id != 'genes.Register') {
-      write('const ');
-      write(TypeUtil.className(cl));
-      write(' = ');
-      writeGlobalVar("$hxClasses");
-      write('[');
-      emitString(id);
-      write(']');
-      write(' = ');
-      writeNewline();
-    }
-
     emitPos(cl.pos);
     write('class ');
     write(TypeUtil.className(cl));
@@ -387,26 +373,39 @@ class ModuleEmitter extends ExprEmitter {
     writeNewline();
     write('}');
 
+    final id = cl.pack.concat([TypeUtil.className(cl)]).join('.');
+    if (id != 'genes.Register') {
+      writeNewline();
+      write('static {');
+      increaseIndent();
+      writeNewline();
+      writeGlobalVar("$hxClasses");
+      write('[');
+      emitString(id);
+      write(']');
+      write(' = this;');
+
+      for (field in fields)
+        switch field.kind {
+          case Property:
+            if (!field.getter && !field.setter && !field.isStatic) {
+              writeNewline();
+              write('this.prototype.');
+              emitPos(field.pos);
+              write(field.name);
+              write(' = null;');
+            }
+          default:
+        }
+
+      decreaseIndent();
+      writeNewline();
+      write('}');
+    }
+
     decreaseIndent();
     writeNewline();
     write('}');
-
-    for (field in fields)
-      switch field.kind {
-        case Property:
-          if (!field.getter && !field.setter && !field.isStatic) {
-            writeNewline();
-            emitIdent(TypeUtil.className(cl));
-            write('.prototype.');
-            emitPos(field.pos);
-            write(field.name);
-            write(' = null;');
-          }
-        default:
-      }
-
-    if (export)
-      writeNewline();
   }
 
   function emitEnum(et: EnumType) {
