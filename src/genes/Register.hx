@@ -73,7 +73,7 @@ class Register {
         if (resolve && resolve[Register.init]) {
           defer = true
           res[Register.init] = () => {
-            resolve[Register.init]()
+            if (resolve[Register.init]) resolve[Register.init]()
             Object.setPrototypeOf(res.prototype, resolve.prototype)
             res[Register.init] = undefined
           } 
