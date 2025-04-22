@@ -1,5 +1,0 @@
-/dist
-/.cache
-/node_modules
-/yarn.lock
-/static/app.js*

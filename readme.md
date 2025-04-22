@@ -12,6 +12,10 @@ Requires Haxe 4+
 
 Install the library and add `-lib genes` to your hxml.
 
+## Examples
+
+- [OpenFL and genes](https://github.com/joshtynjala/openfl-genes-sample) by [joshtynjala](https://github.com/joshtynjala)
+
 ### Defines
 
 | Define                                                                                                                                   | Description                                                                                                                                                                                                                    |
