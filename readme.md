@@ -14,7 +14,7 @@ Install the library and add `-lib genes` to your hxml.
 
 ## Examples
 
-- [OpenFL and genes](https://github.com/joshtynjala/openfl-genes-sample) by [joshtynjala](https://github.com/joshtynjala)
+- [Compile OpenFL with Genes Sample](https://github.com/joshtynjala/openfl-genes-sample) by [joshtynjala](https://github.com/joshtynjala)
 
 ### Defines
 
