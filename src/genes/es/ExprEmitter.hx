@@ -286,6 +286,7 @@ class ExprEmitter extends Emitter {
         emitExpr(e);
         switch e.expr {
           case TBlock(el): write(' while ');
+          case TSwitch(_): write(' while ');
           case _: write('; while ');
         }
         emitValue(cond);
