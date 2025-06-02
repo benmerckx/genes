@@ -11,21 +11,91 @@ using haxe.macro.TypedExprTools;
 
 class ExprEmitter extends Emitter {
   static final keywords = new Set([
-    'abstract', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'class',
-    'const', 'continue', 'debugger', 'default', 'delete', 'do', 'double',
-    'else', 'enum', 'export', 'extends', 'false', 'final', 'finally', 'float',
-    'for', 'function', 'goto', 'if', 'implements', 'import', 'in',
-    'instanceof', 'int', 'interface', 'long', 'native', 'new', 'null',
-    'package', 'private', 'protected', 'public', 'return', 'short', 'static',
-    'super', 'switch', 'synchronized', 'this', 'throw', 'throws', 'transient',
-    'true', 'try', 'typeof', 'var', 'void', 'volatile', 'while', 'with',
-    'arguments', 'eval', 'let', 'yield'
+    'abstract',
+    'boolean',
+    'break',
+    'byte',
+    'case',
+    'catch',
+    'char',
+    'class',
+    'const',
+    'continue',
+    'debugger',
+    'default',
+    'delete',
+    'do',
+    'double',
+    'else',
+    'enum',
+    'export',
+    'extends',
+    'false',
+    'final',
+    'finally',
+    'float',
+    'for',
+    'function',
+    'goto',
+    'if',
+    'implements',
+    'import',
+    'in',
+    'instanceof',
+    'int',
+    'interface',
+    'long',
+    'native',
+    'new',
+    'null',
+    'package',
+    'private',
+    'protected',
+    'public',
+    'return',
+    'short',
+    'static',
+    'super',
+    'switch',
+    'synchronized',
+    'this',
+    'throw',
+    'throws',
+    'transient',
+    'true',
+    'try',
+    'typeof',
+    'var',
+    'void',
+    'volatile',
+    'while',
+    'with',
+    'arguments',
+    'eval',
+    'let',
+    'yield'
   ]);
   static final keywordsLocal = new Set([
-    "Infinity", "NaN", "decodeURI", "decodeURIComponent", "encodeURI",
-    "encodeURIComponent", "escape", "eval", "isFinite", "isNaN", "parseFloat",
-    "parseInt", "undefined", "unescape", "JSON", "Number", "Object",
-    "console", "window", "require"
+    "Infinity",
+    "NaN",
+    "decodeURI",
+    "decodeURIComponent",
+    "encodeURI",
+    "encodeURIComponent",
+    "escape",
+    "eval",
+    "isFinite",
+    "isNaN",
+    "parseFloat",
+    "parseInt",
+    "undefined",
+    "unescape",
+    "JSON",
+    "Number",
+    "Object",
+    "console",
+    "window",
+    "require"
   ]);
 
   var indent: Int = 0;
@@ -282,13 +352,13 @@ class ExprEmitter extends Emitter {
       case TWhile(cond, e, false):
         final inLoop = this.inLoop;
         this.inLoop = true;
-        write('do ');
+        write('do {');
+        increaseIndent();
+        writeNewline();
         emitExpr(e);
-        switch e.expr {
-          case TBlock(el): write(' while ');
-          case TSwitch(_): write(' while ');
-          case _: write('; while ');
-        }
+        decreaseIndent();
+        writeNewline();
+        write('} while ');
         emitValue(cond);
         this.inLoop = inLoop;
       case TObjectDecl(fields):

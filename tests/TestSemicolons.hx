@@ -16,6 +16,19 @@ class TestSemicolons {
     return assert(href);
   }
 
+  // benmerckx/genes#80
+  public function testWhileSwitch() {
+    var x = 0;
+    do
+      switch x {
+        case 0:
+          x++;
+        default:
+          break;
+      } while (x == 0);
+    return assert(true);
+  }
+
   // benmerckx/genes#16
   public function testHxOverridesInit() {
     #if (haxe_ver >= 4.1)
