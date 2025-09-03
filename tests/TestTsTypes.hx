@@ -44,11 +44,24 @@ class TsMethods<T:{}> {
   public function testInlineAnonymous(a: {a: String, b: String}) {}
 }
 
+@:keep
+class ParametrizedStaticVarInClass<T:{}> {
+  public static final CLASS_INST: ParametrizedStaticVarInClass<String> = null;
+}
+
+@:keep
+abstract ParametrizedStaticVarInAbstract<T>(Int) {
+  public static final ABSTRACT_INST: ParametrizedStaticVarInAbstract<String> = null;
+}
+
 @:asserts
 class TestTsTypes {
   var types = sourceCode(true);
 
   @:genes.type('number') @:keep public final prop = 'string';
+
+  @:keep final v1 = ParametrizedStaticVarInClass.CLASS_INST; // ensure the types are generated
+  @:keep final v2 = ParametrizedStaticVarInAbstract.ABSTRACT_INST; // ensure the types are generated
 
   public function new() {}
 
@@ -76,6 +89,19 @@ class TestTsTypes {
     // benmerckx/genes#70
     asserts.assert(types.contains('"$$kind": "A", '));
     asserts.assert(types.contains('"$$kind": "B", '));
+    return asserts.done();
+  }
+
+  // https://github.com/benmerckx/genes/issues/50
+  public function testIssue50() {
+    asserts.assert(types.contains('static CLASS_INST: ParametrizedStaticVarInClass<string>'));
+    asserts.assert(types.contains('static ABSTRACT_INST: number'));
+    return asserts.done();
+  }
+
+  public function testCompile() {
+    // make sure TS compiler approves the generated codes
+    asserts.assert(Sys.command('tsc', ['bin/tests.d.ts']) == 0);
     return asserts.done();
   }
 }
