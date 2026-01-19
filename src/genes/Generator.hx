@@ -8,7 +8,9 @@ import haxe.io.Path;
 import genes.es.ModuleEmitter;
 import genes.dts.DefinitionEmitter;
 import genes.util.TypeUtil;
+import genes.util.PathUtil;
 import genes.Module;
+import haxe.Json;
 
 using Lambda;
 using StringTools;
@@ -87,10 +89,42 @@ class Generator {
           Context.currentPos());
       addModule(module, types);
     }
+    final needsHxClasses = api.hasFeature('Type.resolveClass');
+    final needsHxEnums = api.hasFeature('Type.resolveEnum');
+    final generatedModules = [];
+    final hxClassEntries = [];
+    final hxEnumEntries = [];
     for (module in modules) {
-      if (needsGen(module))
-        generateModule(api, module);
+      if (needsGen(module)) {
+        generatedModules.push(module);
+        for (member in module.members)
+          switch member {
+            case MClass(cl, _, _):
+              hxClassEntries.push({
+                module: module,
+                className: TypeUtil.className(cl),
+                fullName: cl.pack.concat([TypeUtil.className(cl)]).join('.')
+              });
+            case MEnum(et, _):
+              hxEnumEntries.push({
+                module: module,
+                enumName: et.name,
+                fullName: et.pack.concat([et.name]).join('.')
+              });
+            default:
+          }
+      }
     }
+    for (module in generatedModules)
+      generateModule(api, module);
+    final wantsHxClasses = needsHxClasses
+      || generatedModules.exists(m -> m.needsHxClassesImport);
+    final wantsHxEnums = needsHxEnums
+      || generatedModules.exists(m -> m.needsHxEnumsImport);
+    if (wantsHxClasses)
+      generateHxClasses(api, hxClassEntries);
+    if (wantsHxEnums)
+      generateHxEnums(api, hxEnumEntries);
   }
 
   static function needsGen(module: Module) {
@@ -165,6 +199,83 @@ class Generator {
     #end
     definitionEmitter.finish();
     #end
+  }
+
+  static function generateHxClasses(api: JSGenApi,
+      classes: Array<{module: Module, className: String, fullName: String}>) {
+    final outputDir = Path.directory(api.outputFile);
+    final hxClassesModule = "$" + "hxClasses";
+    final path = Path.join([outputDir, hxClassesModule]) + Genes.outExtension;
+    final writer = Writer.bufferedFileWriter(path);
+    inline function writeln(value: String) {
+      writer.write(value);
+      writer.write('\n');
+    }
+    inline function quote(value: String)
+      return Json.stringify(value);
+    function withExtension(value: String) {
+      #if genes.no_extension
+      return value;
+      #else
+      return if (Genes.outExtension != null) value
+        + Genes.outExtension else value;
+      #end
+    }
+    classes.sort((a, b) -> Reflect.compare(a.fullName, b.fullName));
+    if (classes.length == 0) {
+      writeln('export {}');
+    } else {
+      for (entry in classes) {
+        final importPath = PathUtil.relative(hxClassesModule,
+          entry.module.path);
+        writeln('export {'
+          + entry.className
+          + ' as '
+          + quote(entry.fullName)
+          + '} from '
+          + quote(withExtension(importPath))
+          + ';');
+      }
+    }
+    writer.close();
+  }
+
+  static function generateHxEnums(api: JSGenApi,
+      enums: Array<{module: Module, enumName: String, fullName: String}>) {
+    final outputDir = Path.directory(api.outputFile);
+    final hxEnumsModule = "$" + "hxEnums";
+    final path = Path.join([outputDir, hxEnumsModule]) + Genes.outExtension;
+    final writer = Writer.bufferedFileWriter(path);
+    inline function writeln(value: String) {
+      writer.write(value);
+      writer.write('\n');
+    }
+    inline function quote(value: String)
+      return Json.stringify(value);
+    function withExtension(value: String) {
+      #if genes.no_extension
+      return value;
+      #else
+      return if (Genes.outExtension != null) value
+        + Genes.outExtension else value;
+      #end
+    }
+    enums.sort((a, b) -> Reflect.compare(a.fullName, b.fullName));
+    if (enums.length == 0) {
+      writeln('export {}');
+    } else {
+      for (entry in enums) {
+        final importPath = PathUtil.relative(hxEnumsModule, entry.module.path);
+        writeln('export {'
+          + entry.enumName
+          + ' as '
+          + quote(entry.fullName)
+          + '} from '
+          + quote(withExtension(importPath))
+          + ';');
+      }
+    }
+    writer.close();
   }
 
   #if macro

@@ -23,6 +23,10 @@ class ModuleEmitter extends ExprEmitter {
       write(haxe.macro.Context.definedValue('genes.banner'));
       writeNewline();
     }
+    if (module.needsHxClassesImport)
+      emitHxImport(module.toPath("$" + "hxClasses"), "hxClasses", extension);
+    if (module.needsHxEnumsImport)
+      emitHxImport(module.toPath("$" + "hxEnums"), "hxEnums", extension);
     var endImportTimer = timer('emitImports');
     for (path => imports in dependencies.imports)
       emitImports(if (imports[0].external) path else module.toPath(path),
@@ -123,6 +127,18 @@ class ModuleEmitter extends ExprEmitter {
       }
     emitString(if (!isExternal && extension != null) '$where$extension' else
       where);
+    #end
+    writeNewline();
+  }
+
+  function emitHxImport(where: String, alias: String, ?extension: String) {
+    write('import * as $');
+    write(alias);
+    write(' from ');
+    #if genes.no_extension
+    emitString(where);
+    #else
+    emitString(if (extension != null) '$where$extension' else where);
     #end
     writeNewline();
   }
@@ -231,20 +247,6 @@ class ModuleEmitter extends ExprEmitter {
     emitPos(cl.pos);
     if (export)
       write('export ');
-
-    final id = cl.pack.concat([TypeUtil.className(cl)]).join('.');
-    if (id != 'genes.Register') {
-      write('const ');
-      write(TypeUtil.className(cl));
-      write(' = ');
-      writeGlobalVar("$hxClasses");
-      write('[');
-      emitString(id);
-      write(']');
-      write(' = ');
-      writeNewline();
-    }
-
     emitPos(cl.pos);
     write('class ');
     write(TypeUtil.className(cl));
@@ -417,12 +419,6 @@ class ModuleEmitter extends ExprEmitter {
     emitPos(et.pos);
     write('export const ');
     write(et.name);
-    write(' = ');
-    writeNewline();
-    writeGlobalVar("$hxEnums");
-    write('[');
-    emitString(id);
-    write(']');
     write(' = ');
     writeNewline();
     write('{');

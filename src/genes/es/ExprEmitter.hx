@@ -125,6 +125,11 @@ class ExprEmitter extends Emitter {
         writeBinop(op);
         writeSpace();
         emitValue(e2);
+      case TBinop(OpAssign, {expr: TArray({expr: TIdent("$hxClasses")}, _)},
+        e2):
+        emitValue(e2);
+      case TBinop(OpAssign, {expr: TArray({expr: TIdent("$hxEnums")}, _)}, e2):
+        emitValue(e2);
       case TBinop(op, e1, e2):
         emitValue(e1);
         writeSpace();
@@ -421,9 +426,9 @@ class ExprEmitter extends Emitter {
         write(ctx.typeAccessor(t));
         write(')');
       case TIdent("$hxEnums"):
-        writeGlobalVar("$hxEnums");
+        write("$hxEnums");
       case TIdent("$hxClasses"):
-        writeGlobalVar("$hxClasses");
+        write("$hxClasses");
       case TIdent(s):
         write(s);
       default:

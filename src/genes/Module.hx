@@ -63,6 +63,8 @@ class Module {
   public final path: String;
   public final members: Array<Member> = [];
   public final expose: Array<ModuleExport> = [];
+  public var needsHxClassesImport: Bool = false;
+  public var needsHxEnumsImport: Bool = false;
   public var typeDependencies(get, null): Dependencies;
   public var codeDependencies(get, null): Dependencies;
 
@@ -92,7 +94,7 @@ class Module {
           switch Context.followWithAbstracts(tt.type) {
             case TEnum(_.get() => t, _): addIfConcrete(t);
             case TInst(t = _.get() => {
-              kind: KNormal
+              kind:KNormal
               #if (haxe_ver >= 4.2)
               | KModuleFields(_)
               #end
@@ -221,7 +223,17 @@ class Module {
       return codeDependencies;
     final endTimer = timer('codeDependencies');
     final dependencies = new Dependencies(this);
+    function markHxImports(e: TypedExpr) {
+      if (e == null)
+        return;
+      if (e.expr.match(TIdent("$hxClasses")))
+        needsHxClassesImport = true;
+      if (e.expr.match(TIdent("$hxEnums")))
+        needsHxEnumsImport = true;
+      e.iter(markHxImports);
+    }
     function addFromExpr(e: TypedExpr) {
+      markHxImports(e);
       for (type in TypeUtil.typesInExpr(e))
         dependencies.add(type);
     }
