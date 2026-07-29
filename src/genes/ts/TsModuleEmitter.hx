@@ -1015,6 +1015,33 @@ class TsModuleEmitter extends JsModuleEmitter {
     }
   }
 
+  /**
+   * Emits a class constructor where Haxe runtime reflection requires a
+   * JavaScript `Function`.
+   *
+   * Why: a generated class can declare an unrelated static `toString` or
+   * `apply` whose signature conflicts with TypeScript's structural Function
+   * interface. The runtime value is still the ES class constructor and
+   * therefore still a Function.
+   *
+   * What/How: the typed `TsReflectionClassValue` proof decides whether this
+   * exact class surface needs `Register.unsafeCast<Function>`. The callback
+   * prints the original local or imported class expression once. Callers use
+   * this helper only for `__interfaces__`, `__super__`, `__class__`, and
+   * runtime registration; ordinary class values remain fully structural.
+   */
+  function emitReflectedFunctionClassValue(owner: ClassType,
+      emitClassValue: () -> Void): Void {
+    final needsBridge = TsReflectionClassValue.needsFunctionBridge(owner);
+    if (needsBridge) {
+      write(ctx.typeAccessor(TypeUtil.registerType));
+      write('.unsafeCast<Function>(');
+    }
+    emitClassValue();
+    if (needsBridge)
+      write(')');
+  }
+
   function emitTsClass(checkCycles: (module: String) -> Bool, cl: ClassType,
       fields: Array<GenesField>, export = true, registerRuntimeType = true) {
     final prevClass = currentClass;
@@ -1329,8 +1356,11 @@ class TsModuleEmitter extends JsModuleEmitter {
         increaseIndent();
         writeNewline();
         write('return [');
-        for (i in join(v, write.bind(', ')))
-          write(ctx.typeAccessor(i.t.get()));
+        for (i in join(v, write.bind(', '))) {
+          final interfaceType = i.t.get();
+          emitReflectedFunctionClassValue(interfaceType,
+            () -> write(ctx.typeAccessor(interfaceType)));
+        }
         write(']');
         decreaseIndent();
         writeNewline();
@@ -1339,13 +1369,16 @@ class TsModuleEmitter extends JsModuleEmitter {
 
     switch cl.superClass {
       case null:
-      case {t: TClassDecl(_) => t}:
+      case {t: superRef}:
+        final t: ModuleType = TClassDecl(superRef);
         writeNewline();
         write('static get __super__(): Function {');
         increaseIndent();
         writeNewline();
         write('return ');
-        write(ctx.typeAccessor(t));
+        final superType = superRef.get();
+        emitReflectedFunctionClassValue(superType,
+          () -> write(ctx.typeAccessor(t)));
         decreaseIndent();
         writeNewline();
         write('}');
@@ -1356,7 +1389,8 @@ class TsModuleEmitter extends JsModuleEmitter {
     increaseIndent();
     writeNewline();
     write('return ');
-    emitIdent(TypeUtil.className(cl));
+    emitReflectedFunctionClassValue(cl,
+      () -> emitIdent(TypeUtil.className(cl)));
     decreaseIndent();
     writeNewline();
     write('}');
@@ -1377,7 +1411,8 @@ class TsModuleEmitter extends JsModuleEmitter {
       write('.setHxClass(');
       emitString(id);
       write(', ');
-      emitIdent(TypeUtil.className(cl));
+      emitReflectedFunctionClassValue(cl,
+        () -> emitIdent(TypeUtil.className(cl)));
       write(');');
       writeNewline();
     }

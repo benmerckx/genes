@@ -22,6 +22,10 @@ export const acceptanceOwnedFocusedGates = [
   {
     packageScript: "test:array-index-strict",
     compiledScript: "scripts/dist/test-array-index-strict.js"
+  },
+  {
+    packageScript: "test:reflection-class-values",
+    compiledScript: "scripts/dist/test-reflection-class-values.js"
   }
 ] as const;
 

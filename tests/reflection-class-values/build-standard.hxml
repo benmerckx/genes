@@ -1,0 +1,8 @@
+-lib genes-ts
+-cp tests/reflection-class-values/src
+--main reflectionclassvalues.Main
+-js tests/reflection-class-values/out/standard/index.cjs
+-D genes.disable
+-D no-deprecation-warnings
+-D js-es=6
+-dce full

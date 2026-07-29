@@ -68,6 +68,7 @@
     "test:acceptance": "yarn build:scripts && node scripts/dist/test-acceptance.js",
     "test:ts2hx": "yarn --cwd tools/ts2hx test",
     "test:array-index-strict": "yarn build:scripts && node scripts/dist/test-array-index-strict.js",
+    "test:reflection-class-values": "yarn build:scripts && node scripts/dist/test-reflection-class-values.js",
     "test:ci": "yarn test:codeql-workflow && yarn test:main-protection-policy && yarn test:tooling-release-workflow && yarn test:precommit-hook && yarn test:secrets && yarn test:vulns && yarn test:versions && yarn test:agent-guides && yarn test:null-safety && yarn test:artifact-transaction-protocol && yarn test:artifact-tooling && yarn test:tooling-package && yarn test:compatibility-report && yarn test:matrix:api && yarn test:types:exports && yarn test:react-hooks && yarn test && yarn test:template-literals && yarn test:classic:dts && yarn test:library-profile && cross-env SKIP_CLASSIC=1 SKIP_TS2HX=1 yarn test:acceptance && yarn test:ts2hx",
     "test:genes-ts": "yarn build:scripts && node scripts/dist/test-genes-ts.js",
     "test:explicit-type-arguments": "yarn build:scripts && node scripts/dist/test-explicit-type-arguments.js",
